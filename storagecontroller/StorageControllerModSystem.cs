@@ -1,7 +1,7 @@
 ﻿using Vintagestory.API.Common;
 using Vintagestory.API.Server;
 using Vintagestory.API.Client;
-
+using storagecontroller;
 
 namespace StorageController
 {
@@ -16,6 +16,12 @@ namespace StorageController
             base.StartPre(api);
             if (api is ICoreClientAPI) { capi=api as ICoreClientAPI; }
             else if (api is ICoreServerAPI) { sapi=api as ICoreServerAPI; }
+        }
+
+        public override void Start(ICoreAPI api)
+        {
+            base.Start(api);
+            api.RegisterBlockEntityClass("StorageControllerMaster", typeof(StorageControllerMaster));
         }
     }
 }
