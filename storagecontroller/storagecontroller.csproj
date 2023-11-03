@@ -41,13 +41,13 @@
   <Content Include="assets\**">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
   </Content>
+  <None Remove="assets\storagecontroller\blocktypes\storagecontroller.json" />
   <Content Include="modinfo.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
   </Content>
 </ItemGroup>
 
 <ItemGroup>
-  <Folder Include="assets\storagecontroller\blocktypes\" />
   <Folder Include="assets\storagecontroller\itemtypes\" />
 </ItemGroup>
 
