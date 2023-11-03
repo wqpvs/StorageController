@@ -1,0 +1,13 @@
+{
+    "type": "code",
+    "modid": "storagecontroller",
+    "name": "Storage Controller",
+    "authors": [
+        "WQP"
+    ],
+    "description": "Adds a central block for sorting storage",
+    "version": "1.0.0",
+    "dependencies": {
+        "game": ""
+    }
+}
