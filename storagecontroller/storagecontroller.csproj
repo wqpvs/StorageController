@@ -42,13 +42,10 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
   </Content>
   <None Remove="assets\storagecontroller\blocktypes\storagecontroller.json" />
+  <None Remove="assets\storagecontroller\itemtypes\storagelinker.json" />
   <Content Include="modinfo.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
   </Content>
-</ItemGroup>
-
-<ItemGroup>
-  <Folder Include="assets\storagecontroller\itemtypes\" />
 </ItemGroup>
 
 </Project>

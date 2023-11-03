@@ -22,6 +22,7 @@ namespace StorageController
         {
             base.Start(api);
             api.RegisterBlockEntityClass("StorageControllerMaster", typeof(StorageControllerMaster));
+            api.RegisterItemClass("ItemStorageLinker",typeof(ItemStorageLinker));
         }
     }
 }

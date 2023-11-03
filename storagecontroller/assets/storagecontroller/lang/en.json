@@ -1,3 +1,4 @@
 {
-    "storagecontroller-*": "Storage Controller"
+    "block-storagecontroller-*": "Storage Controller",
+    "item-storagelinker-*": "Storage Linker"
 }

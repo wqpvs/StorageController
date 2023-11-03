@@ -53,7 +53,7 @@
 		{ code:"side", loadFromProperties: "abstract/horizontalorientation" }
 	],
 	"creativeinventory": {
-		"general": [ "*-east" ]
+		"storagecontroller": [ "*-east" ]
 		
 	},
 	
