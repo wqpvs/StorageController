@@ -21,7 +21,7 @@ namespace storagecontroller
 
         public void OnServerTick(float dt)
         {
-            //Need to locate containers
+            //Manage linked container list
             // - only check so many blocks per tick
 
             //Need to populate containers if this container has inventory
