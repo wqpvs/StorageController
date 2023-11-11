@@ -33,18 +33,19 @@ namespace storagecontroller
             if (targetentity is StorageControllerMaster) {
                 slot.Itemstack.Attributes.SetBlockPos(islkey, blockSel.Position);
                 slot.Itemstack.Attributes.SetString(isldesc, blockSel.Position.ToLocalPosition(api).ToString());
-                if (api is ICoreServerAPI)
-                {
-                    slot.MarkDirty();
-                }
+                slot.MarkDirty();
                 handling = EnumHandHandling.Handled;
                 return;
             }
 
             //otherwise we will see if it's a valid storage device and tell controller about it
-            
+            BlockEntityGenericTypedContainer targetcont=targetentity as BlockEntityGenericTypedContainer;
+            if ( targetentity==null)
+            {
+                return;
+            }
             //quit if islkey is not set
-            if (!slot.Itemstack.Attributes.HasAttribute(islkey)) { base.OnHeldInteractStart(slot, byEntity, blockSel, entitySel, firstEvent, ref handling); return; }
+            if (!slot.Itemstack.Attributes.HasAttribute(islkey+"X")) { base.OnHeldInteractStart(slot, byEntity, blockSel, entitySel, firstEvent, ref handling); return; }
 
             //Check for valid SCM
             BlockPos scmpos = slot.Itemstack.Attributes.GetBlockPos(islkey);

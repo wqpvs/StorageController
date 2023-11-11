@@ -30,7 +30,7 @@ namespace storagecontroller
         {
             //Check if we have any inventory to bother with
             if (this.Inventory == null || this.Inventory.Empty) { return; }
-            
+            if (containerlist==null||containerlist.Count==0) { return; }
             //Manage linked container list
             // - only check so many blocks per tick
             List<BlockPos> prunelist = new List<BlockPos>(); //This is a list of invalid blockpos that should be deleted from list
@@ -55,7 +55,82 @@ namespace storagecontroller
             // - from list of container first find a stack or locked container with inventory
             // - then push in inventory if possible
             // - otherwise look for empty slots we can put our inventory into
+            // TO FIX:
+            //  - doesn't add to partial stacks
 
+            List<ItemSlot> populatedslots = new List<ItemSlot>();
+            List<ItemSlot> emptyslots = new List<ItemSlot>();
+            foreach (BlockEntityGenericTypedContainer cont in validcontainers)
+            {
+                if (cont == null||cont.Inventory==null) { continue; }
+                //if the inventory is empty we'll just add all the slots to emptyslots, not sure if this is any more efficient
+                if (cont.Inventory.Empty)
+                {
+                    foreach (ItemSlot slot in cont.Inventory)
+                    {
+                        emptyslots.Add(slot);
+                    }
+                }
+                else
+                {
+                    foreach (ItemSlot slot in cont.Inventory)
+                    {
+                        if (slot == null || slot.Inventory == null ) { continue; }
+                        //add empty slots
+                        if (slot.Empty || slot.Itemstack == null) { emptyslots.Add(slot); }
+                        //ignore full slots
+                        else if (slot.Itemstack.StackSize >= slot.MaxSlotStackSize) { continue; }
+                        //this is a filled slot with space so add it
+                        else { populatedslots.Add(slot); }
+                    }
+                }
+            }
+            
+            //now we need to try and move out inventory
+            foreach (ItemSlot ownslot in Inventory)
+            {
+                //skip empty slots
+                if (ownslot==null||ownslot.Itemstack==null|| ownslot.Empty) { continue; }
+
+                var validslots = populatedslots.Where(x => x.Itemstack.Collectible == ownslot.Itemstack.Collectible).ToList<ItemSlot>();
+                bool placedsome = false;
+                if (validslots != null && validslots.Count > 0)
+                {
+                    foreach (ItemSlot validslot in validslots)
+                    {
+                        if (validslot != null)
+                        {
+                            ItemStackMoveOperation op = new ItemStackMoveOperation(Api.World, EnumMouseButton.Left, EnumModifierKey.SHIFT, EnumMergePriority.DirectMerge);
+                            int startamt = ownslot.StackSize;
+                            int rem = ownslot.TryPutInto(Api.World, validslot, ownslot.StackSize);
+                            if (ownslot.StackSize != startamt)
+                            {
+
+                                if (rem == 0) { ownslot.Itemstack = null; }
+                                ownslot.MarkDirty();
+                                validslot.MarkDirty();
+                                placedsome = true;
+                                break; //only do one transfer per tick
+                            }
+                        }
+                    }
+                }
+                if (placedsome) { return; }
+                if (emptyslots != null && emptyslots.Count > 0)
+                {
+                    ItemStackMoveOperation op = new ItemStackMoveOperation(Api.World, EnumMouseButton.Left, EnumModifierKey.SHIFT, EnumMergePriority.DirectMerge);
+                    int startamt = ownslot.StackSize;
+                    int rem = ownslot.TryPutInto(Api.World, emptyslots[0], ownslot.StackSize);
+                    if (ownslot.StackSize != startamt)
+                    {
+
+                        if (rem == 0) { ownslot.Itemstack = null; }
+                        ownslot.MarkDirty();
+                        emptyslots[0].MarkDirty();
+                        break; //only do one transfer per tick
+                    }
+                }
+            }
         }
 
         //add a container to the list of managed containers (usually called by a storage linker)
