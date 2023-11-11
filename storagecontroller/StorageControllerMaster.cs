@@ -34,12 +34,12 @@ namespace storagecontroller
             //Manage linked container list
             // - only check so many blocks per tick
             List<BlockPos> prunelist = new List<BlockPos>(); //This is a list of invalid blockpos that should be deleted from list
-            List<BlockEntityGenericTypedContainer> validcontainers = new List<BlockEntityGenericTypedContainer>(); //list of usable containers
+            List<BlockEntityContainer> validcontainers = new List<BlockEntityContainer>(); //list of usable containers
             if (containerlist != null) {
                 
                 foreach (BlockPos pos in containerlist)
                 {
-                    BlockEntityGenericTypedContainer thiscont = Api.World.BlockAccessor.GetBlockEntity(pos) as BlockEntityGenericTypedContainer;
+                    BlockEntityContainer thiscont = Api.World.BlockAccessor.GetBlockEntity(pos) as BlockEntityContainer;
                     //no valid container here so set to remove this location ***Should we do that or just let new containers be placed later??
                     if (thiscont == null)
                     {
@@ -49,6 +49,11 @@ namespace storagecontroller
                     {
                         validcontainers.Add(thiscont);
                     }
+                }
+                
+                foreach(BlockPos pos in prunelist)
+                {
+                    containerlist.RemoveAll(x=>x.Equals(pos));
                 }
             }
             //Need to populate containers if this container has inventory
@@ -60,7 +65,7 @@ namespace storagecontroller
 
             List<ItemSlot> populatedslots = new List<ItemSlot>();
             List<ItemSlot> emptyslots = new List<ItemSlot>();
-            foreach (BlockEntityGenericTypedContainer cont in validcontainers)
+            foreach (BlockEntityContainer cont in validcontainers)
             {
                 if (cont == null||cont.Inventory==null) { continue; }
                 //if the inventory is empty we'll just add all the slots to emptyslots, not sure if this is any more efficient
@@ -139,7 +144,7 @@ namespace storagecontroller
             //don't want to link to ourself!
             if (blockSel.Position == this.Pos) { return; } 
             //check for valid container
-            BlockEntityGenericTypedContainer cont = Api.World.BlockAccessor.GetBlockEntity(blockSel.Position) as BlockEntityGenericTypedContainer;
+            BlockEntityContainer cont = Api.World.BlockAccessor.GetBlockEntity(blockSel.Position) as BlockEntityContainer;
             if (cont == null) { return; }
             //ensure block isn't reinforced
 

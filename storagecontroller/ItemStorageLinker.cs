@@ -17,13 +17,16 @@ namespace storagecontroller
     {
         public static string islkey="linkto";
         public static string isldesc = "linktodesc";
-        
-        public override void OnHeldInteractStart(ItemSlot slot, EntityAgent byEntity, BlockSelection blockSel, EntitySelection entitySel, bool firstEvent, ref EnumHandHandling handling)
+        //public override void OnHeldAttackStart(ItemSlot slot, EntityAgent byEntity, BlockSelection blockSel, EntitySelection entitySel, ref EnumHandHandling handling)
+        //{
+        //    base.OnHeldAttackStart(slot, byEntity, blockSel, entitySel, ref handling);
+        //}
+        public override void OnHeldAttackStart(ItemSlot slot, EntityAgent byEntity, BlockSelection blockSel, EntitySelection entitySel, ref EnumHandHandling handling)
         {
             ICoreAPI api = byEntity.Api;
             if (api == null || slot == null || slot.Itemstack == null||slot.Itemstack.Item==null)
             {
-                base.OnHeldInteractStart(slot, byEntity, blockSel, entitySel, firstEvent, ref handling);
+                base.OnHeldAttackStart(slot, byEntity, blockSel, entitySel, ref handling);
                 return;
             }
             // get targetted block
@@ -39,19 +42,19 @@ namespace storagecontroller
             }
 
             //otherwise we will see if it's a valid storage device and tell controller about it
-            BlockEntityGenericTypedContainer targetcont=targetentity as BlockEntityGenericTypedContainer;
+            BlockEntityContainer targetcont=targetentity as BlockEntityContainer;
             if ( targetentity==null)
             {
                 return;
             }
             //quit if islkey is not set
-            if (!slot.Itemstack.Attributes.HasAttribute(islkey+"X")) { base.OnHeldInteractStart(slot, byEntity, blockSel, entitySel, firstEvent, ref handling); return; }
+            if (!slot.Itemstack.Attributes.HasAttribute(islkey+"X")) { base.OnHeldAttackStart(slot, byEntity, blockSel, entitySel,  ref handling); return; }
 
             //Check for valid SCM
             BlockPos scmpos = slot.Itemstack.Attributes.GetBlockPos(islkey);
-            if (scmpos == null) { base.OnHeldInteractStart(slot, byEntity, blockSel, entitySel, firstEvent, ref handling); return; }
+            if (scmpos == null) { base.OnHeldAttackStart(slot, byEntity, blockSel, entitySel,  ref handling); return; }
             StorageControllerMaster scm = api.World.BlockAccessor.GetBlockEntity(scmpos) as StorageControllerMaster;
-            if (scm == null) { base.OnHeldInteractStart(slot, byEntity, blockSel, entitySel, firstEvent, ref handling); return; }
+            if (scm == null) { base.OnHeldAttackStart(slot, byEntity, blockSel, entitySel,  ref handling); return; }
             if (api is ICoreServerAPI) { scm.AddContainer(slot,byEntity,blockSel); }
             handling=EnumHandHandling.Handled;
 
