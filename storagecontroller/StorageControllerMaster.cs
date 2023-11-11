@@ -12,6 +12,7 @@ using Vintagestory.API.Datastructures;
 using ProtoBuf;
 using Newtonsoft.Json;
 using static System.Runtime.InteropServices.JavaScript.JSType;
+using Vintagestory.API.Config;
 
 namespace storagecontroller
 {
@@ -34,21 +35,19 @@ namespace storagecontroller
             //Manage linked container list
             // - only check so many blocks per tick
             List<BlockPos> prunelist = new List<BlockPos>(); //This is a list of invalid blockpos that should be deleted from list
-            List<BlockEntityContainer> validcontainers = new List<BlockEntityContainer>(); //list of usable containers
+            
             if (containerlist != null) {
                 
                 foreach (BlockPos pos in containerlist)
                 {
-                    BlockEntityContainer thiscont = Api.World.BlockAccessor.GetBlockEntity(pos) as BlockEntityContainer;
+                    BlockEntity be= Api.World.BlockAccessor.GetBlockEntity(pos) as BlockEntityContainer;
+                    BlockEntityContainer thiscont = be as BlockEntityContainer;
                     //no valid container here so set to remove this location ***Should we do that or just let new containers be placed later??
                     if (thiscont == null)
                     {
                         prunelist.Add(pos);
                     }
-                    else
-                    {
-                        validcontainers.Add(thiscont);
-                    }
+    
                 }
                 
                 foreach(BlockPos pos in prunelist)
@@ -61,34 +60,47 @@ namespace storagecontroller
             // - then push in inventory if possible
             // - otherwise look for empty slots we can put our inventory into
             // TO FIX:
-            //  - doesn't add to partial stacks
+            //  - issues with crates:
+            //     - crates do have multiple stacks, and will let you force in items, but really everything should be the same stack
 
             List<ItemSlot> populatedslots = new List<ItemSlot>();
             List<ItemSlot> emptyslots = new List<ItemSlot>();
-            foreach (BlockEntityContainer cont in validcontainers)
+            Dictionary<ItemSlot,BlockEntityContainer>slotreference=new Dictionary<ItemSlot,BlockEntityContainer>();
+            List<ItemSlot> slotiscrate = new List<ItemSlot>(); //this records slots that are part of a crate for checks
+            foreach (BlockPos p in containerlist)
             {
+                BlockEntity be = Api.World.BlockAccessor.GetBlockEntity(p) as BlockEntityContainer;
+                BlockEntityContainer cont = be as BlockEntityContainer;
+                BlockEntityCrate crate = be as BlockEntityCrate;
                 if (cont == null||cont.Inventory==null) { continue; }
-                //if the inventory is empty we'll just add all the slots to emptyslots, not sure if this is any more efficient
-                if (cont.Inventory.Empty)
-                {
-                    foreach (ItemSlot slot in cont.Inventory)
+
+                    //if the inventory is empty we'll just add all the slots to emptyslots, not sure if this is any more efficient
+                    if (cont.Inventory.Empty)
                     {
-                        emptyslots.Add(slot);
+                        foreach (ItemSlot slot in cont.Inventory)
+                        {
+                            emptyslots.Add(slot);
+                            slotreference[slot] = cont;
+                        }
                     }
-                }
-                else
-                {
-                    foreach (ItemSlot slot in cont.Inventory)
+                    else
                     {
-                        if (slot == null || slot.Inventory == null ) { continue; }
-                        //add empty slots
-                        if (slot.Empty || slot.Itemstack == null) { emptyslots.Add(slot); }
-                        //ignore full slots
-                        else if (slot.Itemstack.StackSize >= slot.MaxSlotStackSize) { continue; }
-                        //this is a filled slot with space so add it
-                        else { populatedslots.Add(slot); }
+                        foreach (ItemSlot slot in cont.Inventory)
+                        {
+                            if (slot == null || slot.Inventory == null) { continue; }
+                            //add empty slots
+                            if (slot.Empty || slot.Itemstack == null) {
+                                if (crate != null) { slotiscrate.Add(slot); }
+                                emptyslots.Add(slot);
+                                slotreference[slot]=cont; 
+                            }
+                            //ignore full slots
+                            else if (slot.Itemstack.StackSize >= slot.MaxSlotStackSize) { continue; }
+                            //this is a filled slot with space so add it
+                            else { populatedslots.Add(slot); slotreference[slot] = cont; }
+                        }
                     }
-                }
+                
             }
             
             //now we need to try and move out inventory
@@ -105,15 +117,17 @@ namespace storagecontroller
                     {
                         if (validslot != null)
                         {
-                            ItemStackMoveOperation op = new ItemStackMoveOperation(Api.World, EnumMouseButton.Left, EnumModifierKey.SHIFT, EnumMergePriority.DirectMerge);
+                            //ItemStackMoveOperation op = new ItemStackMoveOperation(Api.World, EnumMouseButton.Left, EnumModifierKey.SHIFT, EnumMergePriority.DirectMerge);
                             int startamt = ownslot.StackSize;
-                            int rem = ownslot.TryPutInto(Api.World, validslot, ownslot.StackSize);
+                            ItemStackMoveOperation op = new ItemStackMoveOperation(Api.World, EnumMouseButton.Left, 0, EnumMergePriority.DirectMerge, ownslot.StackSize);
+                            int rem = ownslot.TryPutInto(validslot, ref op);
                             if (ownslot.StackSize != startamt)
                             {
 
                                 if (rem == 0) { ownslot.Itemstack = null; }
-                                ownslot.MarkDirty();
+                                MarkDirty(false);
                                 validslot.MarkDirty();
+                                //slotreference[validslot].MarkDirty(true);
                                 placedsome = true;
                                 break; //only do one transfer per tick
                             }
@@ -123,18 +137,37 @@ namespace storagecontroller
                 if (placedsome) { return; }
                 if (emptyslots != null && emptyslots.Count > 0)
                 {
-                    ItemStackMoveOperation op = new ItemStackMoveOperation(Api.World, EnumMouseButton.Left, EnumModifierKey.SHIFT, EnumMergePriority.DirectMerge);
-                    int startamt = ownslot.StackSize;
-                    int rem = ownslot.TryPutInto(Api.World, emptyslots[0], ownslot.StackSize);
-                    if (ownslot.StackSize != startamt)
+                    foreach (ItemSlot emptyslot in emptyslots)
                     {
-
-                        if (rem == 0) { ownslot.Itemstack = null; }
-                        ownslot.MarkDirty();
-                        emptyslots[0].MarkDirty();
-                        break; //only do one transfer per tick
+                        placedsome = false;
+                        //for crates we have to verify that the empty slots are valid
+                        if (slotiscrate.Contains(emptyslot))
+                        {
+                            
+                            if (!slotreference[emptyslot].Inventory.Empty)
+                            {
+                                //the slot is empty but the containing crate doesn't match items so skip
+                                if (slotreference[emptyslot].Inventory[0].Itemstack.Collectible != ownslot.Itemstack.Collectible){
+                                    continue;
+                                }
+                            }
+                        }
+                        int startamt = ownslot.StackSize;
+                        ItemStackMoveOperation op = new ItemStackMoveOperation(Api.World, EnumMouseButton.Left, 0, EnumMergePriority.DirectMerge, ownslot.StackSize);
+                        int rem = ownslot.TryPutInto(emptyslot, ref op);
+                        
+                        if (ownslot.StackSize != startamt)
+                        {
+                            placedsome = true;
+                            if (rem == 0) { ownslot.Itemstack = null; }
+                            MarkDirty(false);
+                            emptyslot.MarkDirty();
+                            //slotreference[emptyslots[0]].MarkDirty(true);
+                            break ; //only do one transfer per tick
+                        }
                     }
                 }
+                if (placedsome) { return; }
             }
         }
 

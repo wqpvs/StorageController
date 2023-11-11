@@ -26,18 +26,19 @@ namespace storagecontroller
             ICoreAPI api = byEntity.Api;
             if (api == null || slot == null || slot.Itemstack == null||slot.Itemstack.Item==null)
             {
-                base.OnHeldAttackStart(slot, byEntity, blockSel, entitySel, ref handling);
+                
+                //base.OnHeldAttackStart(slot, byEntity, blockSel, entitySel, ref handling);
                 return;
             }
             // get targetted block
             BlockEntity targetentity = api.World.BlockAccessor.GetBlockEntity(blockSel.Position);
-            
+            handling = EnumHandHandling.PreventDefaultAction;
             //if the block is a storage controller then set it as the target
             if (targetentity is StorageControllerMaster) {
                 slot.Itemstack.Attributes.SetBlockPos(islkey, blockSel.Position);
                 slot.Itemstack.Attributes.SetString(isldesc, blockSel.Position.ToLocalPosition(api).ToString());
                 slot.MarkDirty();
-                handling = EnumHandHandling.Handled;
+                
                 return;
             }
 
@@ -45,18 +46,19 @@ namespace storagecontroller
             BlockEntityContainer targetcont=targetentity as BlockEntityContainer;
             if ( targetentity==null)
             {
+                
                 return;
             }
             //quit if islkey is not set
-            if (!slot.Itemstack.Attributes.HasAttribute(islkey+"X")) { base.OnHeldAttackStart(slot, byEntity, blockSel, entitySel,  ref handling); return; }
+            if (!slot.Itemstack.Attributes.HasAttribute(islkey+"X")) { return; }
 
             //Check for valid SCM
             BlockPos scmpos = slot.Itemstack.Attributes.GetBlockPos(islkey);
-            if (scmpos == null) { base.OnHeldAttackStart(slot, byEntity, blockSel, entitySel,  ref handling); return; }
+            if (scmpos == null) {  return; }
             StorageControllerMaster scm = api.World.BlockAccessor.GetBlockEntity(scmpos) as StorageControllerMaster;
-            if (scm == null) { base.OnHeldAttackStart(slot, byEntity, blockSel, entitySel,  ref handling); return; }
+            if (scm == null) { return; }
             if (api is ICoreServerAPI) { scm.AddContainer(slot,byEntity,blockSel); }
-            handling=EnumHandHandling.Handled;
+            
 
         }
         public override string GetHeldItemName(ItemStack itemStack)
