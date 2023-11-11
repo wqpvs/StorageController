@@ -127,7 +127,7 @@ namespace storagecontroller
                                 if (rem == 0) { ownslot.Itemstack = null; }
                                 MarkDirty(false);
                                 validslot.MarkDirty();
-                                //slotreference[validslot].MarkDirty(true);
+                                slotreference[validslot].MarkDirty(true);
                                 placedsome = true;
                                 break; //only do one transfer per tick
                             }
@@ -162,7 +162,7 @@ namespace storagecontroller
                             if (rem == 0) { ownslot.Itemstack = null; }
                             MarkDirty(false);
                             emptyslot.MarkDirty();
-                            //slotreference[emptyslots[0]].MarkDirty(true);
+                            slotreference[emptyslots[0]].MarkDirty(true);
                             break ; //only do one transfer per tick
                         }
                     }
