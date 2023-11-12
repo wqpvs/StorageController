@@ -89,6 +89,14 @@ namespace storagecontroller
                 if (!(SupportedChests.Contains(b.EntityClass) || SupportedCrates.Contains(b.EntityClass))) { continue; }
                 if (cont == null||cont.Inventory==null) { continue; }
                 FieldInfo bettercratelock = be.GetType().GetField("lockedItemInventory");
+                if (bettercratelock != null)
+                {
+                    var test = bettercratelock.GetValue(be) as InventoryGeneric;
+                    if (test != null && !test.Empty)
+                    {
+                        continue;
+                    }
+                }
                 
                 //{Vintagestory.API.Common.InventoryGeneric lockedItemInventory}
                 //if the inventory is empty we'll just add all the slots to emptyslots, not sure if this is any more efficient
