@@ -13,6 +13,9 @@ using ProtoBuf;
 using Newtonsoft.Json;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 using Vintagestory.API.Config;
+using System.Reflection;
+using Vintagestory.API.Util;
+using System.Reflection.Metadata.Ecma335;
 
 namespace storagecontroller
 {
@@ -25,12 +28,14 @@ namespace storagecontroller
         List<string> supportedCrates;
         public virtual List<string> SupportedCrates => supportedCrates;
         public virtual int TickTime => 100;
+        bool bettercratesinstalled=false;
         public override void Initialize(ICoreAPI api)
         {
             base.Initialize(api);
             supportedChests = new List<string> { "GenericTypedContainer", "BEGenericSortableTypedContainer", "BESortableLabeledChest", "LabeledChest" };
             supportedCrates = new List<string> { "BBetterCrate", "BEBetterCrate", "Crate" };
             if (Api is ICoreServerAPI) { RegisterGameTickListener(OnServerTick, TickTime); }
+            if (api.ModLoader.IsModEnabled("bettercrate")) { bettercratesinstalled = true; }
         }
         //Better crates: BBetterCrate, BEBetterCrate, Crate, GenericTypedContainer
         
@@ -49,6 +54,7 @@ namespace storagecontroller
                 foreach (BlockPos pos in containerlist)
                 {
                     BlockEntity be= Api.World.BlockAccessor.GetBlockEntity(pos) as BlockEntityContainer;
+                   
                     BlockEntityContainer thiscont = be as BlockEntityContainer;
                     //no valid container here so set to remove this location ***Should we do that or just let new containers be placed later??
                     if (thiscont == null)
@@ -83,34 +89,40 @@ namespace storagecontroller
                 //Supported containers now whitelisted by their json block class
                 if (!(SupportedChests.Contains(b.EntityClass) || SupportedCrates.Contains(b.EntityClass))) { continue; }
                 if (cont == null||cont.Inventory==null) { continue; }
-
-                    //if the inventory is empty we'll just add all the slots to emptyslots, not sure if this is any more efficient
-                    if (cont.Inventory.Empty)
+                
+                Type t = be.GetType();//declared fields
+                PropertyInfo prop = t.GetProperty("lockedItemInventory");
+                //field name: lockedItemInventory
+                
+                //if the inventory is empty we'll just add all the slots to emptyslots, not sure if this is any more efficient
+                if (cont.Inventory.Empty)
+                {
+                    
+                    
+                    foreach (ItemSlot slot in cont.Inventory)
                     {
-                        foreach (ItemSlot slot in cont.Inventory)
-                        {
-                            emptyslots.Add(slot);
-                            slotreference[slot] = cont;
-                        }
+                        emptyslots.Add(slot);
+                        slotreference[slot] = cont;
                     }
-                    else
+                }
+                else
+                {
+                    foreach (ItemSlot slot in cont.Inventory)
                     {
-                        foreach (ItemSlot slot in cont.Inventory)
-                        {
-                            if (slot == null || slot.Inventory == null) { continue; }
-                            //add empty slots
-                            if (slot.Empty || slot.Itemstack == null) {
+                        if (slot == null || slot.Inventory == null) { continue; }
+                        //add empty slots
+                        if (slot.Empty || slot.Itemstack == null) {
                                 
-                                if (SupportedCrates.Contains(b.EntityClass)) { slotiscrate.Add(slot); }
-                                emptyslots.Add(slot);
-                                slotreference[slot]=cont; 
-                            }
-                            //ignore full slots
-                            else if (slot.Itemstack.StackSize >= slot.MaxSlotStackSize) { continue; }
-                            //this is a filled slot with space so add it
-                            else { populatedslots.Add(slot); slotreference[slot] = cont; }
+                            if (SupportedCrates.Contains(b.EntityClass)) { slotiscrate.Add(slot); }
+                            emptyslots.Add(slot);
+                            slotreference[slot]=cont; 
                         }
+                        //ignore full slots
+                        else if (slot.Itemstack.StackSize >= slot.MaxSlotStackSize) { continue; }
+                        //this is a filled slot with space so add it
+                        else { populatedslots.Add(slot); slotreference[slot] = cont; }
                     }
+                }
                 
             }
             
