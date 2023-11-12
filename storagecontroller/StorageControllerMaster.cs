@@ -28,7 +28,7 @@ namespace storagecontroller
         public override void Initialize(ICoreAPI api)
         {
             base.Initialize(api);
-            supportedChests = new List<string> { "GenericTypedContainer", "BEGenericSortableTypedContainer" };
+            supportedChests = new List<string> { "GenericTypedContainer", "BEGenericSortableTypedContainer", "BESortableLabeledChest", "LabeledChest" };
             supportedCrates = new List<string> { "BBetterCrate", "BEBetterCrate", "Crate" };
             if (Api is ICoreServerAPI) { RegisterGameTickListener(OnServerTick, TickTime); }
         }
@@ -81,7 +81,7 @@ namespace storagecontroller
                 Block b = Api.World.BlockAccessor.GetBlock(p);
                 BlockEntityContainer cont = be as BlockEntityContainer;
                 //Supported containers now whitelisted by their json block class
-                if (!(SupportedChests.Contains(b.Class) || SupportedCrates.Contains(b.Class))) { continue; }
+                if (!(SupportedChests.Contains(b.EntityClass) || SupportedCrates.Contains(b.EntityClass))) { continue; }
                 if (cont == null||cont.Inventory==null) { continue; }
 
                     //if the inventory is empty we'll just add all the slots to emptyslots, not sure if this is any more efficient
