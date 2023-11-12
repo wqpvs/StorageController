@@ -20,12 +20,20 @@ namespace storagecontroller
     {
         public static string containerlistkey = "containerlist";
         List<BlockPos> containerlist; //TODO: add to treeattributes
+        List<string> supportedChests;
+        public virtual List<string> SupportedChests => supportedChests;
+        List<string> supportedCrates;
+        public virtual List<string> SupportedCrates => supportedCrates;
+        public virtual int TickTime => 100;
         public override void Initialize(ICoreAPI api)
         {
             base.Initialize(api);
-            if (Api is ICoreServerAPI) { RegisterGameTickListener(OnServerTick, 100); }
+            supportedChests = new List<string> { "GenericTypedContainer", "BEGenericSortableTypedContainer" };
+            supportedCrates = new List<string> { "BBetterCrate", "BEBetterCrate", "Crate" };
+            if (Api is ICoreServerAPI) { RegisterGameTickListener(OnServerTick, TickTime); }
         }
-
+        //Better crates: BBetterCrate, BEBetterCrate, Crate, GenericTypedContainer
+        
         //stuff to do every so often
         public void OnServerTick(float dt)
         {
@@ -70,8 +78,10 @@ namespace storagecontroller
             foreach (BlockPos p in containerlist)
             {
                 BlockEntity be = Api.World.BlockAccessor.GetBlockEntity(p) as BlockEntityContainer;
+                Block b = Api.World.BlockAccessor.GetBlock(p);
                 BlockEntityContainer cont = be as BlockEntityContainer;
-                BlockEntityCrate crate = be as BlockEntityCrate;
+                //Supported containers now whitelisted by their json block class
+                if (!(SupportedChests.Contains(b.Class) || SupportedCrates.Contains(b.Class))) { continue; }
                 if (cont == null||cont.Inventory==null) { continue; }
 
                     //if the inventory is empty we'll just add all the slots to emptyslots, not sure if this is any more efficient
@@ -90,7 +100,8 @@ namespace storagecontroller
                             if (slot == null || slot.Inventory == null) { continue; }
                             //add empty slots
                             if (slot.Empty || slot.Itemstack == null) {
-                                if (crate != null) { slotiscrate.Add(slot); }
+                                
+                                if (SupportedCrates.Contains(b.EntityClass)) { slotiscrate.Add(slot); }
                                 emptyslots.Add(slot);
                                 slotreference[slot]=cont; 
                             }
