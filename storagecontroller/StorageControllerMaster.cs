@@ -48,26 +48,24 @@ namespace storagecontroller
             // - only check so many blocks per tick
             List<BlockPos> prunelist = new List<BlockPos>(); //This is a list of invalid blockpos that should be deleted from list
             
-            if (containerlist != null) {
                 
-                foreach (BlockPos pos in containerlist)
+            foreach (BlockPos pos in containerlist)
+            {
+                    
+                Block b = Api.World.BlockAccessor.GetBlock(pos);
+                if (!(SupportedChests.Contains(b.EntityClass) || SupportedCrates.Contains(b.EntityClass))) 
                 {
-                    BlockEntity be= Api.World.BlockAccessor.GetBlockEntity(pos) as BlockEntityContainer;
-                   
-                    BlockEntityContainer thiscont = be as BlockEntityContainer;
-                    //no valid container here so set to remove this location ***Should we do that or just let new containers be placed later??
-                    if (thiscont == null)
-                    {
-                        prunelist.Add(pos);
-                    }
-    
+                    prunelist.Add(pos); continue;
                 }
-                
-                foreach(BlockPos pos in prunelist)
-                {
-                    containerlist.RemoveAll(x=>x.Equals(pos));
-                }
+                BlockEntity be = Api.World.BlockAccessor.GetBlockEntity(pos);
+                if (be == null||!(be is BlockEntityContainer)) { prunelist.Add(pos); continue; }
             }
+                
+            foreach(BlockPos pos in prunelist)
+            {
+                containerlist.RemoveAll(x=>x.Equals(pos));
+            }
+            if (containerlist == null || containerlist.Count == 0) { return; } //if no locations were valid then quit
             //Need to populate containers if this container has inventory
             // - from list of container first find a stack or locked container with inventory
             // - then push in inventory if possible
@@ -91,15 +89,14 @@ namespace storagecontroller
             List<ItemSlot> emptyslots = new List<ItemSlot>();
             //This slotreference is to match the slot back up to its originating container
             Dictionary<ItemSlot,BlockEntityContainer>slotreference=new Dictionary<ItemSlot,BlockEntityContainer>();
-
+            //Cycle thru our blocks to find containers we can use
             foreach (BlockPos p in containerlist)
             {
                 BlockEntity be = Api.World.BlockAccessor.GetBlockEntity(p);
                 Block b = Api.World.BlockAccessor.GetBlock(p);
                 BlockEntityContainer cont = be as BlockEntityContainer;
-                //Kick out invalid crates
-                if (!(SupportedChests.Contains(b.EntityClass) || SupportedCrates.Contains(b.EntityClass))) { continue; }
-                if (cont == null||cont.Inventory==null) { continue; }
+                
+                if (cont == null||cont.Inventory==null) { continue; }//this shouldn't happen, but better to check
                 //find better crates
                 FieldInfo bettercratelock = be.GetType().GetField("lockedItemInventory");
                 //ah, we have discovered a better crate!
@@ -122,7 +119,7 @@ namespace storagecontroller
                     {
                         foreach (ItemSlot crateslot in cont.Inventory)
                         {
-                            if (crateslot.StackSize < crateslot.MaxSlotStackSize)
+                            if (crateslot.StackSize < inslot.MaxStackSize)
                             {
                                 if (priorityslots.ContainsKey(inslot))
                                 {
@@ -145,6 +142,7 @@ namespace storagecontroller
                         emptyslots.Add(cont.Inventory[0]);
                         slotreference[cont.Inventory[0]] = cont;
                     }
+                    ///*** ADD NONE EMPTY CRATE CODE ***
 
                 }
                 //NOT A BETTER CRATE So check if it's another crate and deal with it accordingly
@@ -163,7 +161,7 @@ namespace storagecontroller
                         foreach (ItemSlot crateslot in cont.Inventory)
                         {
                             
-                            if (crateslot.StackSize < crateslot.MaxSlotStackSize)
+                            if (crateslot.StackSize < crateslot.Itemstack.Collectible.MaxStackSize)
                             {
                                 if (priorityslots.ContainsKey(inslot))
                                 {
@@ -194,7 +192,7 @@ namespace storagecontroller
                             slotreference[slot] = cont;
                         }
                         //ignore full slots
-                        else if (slot.Itemstack.StackSize >= slot.MaxSlotStackSize) { continue; }
+                        else if (slot.Itemstack.StackSize >= slot.Itemstack.Collectible.MaxStackSize) { continue; }
                         //this is a filled slot with space so add it
                         else { populatedslots.Add(slot); slotreference[slot] = cont; }
                     }
