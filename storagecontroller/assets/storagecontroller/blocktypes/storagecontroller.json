@@ -37,11 +37,11 @@
 			
 		},
 		typedOpenSound: {
-			"normal-generic": "game:sounds/block/largechestopen"
+			"normal-generic": "game:sounds/effect/latch"
 			
 		},
 		typedCloseSound: {
-			"normal-generic": "game:sounds/block/largechestclose"
+			"normal-generic": "game:sounds/effect/latch"
 			
 		},
 		variantByGroup: "side",

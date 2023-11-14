@@ -252,8 +252,9 @@ namespace storagecontroller
         public void AddContainer(ItemSlot slot, EntityAgent byEntity, BlockSelection blockSel)
         {
             //don't want to link to ourself!
-            if (blockSel.Position == this.Pos) { return; } 
+            if (blockSel.Position == this.Pos) { return; }
             //check for valid container
+            IPlayer byPlayer = (byEntity as EntityPlayer)?.Player;
             BlockEntityContainer cont = Api.World.BlockAccessor.GetBlockEntity(blockSel.Position) as BlockEntityContainer;
             if (cont == null) { return; }
             
@@ -262,19 +263,28 @@ namespace storagecontroller
             if (!containerlist.Contains(blockSel.Position)) {
                 if (Api is ICoreServerAPI)
                 {
+                    
                     containerlist.Add(blockSel.Position); MarkDirty();
+                    Api.World.HighlightBlocks(byPlayer, 1, containerlist);
+                    Api.World.PlaySoundAt(new AssetLocation("game:sounds/effect/latch"), byPlayer);
+                    MarkDirty();
                 }
             }
-            MarkDirty();
+            
         }
 
         public void RemoveContainer(ItemSlot slot, EntityAgent byEntity, BlockSelection blockSel)
         {
             if (containerlist==null) { return; }
-           
 
-            if (containerlist.Contains(blockSel.Position)) { containerlist.Remove(blockSel.Position);}
-            MarkDirty();
+            IPlayer byPlayer = (byEntity as EntityPlayer)?.Player;
+            if (containerlist.Contains(blockSel.Position)) {
+                containerlist.Remove(blockSel.Position);
+                Api.World.HighlightBlocks(byPlayer, 1, containerlist);
+                Api.World.PlaySoundAt(new AssetLocation("game:sounds/effect/latch"), byPlayer);
+                MarkDirty();
+            }
+            
         }
         bool showingblocks = false;
         public static int highlightid = 1;
