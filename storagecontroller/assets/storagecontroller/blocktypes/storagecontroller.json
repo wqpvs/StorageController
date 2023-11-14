@@ -54,10 +54,30 @@
       "maxRange":10,
       "tickTime":250
 		},
+		"*-tinbronze-*": {
+			"maxTransferPerTick": 2,
+      "maxRange":15,
+      "tickTime":250
+		},
+		"*-bismuthbronze-*": {
+			"maxTransferPerTick": 2,
+      "maxRange":16,
+      "tickTime":250
+		},
+		"*-blackbronze-*": {
+			"maxTransferPerTick": 4,
+      "maxRange":17,
+      "tickTime":250
+		},
 		"*-iron-*": {
 			"maxTransferPerTick": 8,
-      "maxRange":20,
+      "maxRange":25,
       "tickTime":250
+		},
+		"*-steel-*": {
+			"maxTransferPerTick": 99999,
+      "maxRange":50,
+      "tickTime":150
 		}
 	},
 	behaviors: [{name: "Lockable" }, {name: "Container"}],
@@ -65,7 +85,7 @@
 	variantgroups: [
 		{
 			"code": "metal",
-			"states": [ "copper", "iron" ]
+			"states": [ "copper", "tinbronze","bismuthbronze","blackbronze","iron", "steel" ]
 		},
 		{ code:"side", loadFromProperties: "abstract/horizontalorientation" }
 	],
