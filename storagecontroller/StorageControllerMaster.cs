@@ -113,9 +113,9 @@ namespace storagecontroller
                         inslot = bettercratelockingslot[0].Itemstack.Collectible;
                     }
                     else if (cont.Inventory.Empty) { emptycrate = true; }
-                    
+                    else { inslot = cont.Inventory[0].Itemstack.Collectible; }
                     //case one - filtered or not empty - add first slot with space to priority list
-                    if (lockedcrate)
+                    if (lockedcrate||!emptycrate)
                     {
                         foreach (ItemSlot crateslot in cont.Inventory)
                         {
