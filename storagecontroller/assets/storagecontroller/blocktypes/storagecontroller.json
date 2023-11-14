@@ -46,10 +46,27 @@
 		},
 		variantByGroup: "side",
 		variantByGroupInventory: null
+
+	},
+	"attributesbytype": {
+		"*-copper-*": {
+			"maxTransferPerTick": 1,
+      "maxRange":10,
+      "tickTime":250
+		},
+		"*-iron-*": {
+			"maxTransferPerTick": 8,
+      "maxRange":20,
+      "tickTime":250
+		}
 	},
 	behaviors: [{name: "Lockable" }, {name: "Container"}],
 	entityBehaviors: [{ name: "Animatable" }],
 	variantgroups: [
+		{
+			"code": "metal",
+			"states": [ "copper", "iron" ]
+		},
 		{ code:"side", loadFromProperties: "abstract/horizontalorientation" }
 	],
 	"creativeinventory": {
@@ -68,7 +85,7 @@
 	"_comment": "Must declare textures so they get added to the block texture atlas",
 	textures: {
 		"normal-generic-sides2": { base: "sides" },
-		"normal-generic-lid": { base: "game:block/metal/sheet/iron3" },
+		"normal-generic-lid": { base: "game:block/metal/plate/{metal}" },
 		"normal-generic-accessories": { base: "game:block/wood/trunk/accessories" }
 	},
 	blockmaterial: "Wood",

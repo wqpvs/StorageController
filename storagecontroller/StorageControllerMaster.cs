@@ -26,14 +26,24 @@ namespace storagecontroller
         public virtual List<string> SupportedChests => supportedChests;
         List<string> supportedCrates;
         public virtual List<string> SupportedCrates => supportedCrates;
-        public virtual int TickTime => 100;
-        
+        public virtual int TickTime => tickTime; //how many ms between ticks
+        public virtual int MaxTransferPerTick => maxTransferPerTick; // The maximum of items to transfer
+        public virtual int MaxRange => maxRange; //maximum distance (in blocks) that this controller will link to
+        int maxTransferPerTick = 1;
+        int maxRange = 10;
+        int tickTime = 250;
         public override void Initialize(ICoreAPI api)
         {
             base.Initialize(api);
             supportedChests = new List<string> { "GenericTypedContainer", "BEGenericSortableTypedContainer", "BESortableLabeledChest", "LabeledChest" };
             supportedCrates = new List<string> { "BBetterCrate", "BEBetterCrate", "Crate" };
-            if (Api is ICoreServerAPI) { RegisterGameTickListener(OnServerTick, TickTime); }
+            if (Block.Attributes != null)
+            {
+                maxTransferPerTick = Block.Attributes["maxTransferPerTick"].AsInt(maxTransferPerTick);
+                maxRange = Block.Attributes["maxRange"].AsInt(maxRange);
+                tickTime = Block.Attributes["tickTime"].AsInt(TickTime);
+            }
+                if (Api is ICoreServerAPI) { RegisterGameTickListener(OnServerTick, TickTime); }
             
         }
         //Better crates: BBetterCrate, BEBetterCrate, Crate, GenericTypedContainer
@@ -232,7 +242,7 @@ namespace storagecontroller
 
                 //Finally we can attempt to transfer some inventory and then return out of function if sucessful (or move ot next stack)
                 int startamt = ownslot.StackSize;
-                ItemStackMoveOperation op = new ItemStackMoveOperation(Api.World, EnumMouseButton.Left, 0, EnumMergePriority.DirectMerge, ownslot.StackSize);
+                ItemStackMoveOperation op = new ItemStackMoveOperation(Api.World, EnumMouseButton.Left, 0, EnumMergePriority.DirectMerge, Math.Min(ownslot.StackSize,maxTransferPerTick));
                 int rem = ownslot.TryPutInto(outputslot, ref op);
                 if (ownslot.StackSize != startamt)
                 {
@@ -257,7 +267,8 @@ namespace storagecontroller
             IPlayer byPlayer = (byEntity as EntityPlayer)?.Player;
             BlockEntityContainer cont = Api.World.BlockAccessor.GetBlockEntity(blockSel.Position) as BlockEntityContainer;
             if (cont == null) { return; }
-            
+            int blockdistance = (int)(blockSel.Position.AsVec3i.DistanceTo(Pos.AsVec3i));
+            if (blockdistance > maxRange) { return; }
             //if container isn't on list then add it
             if (containerlist==null) { containerlist = new List<BlockPos>();}
             if (!containerlist.Contains(blockSel.Position)) {
