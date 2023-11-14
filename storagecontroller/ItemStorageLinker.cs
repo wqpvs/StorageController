@@ -30,6 +30,18 @@ namespace storagecontroller
                 //base.OnHeldAttackStart(slot, byEntity, blockSel, entitySel, ref handling);
                 return;
             }
+            //ensure block isn't reinforced
+            if (api.ModLoader.GetModSystem<ModSystemBlockReinforcement>()?.IsReinforced(blockSel.Position) == true)
+            {
+                return;
+            }
+            //ensure player as access rights
+            IPlayer byPlayer = (byEntity as EntityPlayer)?.Player;
+            if (!byEntity.World.Claims.TryAccess(byPlayer, blockSel.Position, EnumBlockAccessFlags.BuildOrBreak))
+            {
+
+                return;
+            }
             // get targetted block
             BlockEntity targetentity = api.World.BlockAccessor.GetBlockEntity(blockSel.Position);
             handling = EnumHandHandling.PreventDefaultAction;
@@ -57,7 +69,8 @@ namespace storagecontroller
             if (scmpos == null) {  return; }
             StorageControllerMaster scm = api.World.BlockAccessor.GetBlockEntity(scmpos) as StorageControllerMaster;
             if (scm == null) { return; }
-            if (api is ICoreServerAPI) { scm.AddContainer(slot,byEntity,blockSel); }
+            if (api is ICoreServerAPI && byPlayer.Entity.Controls.ShiftKey) { scm.RemoveContainer(slot, byEntity, blockSel); }
+            else if (api is ICoreServerAPI) { scm.AddContainer(slot,byEntity,blockSel); }
             
 
         }

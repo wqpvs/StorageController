@@ -256,9 +256,6 @@ namespace storagecontroller
             //check for valid container
             BlockEntityContainer cont = Api.World.BlockAccessor.GetBlockEntity(blockSel.Position) as BlockEntityContainer;
             if (cont == null) { return; }
-            //ensure block isn't reinforced
-
-            //ensure player as access rights
             
             //if container isn't on list then add it
             if (containerlist==null) { containerlist = new List<BlockPos>();}
@@ -268,7 +265,41 @@ namespace storagecontroller
                     containerlist.Add(blockSel.Position); MarkDirty();
                 }
             }
+            MarkDirty();
+        }
 
+        public void RemoveContainer(ItemSlot slot, EntityAgent byEntity, BlockSelection blockSel)
+        {
+            if (containerlist==null) { return; }
+           
+
+            if (containerlist.Contains(blockSel.Position)) { containerlist.Remove(blockSel.Position);}
+            MarkDirty();
+        }
+        bool showingblocks = false;
+        public static int highlightid = 1;
+        public override bool OnPlayerRightClick(IPlayer byPlayer, BlockSelection blockSel)
+        {
+            //if (Api is ICoreClientAPI && containerlist!=null && containerlist.Count>0)
+            //{
+            //    ICoreAPI capi= Api as ICoreClientAPI;
+
+                showingblocks = !showingblocks;
+                if (showingblocks)
+                {
+                    Api.World.HighlightBlocks(byPlayer, 1, containerlist);
+                //Api.World.HighlightBlocks(byPlayer, highlightid, containerlist, EnumHighlightBlocksMode.Absolute, EnumHighlightShape.Cube);
+                }
+                else
+                {
+                Api.World.HighlightBlocks(byPlayer, 1, new List<BlockPos>());
+            }
+                //else
+                //{
+               //     Api.World.HighlightBlocks(byPlayer, 0, containerlist, EnumHighlightBlocksMode.Absolute, EnumHighlightShape.Cube);
+                //}
+            //}
+            return base.OnPlayerRightClick(byPlayer, blockSel);
         }
         public override void FromTreeAttributes(ITreeAttribute tree, IWorldAccessor worldForResolving)
         {
