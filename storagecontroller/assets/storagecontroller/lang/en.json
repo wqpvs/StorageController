@@ -1,4 +1,10 @@
 {
-    "block-normal-generic-storagecontroller-*": "Storage Controller",
-    "item-storagelinker-*": "Storage Linker"
+    "block-normal-generic-storagecontroller-copper-*": "Storage Controller (Copper)",
+    "block-normal-generic-storagecontroller-tinbronze-*": "Storage Controller (Tin Bronze)",
+    "block-normal-generic-storagecontroller-bismuthbronze-*": "Storage Controller (Bismuth Bronze)",
+    "block-normal-generic-storagecontroller-blackbronze-*": "Storage Controller (Black Bronze)",
+    "block-normal-generic-storagecontroller-iron-*": "Storage Controller (Iron)",
+    "block-normal-generic-storagecontroller-steel-*": "Storage Controller (Steel)",
+
+    "item-storagelinker": "Storage Linker"
 }

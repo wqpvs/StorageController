@@ -349,7 +349,7 @@ namespace storagecontroller
                 dsc.AppendLine("Transfer Speed: " + MaxTransferPerTick + " Items at a time.");
             }
             else { dsc.AppendLine("Transfers full Stacks at a time"); }
-            if (containerlist.Count > 0)
+            if (!(containerlist==null)&& containerlist.Count > 0)
             {
                 dsc.AppendLine("Linked to "+containerlist.Count+" containers.");
             }
