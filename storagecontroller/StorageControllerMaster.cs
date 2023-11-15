@@ -308,7 +308,7 @@ namespace storagecontroller
             //    ICoreAPI capi= Api as ICoreClientAPI;
 
                 showingblocks = !showingblocks;
-                if (showingblocks)
+                if (showingblocks && containerlist!=null)
                 {
                     Api.World.HighlightBlocks(byPlayer, 1, containerlist);
                 //Api.World.HighlightBlocks(byPlayer, highlightid, containerlist, EnumHighlightBlocksMode.Absolute, EnumHighlightShape.Cube);
