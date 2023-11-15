@@ -23,6 +23,7 @@ namespace storagecontroller
         //}
         public override void OnHeldAttackStart(ItemSlot slot, EntityAgent byEntity, BlockSelection blockSel, EntitySelection entitySel, ref EnumHandHandling handling)
         {
+            if (blockSel == null) { return; }
             ICoreAPI api = byEntity.Api;
             if (api == null || slot == null || slot.Itemstack == null||slot.Itemstack.Item==null)
             {
