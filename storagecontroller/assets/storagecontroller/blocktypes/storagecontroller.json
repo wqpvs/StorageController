@@ -1,6 +1,6 @@
 {
 	code: "storagecontroller",
-	class: "BlockGenericTypedContainer",
+	class: "BlockStorageController",
 	entityclass: "StorageControllerMaster",
 	attributes: {
 		partialAttachable: true,

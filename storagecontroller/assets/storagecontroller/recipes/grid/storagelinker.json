@@ -1,0 +1,11 @@
+{
+	ingredientPattern: "U	W	C",
+	ingredients: {
+		"U": { type: "item", code: "game:ingot-*", name: "metal","allowedVariants": [ "copper", "tinbronze","bismuthbronze","blackbronze","iron","steel" ], quantity: 1 },
+		"W": { type: "block", code: "game:metal-parts", name: "metal", quantity: 1 },
+		"C": { type: "item", code: "game:ingot-copper"  }
+	},
+	width: 1,
+	height: 3,
+	output: { type: "item", code: "storagelinker-{metal}", quantity: 1  }
+}

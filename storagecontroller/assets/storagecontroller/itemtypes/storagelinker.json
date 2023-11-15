@@ -5,12 +5,12 @@
 		"storagecontroller": [ "*" ]
 	},
 	"drawtype": "json",
-	"shape": { "base": "game:item/jonas/parts/valve01" },
+	"shape": { "base": "item/itemstoragelinker" },
 	"maxstacksize": 64,
 	"variantgroups": [
 		{
 			"code": "material",
-			"states": [ "steel" ]
+			"states": [ "copper","tinbronze","bismuthbronze","blackbronze","iron","steel" ]
 		}
 	],
 	"attributes": {
@@ -44,7 +44,9 @@
     }
   ],
 	"textures": {
-		"metal": { "base": "game:block/metal/ingot/{material}" }
+		"darksteelsheet": { "base": "game:block/metal/ingot/{material}" },
+		"cable": { "base": "game:block/metal/ingot/copper" },
+		"bluesteel": { "base": "game:block/metal/ingot/{material}" }
 	},
 	"guiTransform": {
 		"translation": {
