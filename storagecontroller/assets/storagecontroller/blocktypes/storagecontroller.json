@@ -51,33 +51,33 @@
 	"attributesbytype": {
 		"*-copper-*": {
 			"maxTransferPerTick": 1,
-      "maxRange":10,
+      "maxRange":5,
       "tickTime":250
 		},
 		"*-tinbronze-*": {
 			"maxTransferPerTick": 2,
-      "maxRange":15,
+      "maxRange":8,
       "tickTime":250
 		},
 		"*-bismuthbronze-*": {
 			"maxTransferPerTick": 2,
-      "maxRange":16,
+      "maxRange":8,
       "tickTime":250
 		},
 		"*-blackbronze-*": {
 			"maxTransferPerTick": 4,
-      "maxRange":17,
+      "maxRange":10,
       "tickTime":250
 		},
 		"*-iron-*": {
 			"maxTransferPerTick": 8,
-      "maxRange":25,
+      "maxRange":16,
       "tickTime":250
 		},
 		"*-steel-*": {
 			"maxTransferPerTick": 99999,
-      "maxRange":50,
-      "tickTime":150
+      "maxRange":24,
+      "tickTime":250
 		}
 	},
 	behaviors: [{name: "Lockable" }, {name: "Container"}],
@@ -106,7 +106,7 @@
 	textures: {
 		"normal-generic-sides2": { base: "sides" },
 		"normal-generic-lid": { base: "game:block/metal/plate/{metal}" },
-		"normal-generic-accessories": { base: "game:block/wood/trunk/accessories" }
+		"normal-generic-accessories": { base: "game:block/metal/plate/{metal}" }
 	},
 	blockmaterial: "Wood",
 	replaceable: 900,

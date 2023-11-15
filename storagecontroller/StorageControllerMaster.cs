@@ -170,8 +170,8 @@ namespace storagecontroller
                         CollectibleObject inslot = cont.Inventory[0].Itemstack.Collectible;
                         foreach (ItemSlot crateslot in cont.Inventory)
                         {
-                            
-                            if (crateslot.StackSize < crateslot.Itemstack.Collectible.MaxStackSize)
+                            //if (crateslot.Itemstack == null || crateslot.Itemstack.Collectible == null) { continue; }
+                            if (crateslot.StackSize < inslot.MaxStackSize)
                             {
                                 if (priorityslots.ContainsKey(inslot))
                                 {
@@ -218,6 +218,8 @@ namespace storagecontroller
                 //skip empty slots
                 if (ownslot==null||ownslot.Itemstack==null|| ownslot.Empty) { continue; }
                 CollectibleObject myitem = ownslot.Itemstack.Collectible;
+                
+                
                 //start trying to find an empty slot
                 ItemSlot outputslot = null;
                 if (priorityslots.ContainsKey(myitem))
@@ -336,6 +338,26 @@ namespace storagecontroller
             var asString = JsonConvert.SerializeObject(containerlist);
             tree.SetString(containerlistkey, asString);
             base.ToTreeAttributes(tree);
+        }
+
+        public override void GetBlockInfo(IPlayer forPlayer, StringBuilder dsc)
+        {
+            base.GetBlockInfo(forPlayer, dsc);
+            dsc.AppendLine("Range: "+MaxRange);
+            if (MaxTransferPerTick <= 512)
+            {
+                dsc.AppendLine("Transfer Speed: " + MaxTransferPerTick + " Items at a time.");
+            }
+            else { dsc.AppendLine("Transfers full Stacks at a time"); }
+            if (containerlist.Count > 0)
+            {
+                dsc.AppendLine("Linked to "+containerlist.Count+" containers.");
+            }
+            else
+            {
+                dsc.AppendLine("Not linked to any containers");
+            }
+
         }
     }
 }

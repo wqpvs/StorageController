@@ -1,4 +1,4 @@
 {
-    "block-storagecontroller-*": "Storage Controller",
+    "block-normal-generic-storagecontroller-*": "Storage Controller",
     "item-storagelinker-*": "Storage Linker"
 }
