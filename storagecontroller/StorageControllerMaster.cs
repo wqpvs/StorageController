@@ -269,14 +269,20 @@ namespace storagecontroller
             IPlayer byPlayer = (byEntity as EntityPlayer)?.Player;
             BlockEntityContainer cont = Api.World.BlockAccessor.GetBlockEntity(blockSel.Position) as BlockEntityContainer;
             if (cont == null) { return; }
-            int blockdistance = (int)(blockSel.Position.AsVec3i.DistanceTo(Pos.AsVec3i));
-            if (blockdistance > maxRange) { return; }
+            int xdiff = Math.Abs(Pos.X - blockSel.Position.X);
+            if (xdiff >= MaxRange) { return; }
+            int ydiff = Math.Abs(Pos.Y - blockSel.Position.Y);
+            if (ydiff >= MaxRange) { return; }
+            int zdiff = Math.Abs(Pos.Z - blockSel.Position.Z);
+            if (zdiff >= MaxRange) { return; }
+            //int blockdistance = (int)(blockSel.Position.AsVec3i.ManhattenDistanceTo(Pos.AsVec3i));
+            //if (blockdistance > MaxRange) { return; }
             //if container isn't on list then add it
             if (containerlist==null) { containerlist = new List<BlockPos>();}
             if (!containerlist.Contains(blockSel.Position)) {
                 if (Api is ICoreServerAPI)
                 {
-                    
+                    showingblocks = true;
                     containerlist.Add(blockSel.Position); MarkDirty();
                     Api.World.HighlightBlocks(byPlayer, 1, containerlist);
                     Api.World.PlaySoundAt(new AssetLocation("game:sounds/effect/latch"), byPlayer);
@@ -293,6 +299,7 @@ namespace storagecontroller
             IPlayer byPlayer = (byEntity as EntityPlayer)?.Player;
             if (containerlist.Contains(blockSel.Position)) {
                 containerlist.Remove(blockSel.Position);
+                showingblocks = true;
                 Api.World.HighlightBlocks(byPlayer, 1, containerlist);
                 Api.World.PlaySoundAt(new AssetLocation("game:sounds/effect/latch"), byPlayer);
                 MarkDirty();
@@ -306,24 +313,24 @@ namespace storagecontroller
             //if (Api is ICoreClientAPI && containerlist!=null && containerlist.Count>0)
             //{
             //    ICoreAPI capi= Api as ICoreClientAPI;
-
+            if (byPlayer.Entity.Controls.CtrlKey)
+            {
                 showingblocks = !showingblocks;
-                if (showingblocks && containerlist!=null)
+                if (showingblocks && containerlist != null)
                 {
                     Api.World.HighlightBlocks(byPlayer, 1, containerlist);
-                //Api.World.HighlightBlocks(byPlayer, highlightid, containerlist, EnumHighlightBlocksMode.Absolute, EnumHighlightShape.Cube);
+             
                 }
                 else
                 {
-                Api.World.HighlightBlocks(byPlayer, 1, new List<BlockPos>());
+                    Api.World.HighlightBlocks(byPlayer, 1, new List<BlockPos>());
+                }
+             
             }
-                //else
-                //{
-               //     Api.World.HighlightBlocks(byPlayer, 0, containerlist, EnumHighlightBlocksMode.Absolute, EnumHighlightShape.Cube);
-                //}
-            //}
             return base.OnPlayerRightClick(byPlayer, blockSel);
         }
+        
+
         public override void FromTreeAttributes(ITreeAttribute tree, IWorldAccessor worldForResolving)
         {
             base.FromTreeAttributes(tree, worldForResolving);
