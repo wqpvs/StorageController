@@ -7,5 +7,5 @@
 	},
 	width: 3,
 	height: 3,
-	output: { type: "block", code: "storagecontroller-{metal}-east", quantity: 1  }
+	output: { type: "block", code: "storagecontroller{metal}-east", quantity: 1  }
 }

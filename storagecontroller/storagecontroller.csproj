@@ -42,7 +42,12 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
   </Content>
   <None Remove="assets\game\lang\en.json" />
-  <None Remove="assets\storagecontroller\blocktypes\storagecontroller.json" />
+  <None Remove="assets\storagecontroller\blocktypes\storagecontrollerbismuthbronze.json" />
+  <None Remove="assets\storagecontroller\blocktypes\storagecontrollerblackbronze.json" />
+  <None Remove="assets\storagecontroller\blocktypes\storagecontrollercopper.json" />
+  <None Remove="assets\storagecontroller\blocktypes\storagecontrolleriron.json" />
+  <None Remove="assets\storagecontroller\blocktypes\storagecontrollersteel.json" />
+  <None Remove="assets\storagecontroller\blocktypes\storagecontrollertinbronze.json" />
   <None Remove="assets\storagecontroller\itemtypes\storagelinker.json" />
   <None Remove="assets\storagecontroller\recipes\grid\storagecontroller.json" />
   <None Remove="assets\storagecontroller\recipes\grid\storagelinker.json" />
