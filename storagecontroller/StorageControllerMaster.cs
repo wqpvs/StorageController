@@ -51,212 +51,226 @@ namespace storagecontroller
         //stuff to do every so often
         public void OnServerTick(float dt)
         {
-            //Check if we have any inventory to bother with
-            if (this.Inventory == null || this.Inventory.Empty) { return; }
-            if (containerlist==null||containerlist.Count==0) { return; }
-            //Manage linked container list
-            // - only check so many blocks per tick
-            List<BlockPos> prunelist = new List<BlockPos>(); //This is a list of invalid blockpos that should be deleted from list
-            
-                
-            foreach (BlockPos pos in containerlist)
+            try
             {
-                    
-                Block b = Api.World.BlockAccessor.GetBlock(pos);
-                if (!(SupportedChests.Contains(b.EntityClass) || SupportedCrates.Contains(b.EntityClass))) 
-                {
-                    prunelist.Add(pos); continue;
-                }
-                BlockEntity be = Api.World.BlockAccessor.GetBlockEntity(pos);
-                if (be == null||!(be is BlockEntityContainer)) { prunelist.Add(pos); continue; }
-            }
-                
-            foreach(BlockPos pos in prunelist)
-            {
-                containerlist.RemoveAll(x=>x.Equals(pos));
-            }
-            if (containerlist == null || containerlist.Count == 0) { return; } //if no locations were valid then quit
-            //Need to populate containers if this container has inventory
-            // - from list of container first find a stack or locked container with inventory
-            // - then push in inventory if possible
-            // - otherwise look for empty slots we can put our inventory into
-            // TO FIX:
-            //  - issues with crates:
-            //     - crates do have multiple stacks, and will let you force in items, but really everything should be the same stack
+                //Check if we have any inventory to bother with
+                if (this.Inventory == null || this.Inventory.Empty) { return; }
+                if (containerlist == null || containerlist.Count == 0 || SupportedChests == null) { return; }
+                //Manage linked container list
+                // - only check so many blocks per tick
+                List<BlockPos> prunelist = new List<BlockPos>(); //This is a list of invalid blockpos that should be deleted from list
 
-            // Fill order:
-            // - first top up any filtered better crates (including empties)
-            // - top up any crate that has something in it that matches  
-            // - start filling any other empty crate
-            // - fill any chests with partial stacks
-            // - fill empty chests last
 
-            //Priority slots: filtered crate slots with space, other populated crates with space
-            Dictionary<CollectibleObject, List<ItemSlot>> priorityslots = new Dictionary<CollectibleObject, List<ItemSlot>>();
-            //Partial Chest slots - slots in chests that have space
-            List<ItemSlot> populatedslots = new List<ItemSlot>();
-            //Empty slots with nothing, including the first slot of an empty, unfiltered crate
-            List<ItemSlot> emptyslots = new List<ItemSlot>();
-            //This slotreference is to match the slot back up to its originating container
-            Dictionary<ItemSlot,BlockEntityContainer>slotreference=new Dictionary<ItemSlot,BlockEntityContainer>();
-            //Cycle thru our blocks to find containers we can use
-            foreach (BlockPos p in containerlist)
-            {
-                BlockEntity be = Api.World.BlockAccessor.GetBlockEntity(p);
-                Block b = Api.World.BlockAccessor.GetBlock(p);
-                BlockEntityContainer cont = be as BlockEntityContainer;
-                
-                if (cont == null||cont.Inventory==null) { continue; }//this shouldn't happen, but better to check
-                //find better crates
-                FieldInfo bettercratelock = be.GetType().GetField("lockedItemInventory");
-                //ah, we have discovered a better crate!
-                //HANDLE BETTER CRATES
-                if (bettercratelock != null)
+                foreach (BlockPos pos in containerlist)
                 {
-                    var bettercratelockingslot = bettercratelock.GetValue(be) as InventoryGeneric;
-                    bool lockedcrate = false;
-                    bool emptycrate = false;
-                    CollectibleObject inslot = null;
-                    if (bettercratelockingslot != null && bettercratelockingslot[0] != null && bettercratelockingslot[0].Itemstack != null)
+
+                    if (pos == null || Api == null || Api.World == null || Api.World.BlockAccessor == null) { continue; }
+                    Block b = Api.World.BlockAccessor.GetBlock(pos);
+                    if (b == null || b.EntityClass == null) { continue; }
+                    if (!(SupportedChests.Contains(b.EntityClass) || SupportedCrates.Contains(b.EntityClass)))
                     {
-                        lockedcrate = true;
-                        inslot = bettercratelockingslot[0].Itemstack.Collectible;
+                        prunelist.Add(pos); continue;
                     }
-                    else if (cont.Inventory.Empty) { emptycrate = true; }
-                    else { inslot = cont.Inventory[0].Itemstack.Collectible; }
-                    //case one - filtered or not empty - add first slot with space to priority list
-                    if (lockedcrate||!emptycrate)
+                    BlockEntity be = Api.World.BlockAccessor.GetBlockEntity(pos);
+                    if (be == null || !(be is BlockEntityContainer)) { prunelist.Add(pos); continue; }
+                }
+
+                foreach (BlockPos pos in prunelist)
+                {
+                    if (pos == null) { continue; }
+                    containerlist.RemoveAll(x => x.Equals(pos));
+                }
+                if (containerlist == null || containerlist.Count == 0) { return; } //if no locations were valid then quit
+                                                                                   //Need to populate containers if this container has inventory
+                                                                                   // - from list of container first find a stack or locked container with inventory
+                                                                                   // - then push in inventory if possible
+                                                                                   // - otherwise look for empty slots we can put our inventory into
+                                                                                   // TO FIX:
+                                                                                   //  - issues with crates:
+                                                                                   //     - crates do have multiple stacks, and will let you force in items, but really everything should be the same stack
+
+                // Fill order:
+                // - first top up any filtered better crates (including empties)
+                // - top up any crate that has something in it that matches  
+                // - start filling any other empty crate
+                // - fill any chests with partial stacks
+                // - fill empty chests last
+
+                //Priority slots: filtered crate slots with space, other populated crates with space
+                Dictionary<CollectibleObject, List<ItemSlot>> priorityslots = new Dictionary<CollectibleObject, List<ItemSlot>>();
+                //Partial Chest slots - slots in chests that have space
+                List<ItemSlot> populatedslots = new List<ItemSlot>();
+                //Empty slots with nothing, including the first slot of an empty, unfiltered crate
+                List<ItemSlot> emptyslots = new List<ItemSlot>();
+                //This slotreference is to match the slot back up to its originating container
+                Dictionary<ItemSlot, BlockEntityContainer> slotreference = new Dictionary<ItemSlot, BlockEntityContainer>();
+                //Cycle thru our blocks to find containers we can use
+                foreach (BlockPos p in containerlist)
+                {
+                    if (p == null) { continue; }
+                    BlockEntity be = Api.World.BlockAccessor.GetBlockEntity(p);
+                    Block b = Api.World.BlockAccessor.GetBlock(p);
+                    BlockEntityContainer cont = be as BlockEntityContainer;
+
+                    if (be == null || cont == null || cont.Inventory == null) { continue; }//this shouldn't happen, but better to check
+                                                                                           //find better crates
+                    FieldInfo bettercratelock = be.GetType().GetField("lockedItemInventory");
+                    //ah, we have discovered a better crate!
+                    //HANDLE BETTER CRATES
+                    if (bettercratelock != null)
                     {
-                        foreach (ItemSlot crateslot in cont.Inventory)
+                        var bettercratelockingslot = bettercratelock.GetValue(be) as InventoryGeneric;
+                        bool lockedcrate = false;
+                        bool emptycrate = false;
+                        CollectibleObject inslot = null;
+                        if (bettercratelockingslot != null && bettercratelockingslot[0] != null && bettercratelockingslot[0].Itemstack != null)
                         {
-                            if (crateslot.StackSize < inslot.MaxStackSize)
+                            lockedcrate = true;
+                            inslot = bettercratelockingslot[0].Itemstack.Collectible;
+                        }
+                        else if (cont.Inventory.Empty) { emptycrate = true; }
+                        else { inslot = cont.Inventory[0].Itemstack.Collectible; }
+                        //case one - filtered or not empty - add first slot with space to priority list
+                        if (lockedcrate || !emptycrate)
+                        {
+                            foreach (ItemSlot crateslot in cont.Inventory)
                             {
-                                if (priorityslots.ContainsKey(inslot))
+                                if (crateslot.StackSize < inslot.MaxStackSize)
                                 {
-                                    priorityslots[inslot].Add(crateslot);
-                                    slotreference[crateslot] = cont;
-                                    break;
+                                    if (priorityslots.ContainsKey(inslot))
+                                    {
+                                        priorityslots[inslot].Add(crateslot);
+                                        slotreference[crateslot] = cont;
+                                        break;
+                                    }
+                                    else
+                                    {
+                                        priorityslots[inslot] = new List<ItemSlot> { crateslot };
+                                        slotreference[crateslot] = cont;
+                                        break;
+                                    }
                                 }
-                                else
+                            }
+                        }
+                        //If create is empty and unfiltered then we add first slot to empty slots
+                        else if (emptycrate)
+                        {
+                            emptyslots.Add(cont.Inventory[0]);
+                            slotreference[cont.Inventory[0]] = cont;
+                        }
+                        ///*** ADD NONE EMPTY CRATE CODE ***
+
+                    }
+                    //NOT A BETTER CRATE So check if it's another crate and deal with it accordingly
+                    else if (SupportedCrates.Contains(b.EntityClass))
+                    {
+                        //add to empty list if empty
+                        if (cont.Inventory.Empty)
+                        {
+                            emptyslots.Add(cont.Inventory[0]);
+                            slotreference[cont.Inventory[0]] = cont;
+                        }
+                        else
+                        {
+                            //use the contents of the first slot to set what this crate should contain
+                            CollectibleObject inslot = cont.Inventory[0].Itemstack.Collectible;
+                            foreach (ItemSlot crateslot in cont.Inventory)
+                            {
+                                //if (crateslot.Itemstack == null || crateslot.Itemstack.Collectible == null) { continue; }
+                                if (crateslot.StackSize < inslot.MaxStackSize)
                                 {
-                                    priorityslots[inslot]= new List<ItemSlot> { crateslot };
-                                    slotreference[crateslot] = cont;
-                                    break;
+                                    if (priorityslots.ContainsKey(inslot))
+                                    {
+                                        priorityslots[inslot].Add(crateslot);
+                                        slotreference[crateslot] = cont;
+                                        break;
+                                    }
+                                    else
+                                    {
+                                        priorityslots[inslot] = new List<ItemSlot> { crateslot };
+                                        slotreference[crateslot] = cont;
+                                        break;
+                                    }
                                 }
                             }
                         }
                     }
-                    //If create is empty and unfiltered then we add first slot to empty slots
-                    else if (emptycrate)
+                    //last of all deal with chests - slot by slot
+                    else if (supportedChests.Contains(b.EntityClass))
                     {
-                        emptyslots.Add(cont.Inventory[0]);
-                        slotreference[cont.Inventory[0]] = cont;
-                    }
-                    ///*** ADD NONE EMPTY CRATE CODE ***
-
-                }
-                //NOT A BETTER CRATE So check if it's another crate and deal with it accordingly
-                else if (SupportedCrates.Contains(b.EntityClass))
-                {
-                    //add to empty list if empty
-                    if (cont.Inventory.Empty)
-                    {
-                        emptyslots.Add(cont.Inventory[0]);
-                        slotreference[cont.Inventory[0]] = cont;
-                    }
-                    else
-                    {
-                        //use the contents of the first slot to set what this crate should contain
-                        CollectibleObject inslot = cont.Inventory[0].Itemstack.Collectible;
-                        foreach (ItemSlot crateslot in cont.Inventory)
+                        foreach (ItemSlot slot in cont.Inventory)
                         {
-                            //if (crateslot.Itemstack == null || crateslot.Itemstack.Collectible == null) { continue; }
-                            if (crateslot.StackSize < inslot.MaxStackSize)
+                            if (slot == null || slot.Inventory == null) { continue; }
+                            //add empty slots
+                            if (slot.Empty || slot.Itemstack == null)
                             {
-                                if (priorityslots.ContainsKey(inslot))
-                                {
-                                    priorityslots[inslot].Add(crateslot);
-                                    slotreference[crateslot] = cont;
-                                    break;
-                                }
-                                else
-                                {
-                                    priorityslots[inslot] = new List<ItemSlot> { crateslot };
-                                    slotreference[crateslot] = cont;
-                                    break;
-                                }
+                                emptyslots.Add(slot);
+                                slotreference[slot] = cont;
                             }
+                            //ignore full slots
+                            else if (slot.Itemstack.StackSize >= slot.Itemstack.Collectible.MaxStackSize) { continue; }
+                            //this is a filled slot with space so add it
+                            else { populatedslots.Add(slot); slotreference[slot] = cont; }
                         }
+
                     }
+
                 }
-                //last of all deal with chests - slot by slot
-                else if (supportedChests.Contains(b.EntityClass))
+
+                //NEXT CYCLE THRU OWN STACKS AND DISTRIBUTE
+                //  *Note we only do one transfer operation per tick, so the first successful one gets done then it returns
+                foreach (ItemSlot ownslot in Inventory)
                 {
-                    foreach (ItemSlot slot in cont.Inventory)
+                    //skip empty slots
+                    if (ownslot == null || ownslot.Itemstack == null || ownslot.Empty) { continue; }
+                    CollectibleObject myitem = ownslot.Itemstack.Collectible;
+                    if (myitem == null) { continue; }
+
+                    //start trying to find an empty slot
+                    ItemSlot outputslot = null;
+                    if (priorityslots.ContainsKey(myitem))
                     {
-                        if (slot == null || slot.Inventory == null) { continue; }
-                        //add empty slots
-                        if (slot.Empty || slot.Itemstack == null)
+                        if (priorityslots[myitem] != null)
                         {
-                            emptyslots.Add(slot);
-                            slotreference[slot] = cont;
+                            outputslot = priorityslots[myitem][0]; //grab the first viable slot (anything in here should be legit)
                         }
-                        //ignore full slots
-                        else if (slot.Itemstack.StackSize >= slot.Itemstack.Collectible.MaxStackSize) { continue; }
-                        //this is a filled slot with space so add it
-                        else { populatedslots.Add(slot); slotreference[slot] = cont; }
                     }
-                    
-                }
-    
-            }
-            
-            //NEXT CYCLE THRU OWN STACKS AND DISTRIBUTE
-            //  *Note we only do one transfer operation per tick, so the first successful one gets done then it returns
-            foreach (ItemSlot ownslot in Inventory)
-            {
-                //skip empty slots
-                if (ownslot==null||ownslot.Itemstack==null|| ownslot.Empty) { continue; }
-                CollectibleObject myitem = ownslot.Itemstack.Collectible;
-                
-                
-                //start trying to find an empty slot
-                ItemSlot outputslot = null;
-                if (priorityslots.ContainsKey(myitem))
-                {
-                    if (priorityslots[myitem] != null)
+                    //we didn't find anything in a priority slot, next check for other populated slots to fill in
+                    if (outputslot == null)
                     {
-                        outputslot = priorityslots[myitem][0]; //grab the first viable slot (anything in here should be legit)
+                        outputslot = populatedslots.FirstOrDefault(x => (x.Itemstack != null) && (x.Itemstack.Collectible == myitem));
+
                     }
-                }
-                //we didn't find anything in a priority slot, next check for other populated slots to fill in
-                if (outputslot == null)
-                {
-                    outputslot = populatedslots.FirstOrDefault(x => (x.Itemstack != null) && (x.Itemstack.Collectible == myitem));
+                    //if we didn't anything still, try and find an empty slot
+                    if (outputslot == null)
+                    {
+                        if (emptyslots == null || emptyslots.Count == 0 || emptyslots[0] == null) { continue; } //we found nothing for this object
+                        outputslot = emptyslots[0];
+                    }
+
+                    //Finally we can attempt to transfer some inventory and then return out of function if sucessful (or move ot next stack)
+                    int startamt = ownslot.StackSize;
+                    ItemStackMoveOperation op = new ItemStackMoveOperation(Api.World, EnumMouseButton.Left, 0, EnumMergePriority.DirectMerge, Math.Min(ownslot.StackSize, maxTransferPerTick));
+                    int rem = ownslot.TryPutInto(outputslot, ref op);
+                    if (ownslot.StackSize != startamt)
+                    {
+
+                        if (rem == 0) { ownslot.Itemstack = null; }
+                        MarkDirty(false);
+                        outputslot.MarkDirty();
+                        if (slotreference[outputslot] != null)
+                        {
+                            slotreference[outputslot].MarkDirty(true);
+                        }
+
+                        return;
+                    }
 
                 }
-                //if we didn't anything still, try and find an empty slot
-                if (outputslot == null)
-                {
-                    if (emptyslots == null || emptyslots.Count == 0) { continue; } //we found nothing for this object
-                    outputslot = emptyslots[0];
-                }
+            }
+            catch (Exception e)
+            {
 
-                //Finally we can attempt to transfer some inventory and then return out of function if sucessful (or move ot next stack)
-                int startamt = ownslot.StackSize;
-                ItemStackMoveOperation op = new ItemStackMoveOperation(Api.World, EnumMouseButton.Left, 0, EnumMergePriority.DirectMerge, Math.Min(ownslot.StackSize,maxTransferPerTick));
-                int rem = ownslot.TryPutInto(outputslot, ref op);
-                if (ownslot.StackSize != startamt)
-                {
-
-                    if (rem == 0) { ownslot.Itemstack = null; }
-                    MarkDirty(false);
-                    outputslot.MarkDirty();
-                    slotreference[outputslot].MarkDirty(true);
-
-                    return;
-                }
-                
             }
         }
 
