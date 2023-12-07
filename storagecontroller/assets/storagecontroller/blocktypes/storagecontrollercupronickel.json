@@ -1,5 +1,5 @@
 {
-	code: "storagecontrolleriron",
+	code: "storagecontrollercupronickel",
 	class: "BlockStorageController",
 	entityclass: "StorageControllerMaster",
 	attributes: {
@@ -73,8 +73,8 @@
 	"_comment": "Must declare textures so they get added to the block texture atlas",
 	textures: {
 		"normal-generic-sides2": { base: "sides" },
-		"normal-generic-lid": { base: "game:block/metal/plate/iron" },
-		"normal-generic-accessories": { base: "game:block/metal/plate/iron" }
+		"normal-generic-lid": { base: "game:block/metal/plate/cupronickel" },
+		"normal-generic-accessories": { base: "game:block/metal/plate/cupronickel" }
 	},
 	blockmaterial: "Wood",
 	replaceable: 900,

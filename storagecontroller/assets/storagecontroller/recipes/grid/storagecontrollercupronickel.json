@@ -1,7 +1,7 @@
 {
 	ingredientPattern: "UWU	WCW	UWU",
 	ingredients: {
-		"U": { type: "item", code: "game:metalplate-*", name: "metal","allowedVariants": [ "copper", "tinbronze","bismuthbronze","blackbronze","iron","steel","meteoriciron" ], quantity: 1 },
+		"U": { type: "item", code: "game:ingot-*", name: "metal","allowedVariants": [ "cupronickel" ], quantity: 2 },
 		"W": { type: "block", code: "game:metal-parts", name: "metal", quantity: 1 },
 		"C": { type: "block", code: "game:chest-east", attributes: { type: "normal-generic" }  }
 	},

@@ -45,11 +45,14 @@
   <None Remove="assets\storagecontroller\blocktypes\storagecontrollerbismuthbronze.json" />
   <None Remove="assets\storagecontroller\blocktypes\storagecontrollerblackbronze.json" />
   <None Remove="assets\storagecontroller\blocktypes\storagecontrollercopper.json" />
+  <None Remove="assets\storagecontroller\blocktypes\storagecontrollercupronickel.json" />
   <None Remove="assets\storagecontroller\blocktypes\storagecontrolleriron.json" />
+  <None Remove="assets\storagecontroller\blocktypes\storagecontrollermeteoriciron.json" />
   <None Remove="assets\storagecontroller\blocktypes\storagecontrollersteel.json" />
   <None Remove="assets\storagecontroller\blocktypes\storagecontrollertinbronze.json" />
   <None Remove="assets\storagecontroller\itemtypes\storagelinker.json" />
   <None Remove="assets\storagecontroller\recipes\grid\storagecontroller.json" />
+  <None Remove="assets\storagecontroller\recipes\grid\storagecontrollercupronickel.json" />
   <None Remove="assets\storagecontroller\recipes\grid\storagelinker.json" />
   <None Remove="assets\storagecontroller\shapes\item\itemstoragelinker.json" />
   <Content Include="modinfo.json">
@@ -59,6 +62,12 @@
 
 <ItemGroup>
   <Folder Include="assets\storagecontroller\textures\" />
+</ItemGroup>
+
+<ItemGroup>
+  <Content Update="assets\storagecontroller\blocktypes\storagecontrollermeteoriciron.json">
+    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+  </Content>
 </ItemGroup>
 
 </Project>
