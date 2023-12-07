@@ -46,9 +46,9 @@
 		},
 		variantByGroup: "side",
 		variantByGroupInventory: null,
-		"maxTransferPerTick": 8,
-      "maxRange":24,
-      "tickTime":250
+		"maxTransferPerTick": 99999,
+      "maxRange":48,
+      "tickTime":150
 	},
 
 	behaviors: [{name: "Lockable" }, {name: "Container"}],
@@ -73,8 +73,8 @@
 	"_comment": "Must declare textures so they get added to the block texture atlas",
 	textures: {
 		"normal-generic-sides2": { base: "sides" },
-		"normal-generic-lid": { base: "game:block/metal/plate/cupronickel" },
-		"normal-generic-accessories": { base: "game:block/metal/plate/cupronickel" }
+		"normal-generic-lid": { base: "game:block/metal/ingot/cupronickel" },
+		"normal-generic-accessories": { base: "game:block/metal/ingot/cupronickel" }
 	},
 	blockmaterial: "Wood",
 	replaceable: 900,
