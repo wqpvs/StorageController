@@ -350,6 +350,27 @@ namespace storagecontroller
                 }
              
             }
+            if (byPlayer.InventoryManager.ActiveHotbarSlot!=null&&!byPlayer.InventoryManager.ActiveHotbarSlot.Empty&& byPlayer.InventoryManager.ActiveHotbarSlot.Itemstack.Item!=null)
+            {
+                Item activeitem = byPlayer.InventoryManager.ActiveHotbarSlot.Itemstack.Item;
+                if (activeitem==null||activeitem.Attributes==null)
+                {
+                    return base.OnPlayerRightClick(byPlayer, blockSel);
+                }
+                string[] upgradesfrom = activeitem.Attributes["upgradesfrom"].AsArray<string>();
+                if (upgradesfrom == null) { return base.OnPlayerRightClick(byPlayer, blockSel); }
+                string mymetal = Block.Code.FirstCodePart();
+                if (!(upgradesfrom.Contains(mymetal))) { return base.OnPlayerRightClick(byPlayer, blockSel); }
+                string upgradesto = activeitem.Attributes["upgradesto"].AsString("");
+                if (upgradesto == "") { return base.OnPlayerRightClick(byPlayer, blockSel); }
+                upgradesto += "-" + Block.LastCodePart();
+                //ok this is a valid upgrade
+                Block upgradedblock=Api.World.GetBlock(new AssetLocation(upgradesto));
+                Api.World.BlockAccessor.SetBlock(upgradedblock.BlockId, Pos);
+                StorageControllerMaster newmaster=Api.World.BlockAccessor.GetBlockEntity(Pos) as StorageControllerMaster;
+                newmaster.SetContainers(ContainerList);
+                Inventory.DropAll(Pos.ToVec3d());
+            }
             return base.OnPlayerRightClick(byPlayer, blockSel);
         }
         
@@ -369,19 +390,26 @@ namespace storagecontroller
         public override void OnBlockPlaced(ItemStack byItemStack = null)
         {
             base.OnBlockPlaced(byItemStack);
-            if (byItemStack.Attributes.HasAttribute(containerlistkey))
+            if (byItemStack != null)
             {
-                byte[] savedlistdata = byItemStack.Attributes.GetBytes(containerlistkey);
-                if (savedlistdata!=null)
+                if (byItemStack.Attributes.HasAttribute(containerlistkey))
                 {
-                    List<BlockPos> savedcontainerlist = SerializerUtil.Deserialize<List<BlockPos>>(savedlistdata);
-                    if (savedcontainerlist!=null)
+                    byte[] savedlistdata = byItemStack.Attributes.GetBytes(containerlistkey);
+                    if (savedlistdata != null)
                     {
-                        containerlist = new List<BlockPos>(savedcontainerlist);
-                        if (Api is ICoreServerAPI) { MarkDirty(); }
+                        List<BlockPos> savedcontainerlist = SerializerUtil.Deserialize<List<BlockPos>>(savedlistdata);
+                        if (savedcontainerlist != null)
+                        {
+                            containerlist = new List<BlockPos>(savedcontainerlist);
+                            if (Api is ICoreServerAPI) { MarkDirty(true); }
+                        }
                     }
                 }
             }
+        }
+        public void SetContainers(List<BlockPos> newlist)
+        {
+            containerlist = new List<BlockPos>(newlist);
         }
 
         public override void ToTreeAttributes(ITreeAttribute tree)

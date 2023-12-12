@@ -50,6 +50,7 @@
   <None Remove="assets\storagecontroller\blocktypes\storagecontrollermeteoriciron.json" />
   <None Remove="assets\storagecontroller\blocktypes\storagecontrollersteel.json" />
   <None Remove="assets\storagecontroller\blocktypes\storagecontrollertinbronze.json" />
+  <None Remove="assets\storagecontroller\itemtypes\storagecontrollerupgrade.json" />
   <None Remove="assets\storagecontroller\itemtypes\storagelinker.json" />
   <None Remove="assets\storagecontroller\recipes\grid\storagecontroller.json" />
   <None Remove="assets\storagecontroller\recipes\grid\storagecontrollercupronickel.json" />
