@@ -370,6 +370,15 @@ namespace storagecontroller
                 StorageControllerMaster newmaster=Api.World.BlockAccessor.GetBlockEntity(Pos) as StorageControllerMaster;
                 newmaster.SetContainers(ContainerList);
                 Inventory.DropAll(Pos.ToVec3d());
+                if (byPlayer?.WorldData.CurrentGameMode != EnumGameMode.Creative)
+                {
+                    byPlayer.InventoryManager.ActiveHotbarSlot.Itemstack.StackSize--;
+                    if (byPlayer.InventoryManager.ActiveHotbarSlot.Itemstack.StackSize == 0)
+                    {
+                        byPlayer.InventoryManager.ActiveHotbarSlot.Itemstack = null;
+                    }
+                    byPlayer.InventoryManager.ActiveHotbarSlot.MarkDirty();
+                }
             }
             return base.OnPlayerRightClick(byPlayer, blockSel);
         }

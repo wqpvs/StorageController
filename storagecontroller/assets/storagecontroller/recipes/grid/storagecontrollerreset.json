@@ -1,0 +1,12 @@
+{
+	ingredientPattern: "US",
+	ingredients: {
+		"U": { type: "block", code: "storagecontroller*-east", name: "metal","allowedVariants": [ "copper", "tinbronze","bismuthbronze","blackbronze","iron","steel","meteoriciron","cupronickel" ], quantity: 1 },
+		"S": { type: "item", code: "storagelinker-*", "quantity": 0  }
+	},
+	width: 2,
+	height: 1,
+	"name": "Storage Controller Reset",
+		shapeless: true,
+	output: { type: "block", code: "storagecontroller{metal}-east", quantity: 1  }
+}

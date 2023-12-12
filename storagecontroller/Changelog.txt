@@ -1,6 +1,7 @@
 ﻿1.0.3
 - can now link storage controllers CTRL+LEFT Click with linker on a storage controller
 - you can break a storage controller and have it maintain its link
+   - note: if you want the controller to forget its settings then just recraft it with a linker tool
 - new parts: storage controller upgrades!
    - you can upgrade from any lower tier direct to any upper tier with appropriate upgrade
    - eg: copper -> tinbronze, copper->cupronickel etc, iron->metoriciron, blackbronze->steel
