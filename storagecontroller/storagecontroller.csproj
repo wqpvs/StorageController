@@ -54,6 +54,8 @@
   <None Remove="assets\storagecontroller\itemtypes\storagelinker.json" />
   <None Remove="assets\storagecontroller\recipes\grid\storagecontroller.json" />
   <None Remove="assets\storagecontroller\recipes\grid\storagecontrollercupronickel.json" />
+  <None Remove="assets\storagecontroller\recipes\grid\storagecontrollerupgrade-cupronickel.json" />
+  <None Remove="assets\storagecontroller\recipes\grid\storagecontrollerupgrade.json" />
   <None Remove="assets\storagecontroller\recipes\grid\storagelinker.json" />
   <None Remove="assets\storagecontroller\shapes\item\itemstoragelinker.json" />
   <Content Include="modinfo.json">

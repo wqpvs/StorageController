@@ -1,0 +1,12 @@
+{
+	ingredientPattern: "US",
+	ingredients: {
+		"U": { type: "item", code: "game:metalplate-*", name: "metal","allowedVariants": [ "copper", "tinbronze","bismuthbronze","blackbronze","iron","steel","meteoriciron" ], quantity: 4 },
+		"S": { type: "item", code: "storagelinker-*", "quantity": 0  }
+		
+	},
+	width: 2,
+	height: 1,
+	shapeless: true,
+	output: { type: "item", code: "storagecontrollerupgrade-{metal}", quantity: 1  }
+}
