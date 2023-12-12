@@ -35,7 +35,7 @@ namespace storagecontroller
         public override void Initialize(ICoreAPI api)
         {
             base.Initialize(api);
-            supportedChests = new List<string> { "GenericTypedContainer", "BEGenericSortableTypedContainer", "BESortableLabeledChest", "LabeledChest" };
+            supportedChests = new List<string> { "GenericTypedContainer", "BEGenericSortableTypedContainer", "BESortableLabeledChest", "LabeledChest","StorageControllerMaster" };
             supportedCrates = new List<string> { "BBetterCrate", "BEBetterCrate", "Crate" };
             if (Block.Attributes != null)
             {

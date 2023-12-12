@@ -47,7 +47,7 @@ namespace storagecontroller
             BlockEntity targetentity = api.World.BlockAccessor.GetBlockEntity(blockSel.Position);
             handling = EnumHandHandling.PreventDefaultAction;
             //if the block is a storage controller then set it as the target
-            if (targetentity is StorageControllerMaster) {
+            if (targetentity is StorageControllerMaster && !byPlayer.Entity.Controls.CtrlKey) {
                 slot.Itemstack.Attributes.SetBlockPos(islkey, blockSel.Position);
                 slot.Itemstack.Attributes.SetString(isldesc, blockSel.Position.ToLocalPosition(api).ToString());
                 slot.MarkDirty();
