@@ -14,6 +14,7 @@ using Newtonsoft.Json;
 using Vintagestory.API.Config;
 using System.Reflection;
 using Vintagestory.API.Util;
+using System.Xml.Linq;
 
 
 namespace storagecontroller
@@ -21,7 +22,8 @@ namespace storagecontroller
     public class StorageControllerMaster:BlockEntityGenericTypedContainer
     {
         public static string containerlistkey = "containerlist";
-        List<BlockPos> containerlist; //TODO: add to treeattributes
+        List<BlockPos> containerlist; 
+        public List<BlockPos> ContainerList=>containerlist;
         List<string> supportedChests;
         public virtual List<string> SupportedChests => supportedChests;
         List<string> supportedCrates;
@@ -354,6 +356,27 @@ namespace storagecontroller
                 containerlist=JsonConvert.DeserializeObject<List<BlockPos>>(asString);
             }
         }
+
+
+
+        public override void OnBlockPlaced(ItemStack byItemStack = null)
+        {
+            base.OnBlockPlaced(byItemStack);
+            if (byItemStack.Attributes.HasAttribute(containerlistkey))
+            {
+                byte[] savedlistdata = byItemStack.Attributes.GetBytes(containerlistkey);
+                if (savedlistdata!=null)
+                {
+                    List<BlockPos> savedcontainerlist = SerializerUtil.Deserialize<List<BlockPos>>(savedlistdata);
+                    if (savedcontainerlist!=null)
+                    {
+                        containerlist = new List<BlockPos>(savedcontainerlist);
+                        if (Api is ICoreServerAPI) { MarkDirty(); }
+                    }
+                }
+            }
+        }
+
         public override void ToTreeAttributes(ITreeAttribute tree)
         {
             var asString = JsonConvert.SerializeObject(containerlist);

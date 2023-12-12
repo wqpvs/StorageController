@@ -1,0 +1,2 @@
+﻿1.0.3
+- can now link storage controllers CTRL+LEFT Click with linker on a storage controller
