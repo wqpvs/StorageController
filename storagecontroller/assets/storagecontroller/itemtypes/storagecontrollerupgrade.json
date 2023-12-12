@@ -5,7 +5,7 @@
 		"storagecontroller": [ "*" ]
 	},
 	"drawtype": "json",
-	"shape": { "base": "item/itemstoragelinker" },
+	"shape": { "base": "item/itemstoragecontrollerupgrade" },
 	"maxstacksize": 64,
 	"variantgroups": [
 		{
