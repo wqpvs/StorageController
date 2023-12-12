@@ -1,2 +1,3 @@
 ﻿1.0.3
 - can now link storage controllers CTRL+LEFT Click with linker on a storage controller
+- you can break a storage controller and have it maintain its link

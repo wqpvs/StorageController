@@ -67,8 +67,9 @@ namespace storagecontroller
                 {
 
                     if (pos == null || Api == null || Api.World == null || Api.World.BlockAccessor == null) { continue; }
+                    if (!IsInRange(pos)) { prunelist.Add(pos);continue; }
                     Block b = Api.World.BlockAccessor.GetBlock(pos);
-                    if (b == null || b.EntityClass == null) { continue; }
+                    if (b == null || b.EntityClass == null) { prunelist.Add(pos); continue; }
                     if (!(SupportedChests.Contains(b.EntityClass) || SupportedCrates.Contains(b.EntityClass)))
                     {
                         prunelist.Add(pos); continue;
@@ -76,12 +77,14 @@ namespace storagecontroller
                     BlockEntity be = Api.World.BlockAccessor.GetBlockEntity(pos);
                     if (be == null || !(be is BlockEntityContainer)) { prunelist.Add(pos); continue; }
                 }
-
+                int removecount = 0;
                 foreach (BlockPos pos in prunelist)
                 {
                     if (pos == null) { continue; }
-                    containerlist.RemoveAll(x => x.Equals(pos));
+                    removecount+=containerlist.RemoveAll(x => x.Equals(pos));
+                    
                 }
+                if (removecount > 0) { MarkDirty(); }
                 if (containerlist == null || containerlist.Count == 0) { return; } //if no locations were valid then quit
                                                                                    //Need to populate containers if this container has inventory
                                                                                    // - from list of container first find a stack or locked container with inventory
@@ -275,7 +278,16 @@ namespace storagecontroller
 
             }
         }
-
+        public bool IsInRange(BlockPos checkpos)
+        {
+            int xdiff = Math.Abs(Pos.X - checkpos.X);
+            if (xdiff >= MaxRange) { return false; }
+            int ydiff = Math.Abs(Pos.Y - checkpos.Y);
+            if (ydiff >= MaxRange) { return false; }
+            int zdiff = Math.Abs(Pos.Z - checkpos.Z);
+            if (zdiff >= MaxRange) { return false; }
+            return true;
+        }
         //add a container to the list of managed containers (usually called by a storage linker)
         public void AddContainer(ItemSlot slot, EntityAgent byEntity, BlockSelection blockSel)
         {
@@ -285,12 +297,7 @@ namespace storagecontroller
             IPlayer byPlayer = (byEntity as EntityPlayer)?.Player;
             BlockEntityContainer cont = Api.World.BlockAccessor.GetBlockEntity(blockSel.Position) as BlockEntityContainer;
             if (cont == null) { return; }
-            int xdiff = Math.Abs(Pos.X - blockSel.Position.X);
-            if (xdiff >= MaxRange) { return; }
-            int ydiff = Math.Abs(Pos.Y - blockSel.Position.Y);
-            if (ydiff >= MaxRange) { return; }
-            int zdiff = Math.Abs(Pos.Z - blockSel.Position.Z);
-            if (zdiff >= MaxRange) { return; }
+            if (!IsInRange(blockSel.Position)) { return; }
             //int blockdistance = (int)(blockSel.Position.AsVec3i.ManhattenDistanceTo(Pos.AsVec3i));
             //if (blockdistance > MaxRange) { return; }
             //if container isn't on list then add it
