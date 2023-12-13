@@ -418,7 +418,15 @@ namespace storagecontroller
         }
         public void SetContainers(List<BlockPos> newlist)
         {
-            containerlist = new List<BlockPos>(newlist);
+            if (newlist != null)
+            {
+                containerlist = new List<BlockPos>(newlist);
+            }
+            else
+            {
+                containerlist = new List<BlockPos>();
+            }
+            MarkDirty();
         }
 
         public override void ToTreeAttributes(ITreeAttribute tree)
