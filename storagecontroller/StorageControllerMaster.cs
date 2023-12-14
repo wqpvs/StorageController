@@ -314,7 +314,7 @@ namespace storagecontroller
             }
             
         }
-
+        //Remove a Container Location from the list
         public void RemoveContainer(ItemSlot slot, EntityAgent byEntity, BlockSelection blockSel)
         {
             if (containerlist==null) { return; }
@@ -348,7 +348,7 @@ namespace storagecontroller
                 {
                     Api.World.HighlightBlocks(byPlayer, 1, new List<BlockPos>());
                 }
-             
+                GetLinkedInventory(); //TEMPOARY CODE - just to test the breakpoint
             }
             if (byPlayer.InventoryManager.ActiveHotbarSlot!=null&&!byPlayer.InventoryManager.ActiveHotbarSlot.Empty&& byPlayer.InventoryManager.ActiveHotbarSlot.Itemstack.Item!=null)
             {
@@ -429,6 +429,43 @@ namespace storagecontroller
             MarkDirty();
         }
 
+        //return a bunch of itemstacks adding up all linked inventory
+        public List<ItemStack> GetLinkedInventory()
+        {
+            List<ItemStack> allinv=new List<ItemStack>();
+            if (containerlist == null || containerlist.Count == 0) { return allinv; }
+            //search all positions
+            foreach (BlockPos p in containerlist)
+            {
+                BlockEntity be = Api.World.BlockAccessor.GetBlockEntity(p);
+                Block b = Api.World.BlockAccessor.GetBlock(p);
+                BlockEntityContainer cont = be as BlockEntityContainer;
+                if (be == null || b == null || cont == null||cont.Inventory==null||cont.Inventory.Empty) { continue; }
+                //search inventory of this container if it exists and isn't empty
+                foreach (ItemSlot slot in cont.Inventory)
+                {
+                    if (slot == null || slot.Empty || slot.Itemstack == null || slot.StackSize == 0) { continue; }
+                    //exclude chiseled blocks
+                    
+                    //check if we already made a slot for this collectible
+                    //TODO: We need to make sure the stack is actually compatible, like if there's attributes or something
+                    ItemStack exists = allinv.FirstOrDefault<ItemStack>(x => x.Collectible.Equals(slot.Itemstack.Collectible)&&x.ItemAttributes.Equals(slot.Itemstack.ItemAttributes));
+                    
+                    //if we don't have one yet then add one
+                    if (exists == null)
+                    {
+                        allinv.Add(new ItemStack(slot.Itemstack.Collectible,slot.Itemstack.StackSize));
+
+                    }
+                    //otherwise add the inventory to the stack
+                    else {
+                        exists.StackSize += slot.StackSize;
+                    }
+                }
+            }
+
+            return allinv;
+        }
         public override void ToTreeAttributes(ITreeAttribute tree)
         {
             var asString = JsonConvert.SerializeObject(containerlist);

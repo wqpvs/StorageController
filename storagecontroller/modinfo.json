@@ -6,7 +6,7 @@
         "WQP"
     ],
     "description": "Adds a central block for sorting storage",
-    "version": "1.0.3",
+    "version": "1.0.4",
     "dependencies": {
         "game": ""
     }
