@@ -36,7 +36,7 @@ namespace storagecontroller
             double SSP = (GuiElementItemSlotGridBase.unscaledSlotPadding);
             int itemsincolumn = 10;
             int columns = (this.Inventory.Count - 2) / itemsincolumn;
-            double mainWindowWidth = SSB * (columns > 1 ? columns - 1 : 2) + columns * (SSB * 3 + SSP * 4);
+            double mainWindowWidth = SSB * (columns > 1 ? columns - 1 : 2) + columns * (SSB  + SSP * 4);
             double mainWindowHeight = SSB + SSB + itemsincolumn * SSB + (itemsincolumn + 1) * SSP + SSB;
             ElementBounds dialogBounds = ElementStdBounds.AutosizedMainDialog.WithAlignment(EnumDialogArea.CenterMiddle);
             ElementBounds bgBounds = ElementBounds.Fill.WithFixedPadding(GuiStyle.ElementToDialogPadding);
@@ -50,7 +50,7 @@ namespace storagecontroller
                 .AddShadedDialogBG(bgBounds, false)
                 .AddDialogTitleBar(Lang.Get("storagecontroller:storageinventory"), OnTitleBarCloseClicked);
 
-            int maxRaws = 8;
+            int maxRaws = 10;
             int curColumn = 0;
             for (int i = 0; i < (Inventory.Count - 2) / 3; i++)
             {
@@ -60,7 +60,7 @@ namespace storagecontroller
                 }
                 var tm = new int[] { 2 + i * 3, 3 + i * 3, 4 + i * 3 };
                 
-                var tmp = ElementBounds.FixedPos(EnumDialogArea.LeftTop, tradeSlotsBounds.fixedX + 30 + curColumn * 200, (i % maxRaws) * 60)
+                var tmp = ElementBounds.FixedPos(EnumDialogArea.LeftTop, tradeSlotsBounds.fixedX +  curColumn * 200, (i % maxRaws) * 60)
                     .WithFixedWidth(((162)))
                  .WithFixedHeight(48);
                 

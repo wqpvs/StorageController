@@ -458,7 +458,7 @@ namespace storagecontroller
                     
                     //check if we already made a slot for this collectible
                     //TODO: We need to make sure the stack is actually compatible, like if there's attributes or something
-                    ItemStack exists = allinv.FirstOrDefault<ItemStack>(x => x.Collectible.Equals(slot.Itemstack.Collectible)&&x.ItemAttributes.Equals(slot.Itemstack.ItemAttributes));
+                    ItemStack exists = allinv.FirstOrDefault<ItemStack>(x => x.Collectible.Equals(slot.Itemstack.Collectible)&&(x.ItemAttributes==null||x.ItemAttributes.Equals(slot.Itemstack.ItemAttributes)));
                     
                     //if we don't have one yet then add one
                     if (exists == null)
