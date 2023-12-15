@@ -30,5 +30,6 @@
       "item-storagecontrollerupgrade-meteoriciron": "Storage Controller Upgrade (to Meteoric Iron)",
       "item-storagecontrollerupgrade-steel": "Storage Controller Upgrade (to Steel)",
       "item-storagecontrollerupgrade-cupronickel": "Storage Controller Upgrade (to Cupronickel)",
-      "itemdesc-storagecontrollerupgrade-*": "Upgrades a lower tier storage controller to a higher one. Right click on a placed storage controller to use. Any items in the controller will be dropped, but the controller will remember the containers it is linked to. (You can't upgrade between bronze types)'"
+      "itemdesc-storagecontrollerupgrade-*": "Upgrades a lower tier storage controller to a higher one. Right click on a placed storage controller to use. Any items in the controller will be dropped, but the controller will remember the containers it is linked to. (You can't upgrade between bronze types)'",
+      "storageinventory": "Storage System Inventory"
 }

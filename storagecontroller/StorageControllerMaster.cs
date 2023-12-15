@@ -34,6 +34,9 @@ namespace storagecontroller
         int maxTransferPerTick = 1;
         int maxRange = 10;
         int tickTime = 250;
+        public GUIDialogStorageAccess guistorage;
+        DummyInventory systeminventory;
+        public virtual DummyInventory SystemInventory => systeminventory;
         public override void Initialize(ICoreAPI api)
         {
             base.Initialize(api);
@@ -348,7 +351,13 @@ namespace storagecontroller
                 {
                     Api.World.HighlightBlocks(byPlayer, 1, new List<BlockPos>());
                 }
-                GetLinkedInventory(); //TEMPOARY CODE - just to test the breakpoint
+                if (Api is ICoreClientAPI) { SetVirtualInventory(); }
+                if (systeminventory != null && Api is ICoreClientAPI)
+                {
+                    guistorage= new GUIDialogStorageAccess("storagessytem", systeminventory, Pos, this.Api as ICoreClientAPI);
+                    guistorage.TryOpen();
+                }
+                //GetLinkedInventory(); //TEMPOARY CODE - just to test the breakpoint
             }
             if (byPlayer.InventoryManager.ActiveHotbarSlot!=null&&!byPlayer.InventoryManager.ActiveHotbarSlot.Empty&& byPlayer.InventoryManager.ActiveHotbarSlot.Itemstack.Item!=null)
             {
@@ -466,6 +475,20 @@ namespace storagecontroller
 
             return allinv;
         }
+
+        public virtual void SetVirtualInventory()
+        {
+            List<ItemStack> allinv = GetLinkedInventory();
+            if (allinv==null|| allinv.Count == 0) { return; }
+            systeminventory = new DummyInventory(Api, allinv.Count);
+            for (int c=0; c<allinv.Count;c++)
+            {
+                systeminventory[c].Itemstack=new ItemStack(allinv[c].Collectible, allinv[c].StackSize);
+
+            }
+
+        }
+
         public override void ToTreeAttributes(ITreeAttribute tree)
         {
             var asString = JsonConvert.SerializeObject(containerlist);
