@@ -34,10 +34,10 @@ namespace storagecontroller
         {
             double SSB = (GuiElementPassiveItemSlot.unscaledSlotSize);
             double SSP = (GuiElementItemSlotGridBase.unscaledSlotPadding);
-            int itemsincolumn = 12;
+            int itemsincolumn = 15;
             int columns = (this.Inventory.Count - 2) / itemsincolumn;
-            double mainWindowWidth = (columns<10?10:columns) * (SSB  + SSP * 4);
-            double mainWindowHeight = 100+SSB + SSB + itemsincolumn * SSB + (itemsincolumn + 1) * SSP + SSB;
+            double mainWindowWidth = 50+ (columns<10?10:columns) * (SSB  + SSP );
+            double mainWindowHeight =50+ itemsincolumn * (SSB+SSP);
             ElementBounds dialogBounds = ElementStdBounds.AutosizedMainDialog.WithAlignment(EnumDialogArea.CenterMiddle);
             ElementBounds bgBounds = ElementBounds.Fill.WithFixedPadding(GuiStyle.ElementToDialogPadding);
             ElementBounds tradeSlotsBounds = ElementBounds.FixedPos(EnumDialogArea.LeftBottom, 0, 0)
