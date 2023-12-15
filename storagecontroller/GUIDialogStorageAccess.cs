@@ -53,15 +53,15 @@ namespace storagecontroller
             int maxRows = itemsincolumn;
             int curColumn = 0;
             int columnsAISG = 3;
-            for (int i = 0; i < (Inventory.Count - 2) / 3; i++)
+            for (int i = 0; i < (Inventory.Count-1); i++)
             {
                 if (i != 0 && i % maxRows == 0)
                 {
                     curColumn++;
                 }
-                var selectiveSlots = new int[] { 2 + i * 3, 3 + i * 3, 4 + i * 3 };
+                var selectiveSlots = new int[] { i };
                 
-                var boundsAISG = ElementBounds.FixedPos(EnumDialogArea.LeftTop, tradeSlotsBounds.fixedX +  curColumn * 58*3,50+ (i % maxRows) * 60)
+                var boundsAISG = ElementBounds.FixedPos(EnumDialogArea.LeftTop, tradeSlotsBounds.fixedX +  curColumn * (SSP + SSB), 50+ (i % maxRows) * (SSP + SSB))
                     .WithFixedWidth(((162)))
                  .WithFixedHeight(48);
                 
