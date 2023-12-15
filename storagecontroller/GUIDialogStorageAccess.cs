@@ -34,13 +34,13 @@ namespace storagecontroller
         {
             double SSB = (GuiElementPassiveItemSlot.unscaledSlotSize);
             double SSP = (GuiElementItemSlotGridBase.unscaledSlotPadding);
-            int itemsincolumn = 10;
+            int itemsincolumn = 12;
             int columns = (this.Inventory.Count - 2) / itemsincolumn;
-            double mainWindowWidth = SSB * (columns > 1 ? columns - 1 : 2) + columns * (SSB  + SSP * 4);
-            double mainWindowHeight = SSB + SSB + itemsincolumn * SSB + (itemsincolumn + 1) * SSP + SSB;
+            double mainWindowWidth = (columns<10?10:columns) * (SSB  + SSP * 4);
+            double mainWindowHeight = 100+SSB + SSB + itemsincolumn * SSB + (itemsincolumn + 1) * SSP + SSB;
             ElementBounds dialogBounds = ElementStdBounds.AutosizedMainDialog.WithAlignment(EnumDialogArea.CenterMiddle);
             ElementBounds bgBounds = ElementBounds.Fill.WithFixedPadding(GuiStyle.ElementToDialogPadding);
-            ElementBounds tradeSlotsBounds = ElementBounds.FixedPos(EnumDialogArea.LeftBottom, 0, 100)
+            ElementBounds tradeSlotsBounds = ElementBounds.FixedPos(EnumDialogArea.LeftBottom, 0, 0)
                 .WithFixedWidth(mainWindowWidth)
                 .WithFixedHeight(mainWindowHeight);
             bgBounds.WithChildren(tradeSlotsBounds);
@@ -50,18 +50,18 @@ namespace storagecontroller
                 .AddShadedDialogBG(bgBounds, false)
                 .AddDialogTitleBar(Lang.Get("storagecontroller:storageinventory"), OnTitleBarCloseClicked);
 
-            int maxRaws = 10;
+            int maxRows = itemsincolumn;
             int curColumn = 0;
             int columnsAISG = 3;
             for (int i = 0; i < (Inventory.Count - 2) / 3; i++)
             {
-                if (i != 0 && i % maxRaws == 0)
+                if (i != 0 && i % maxRows == 0)
                 {
                     curColumn++;
                 }
                 var selectiveSlots = new int[] { 2 + i * 3, 3 + i * 3, 4 + i * 3 };
                 
-                var boundsAISG = ElementBounds.FixedPos(EnumDialogArea.LeftTop, tradeSlotsBounds.fixedX +  curColumn * 200, (i % maxRaws) * 60)
+                var boundsAISG = ElementBounds.FixedPos(EnumDialogArea.LeftTop, tradeSlotsBounds.fixedX +  curColumn * 58*3,50+ (i % maxRows) * 60)
                     .WithFixedWidth(((162)))
                  .WithFixedHeight(48);
                 
@@ -72,7 +72,7 @@ namespace storagecontroller
                     selectiveSlots,
                     boundsAISG,
                     "storageRaw" + i.ToString());
-                ElementBounds tmpEB = ElementBounds.FixedPos(EnumDialogArea.LeftTop, tradeSlotsBounds.fixedX + 30 + curColumn * 200 + 165, (i % maxRaws) * 60 + 25).WithFixedHeight(GuiElement.scaled((200.0))).WithFixedWidth(35);
+                ElementBounds tmpEB = ElementBounds.FixedPos(EnumDialogArea.LeftTop, tradeSlotsBounds.fixedX + 30 + curColumn * 200 + 165, (i % maxRows) * 60 + 25).WithFixedHeight(GuiElement.scaled((200.0))).WithFixedWidth(35);
                 tradeSlotsBounds.WithChild(tmpEB);
                 //SingleComposer.AddDynamicText((this.Inventory).be.stocks[i].ToString(), CairoFont.WhiteDetailText(), tmpEB, "stock" + i);
 
