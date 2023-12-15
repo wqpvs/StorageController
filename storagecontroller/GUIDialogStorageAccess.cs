@@ -52,25 +52,26 @@ namespace storagecontroller
 
             int maxRaws = 10;
             int curColumn = 0;
+            int columnsAISG = 3;
             for (int i = 0; i < (Inventory.Count - 2) / 3; i++)
             {
                 if (i != 0 && i % maxRaws == 0)
                 {
                     curColumn++;
                 }
-                var tm = new int[] { 2 + i * 3, 3 + i * 3, 4 + i * 3 };
+                var selectiveSlots = new int[] { 2 + i * 3, 3 + i * 3, 4 + i * 3 };
                 
-                var tmp = ElementBounds.FixedPos(EnumDialogArea.LeftTop, tradeSlotsBounds.fixedX +  curColumn * 200, (i % maxRaws) * 60)
+                var boundsAISG = ElementBounds.FixedPos(EnumDialogArea.LeftTop, tradeSlotsBounds.fixedX +  curColumn * 200, (i % maxRaws) * 60)
                     .WithFixedWidth(((162)))
                  .WithFixedHeight(48);
                 
-                tradeSlotsBounds.WithChild(tmp);
+                tradeSlotsBounds.WithChild(boundsAISG);
                 SingleComposer.AddItemSlotGrid(this.Inventory,
                     new Action<object>((this).DoSendPacket),
-                    3,
-                    tm,
-                    tmp,
-                    "tradeRaw" + i.ToString());
+                    columnsAISG,
+                    selectiveSlots,
+                    boundsAISG,
+                    "storageRaw" + i.ToString());
                 ElementBounds tmpEB = ElementBounds.FixedPos(EnumDialogArea.LeftTop, tradeSlotsBounds.fixedX + 30 + curColumn * 200 + 165, (i % maxRaws) * 60 + 25).WithFixedHeight(GuiElement.scaled((200.0))).WithFixedWidth(35);
                 tradeSlotsBounds.WithChild(tmpEB);
                 //SingleComposer.AddDynamicText((this.Inventory).be.stocks[i].ToString(), CairoFont.WhiteDetailText(), tmpEB, "stock" + i);
