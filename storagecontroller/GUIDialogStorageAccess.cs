@@ -15,6 +15,7 @@ using Vintagestory.API.Config;
 using System.Reflection;
 using Vintagestory.API.Util;
 using System.Xml.Linq;
+using Newtonsoft.Json.Linq;
 
 namespace storagecontroller
 {
@@ -67,7 +68,7 @@ namespace storagecontroller
                 
                 tradeSlotsBounds.WithChild(boundsAISG);
                 SingleComposer.AddItemSlotGrid(this.Inventory,
-                    new Action<object>((this).DoSendPacket),
+                    new Action<object>(DoSendPacket),
                     columnsAISG,
                     selectiveSlots,
                     boundsAISG,
@@ -83,7 +84,10 @@ namespace storagecontroller
         {
             TryClose();
         }
+        
+        
 
+      
         
     }
 }

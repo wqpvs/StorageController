@@ -15,6 +15,7 @@ using Vintagestory.API.Config;
 using System.Reflection;
 using Vintagestory.API.Util;
 using System.Xml.Linq;
+using VintagestoryLib;
 
 
 namespace storagecontroller
@@ -472,7 +473,7 @@ namespace storagecontroller
                     }
                 }
             }
-
+            allinv = allinv.OrderBy(x => x.GetName()).ToList();
             return allinv;
         }
 
@@ -487,6 +488,63 @@ namespace storagecontroller
 
             }
 
+        }
+
+        public override void OnReceivedClientPacket(IPlayer player, int packetid, byte[] data)
+        {
+            
+            /*if (packetid < 1000)
+            {
+                if (systeminventory != null)
+                {
+                    
+                }
+                Inventory.InvNetworkUtil.HandleClientPacket(player, packetid, data);
+                Api.World.BlockAccessor.GetChunkAtBlockPos(Pos.X, Pos.Y, Pos.Z).MarkModified();
+                return;
+            }
+
+            if (packetid == 1001)
+            {
+                player.InventoryManager?.CloseInventory(Inventory);
+            }
+
+            if (packetid == 1000)
+            {
+                player.InventoryManager?.OpenInventory(Inventory);
+                //checkChestInventoryUnder();
+            }*/
+           // base.OnReceivedClientPacket(player, packetid, data);
+           //byte 17 is the slot id!
+           if (packetid == 7)
+            {
+                Packet_Client packet = new Packet_Client();
+                Packet_ClientSerializer.DeserializeBuffer(data, data.Length, packet);
+                
+                FieldInfo[] paisA = packet.GetType().GetFields(BindingFlags.NonPublic|BindingFlags.Default|BindingFlags.FlattenHierarchy|BindingFlags.Instance);
+                FieldInfo pais = paisA.FirstOrDefault(x => x.FieldType == typeof(Packet_ActivateInventorySlot));
+                if (pais != null )
+                {
+                    var actislot = pais.GetValue(packet) as Packet_ActivateInventorySlot;
+                    if (actislot != null)
+                    {
+                        FieldInfo slotFI = actislot.GetType().GetField("TargetSlot", BindingFlags.NonPublic | BindingFlags.Default | BindingFlags.FlattenHierarchy | BindingFlags.Instance);
+                        if (slotFI != null)
+                        {
+                            var slotno = slotFI.GetValue(actislot) as int?;
+                            if (slotno != null)
+                            {
+                                
+                            }
+                        }
+                    }
+                    //var bettercratelockingslot = bettercratelock.GetValue(be) as InventoryGeneric;
+                    //packet.ActivateInventorySlot
+                }
+                int a = 1;
+            }
+            return;
+            
         }
 
         public override void ToTreeAttributes(ITreeAttribute tree)
