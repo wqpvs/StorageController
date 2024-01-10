@@ -35,6 +35,7 @@ namespace storagecontroller
         int maxTransferPerTick = 1;
         int maxRange = 10;
         int tickTime = 250;
+        bool dopruning = false; //should invalid locations be moved every time?
         public GUIDialogStorageAccess guistorage;
         DummyInventory systeminventory;
         public virtual DummyInventory SystemInventory => systeminventory;
@@ -82,13 +83,16 @@ namespace storagecontroller
                     if (be == null || !(be is BlockEntityContainer)) { prunelist.Add(pos); continue; }
                 }
                 int removecount = 0;
-                foreach (BlockPos pos in prunelist)
+                if (dopruning)
                 {
-                    if (pos == null) { continue; }
-                    removecount+=containerlist.RemoveAll(x => x.Equals(pos));
-                    
+                    foreach (BlockPos pos in prunelist)
+                    {
+                        if (pos == null) { continue; }
+                        removecount += containerlist.RemoveAll(x => x.Equals(pos));
+
+                    }
+                    if (removecount > 0) { MarkDirty(); }
                 }
-                if (removecount > 0) { MarkDirty(); }
                 if (containerlist == null || containerlist.Count == 0) { return; } //if no locations were valid then quit
                                                                                    //Need to populate containers if this container has inventory
                                                                                    // - from list of container first find a stack or locked container with inventory
@@ -476,10 +480,10 @@ namespace storagecontroller
             allinv = allinv.OrderBy(x => x.GetName()).ToList();
             return allinv;
         }
-
+        List<ItemStack> allinv;
         public virtual void SetVirtualInventory()
         {
-            List<ItemStack> allinv = GetLinkedInventory();
+            allinv = GetLinkedInventory();
             if (allinv==null|| allinv.Count == 0) { return; }
             systeminventory = new DummyInventory(Api, allinv.Count);
             for (int c=0; c<allinv.Count;c++)
@@ -493,55 +497,18 @@ namespace storagecontroller
         public override void OnReceivedClientPacket(IPlayer player, int packetid, byte[] data)
         {
             
-            /*if (packetid < 1000)
-            {
-                if (systeminventory != null)
-                {
-                    
-                }
-                Inventory.InvNetworkUtil.HandleClientPacket(player, packetid, data);
-                Api.World.BlockAccessor.GetChunkAtBlockPos(Pos.X, Pos.Y, Pos.Z).MarkModified();
-                return;
-            }
-
-            if (packetid == 1001)
-            {
-                player.InventoryManager?.CloseInventory(Inventory);
-            }
-
-            if (packetid == 1000)
-            {
-                player.InventoryManager?.OpenInventory(Inventory);
-                //checkChestInventoryUnder();
-            }*/
-           // base.OnReceivedClientPacket(player, packetid, data);
-           //byte 17 is the slot id!
+           //we can get the selected index, but the problem is the inventory list is generated client side
+           //so we need to figure out how to sync up the selection on both sides before we can transfer any inventory
            if (packetid == 7)
             {
                 Packet_Client packet = new Packet_Client();
                 Packet_ClientSerializer.DeserializeBuffer(data, data.Length, packet);
                 
-                FieldInfo[] paisA = packet.GetType().GetFields(BindingFlags.NonPublic|BindingFlags.Default|BindingFlags.FlattenHierarchy|BindingFlags.Instance);
-                FieldInfo pais = paisA.FirstOrDefault(x => x.FieldType == typeof(Packet_ActivateInventorySlot));
-                if (pais != null )
-                {
-                    var actislot = pais.GetValue(packet) as Packet_ActivateInventorySlot;
-                    if (actislot != null)
-                    {
-                        FieldInfo slotFI = actislot.GetType().GetField("TargetSlot", BindingFlags.NonPublic | BindingFlags.Default | BindingFlags.FlattenHierarchy | BindingFlags.Instance);
-                        if (slotFI != null)
-                        {
-                            var slotno = slotFI.GetValue(actislot) as int?;
-                            if (slotno != null)
-                            {
-                                
-                            }
-                        }
-                    }
-                    //var bettercratelockingslot = bettercratelock.GetValue(be) as InventoryGeneric;
-                    //packet.ActivateInventorySlot
-                }
-                int a = 1;
+                Packet_ActivateInventorySlot paisA = packet.ActivateInventorySlot;
+                int selectedtab = paisA.TabIndex;
+                if (allinv == null||selectedtab>=allinv.Count()) { return; }
+                ItemStack selecteditem = allinv[selectedtab];
+                
             }
             return;
             
