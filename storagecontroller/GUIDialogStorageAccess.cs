@@ -16,17 +16,20 @@ using System.Reflection;
 using Vintagestory.API.Util;
 using System.Xml.Linq;
 using Newtonsoft.Json.Linq;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace storagecontroller
 {
     public class GUIDialogStorageAccess : GuiDialogBlockEntity
     {
+        ICoreClientAPI clientAPI;
         public GUIDialogStorageAccess(string dialogTitle, InventoryBase inventory, BlockPos blockEntityPos, ICoreClientAPI capi) : base(dialogTitle, inventory, blockEntityPos, capi)
         {
             if (IsDuplicate)
             {
                 return;
             }
+            clientAPI = capi;
             capi.World.Player.InventoryManager.OpenInventory((IInventory)inventory);
             SetupDialog();
         }
@@ -68,7 +71,7 @@ namespace storagecontroller
                 
                 tradeSlotsBounds.WithChild(boundsAISG);
                 SingleComposer.AddItemSlotGrid(this.Inventory,
-                    new Action<object>(DoSendPacket),
+                    GetClick,
                     columnsAISG,
                     selectiveSlots,
                     boundsAISG,
@@ -85,7 +88,12 @@ namespace storagecontroller
             TryClose();
         }
         
-        
+        private void GetClick(object data)
+        {
+            ItemSlot transferslot = clientAPI.World.Player.InventoryManager.MouseItemSlot;
+            
+            int test = 1;
+        }
 
       
         

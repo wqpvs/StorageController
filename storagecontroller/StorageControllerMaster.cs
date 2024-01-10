@@ -480,9 +480,10 @@ namespace storagecontroller
             allinv = allinv.OrderBy(x => x.GetName()).ToList();
             return allinv;
         }
-        List<ItemStack> allinv;
+        
         public virtual void SetVirtualInventory()
         {
+            List<ItemStack> allinv;
             allinv = GetLinkedInventory();
             if (allinv==null|| allinv.Count == 0) { return; }
             systeminventory = new DummyInventory(Api, allinv.Count);
@@ -499,15 +500,16 @@ namespace storagecontroller
             
            //we can get the selected index, but the problem is the inventory list is generated client side
            //so we need to figure out how to sync up the selection on both sides before we can transfer any inventory
-           if (packetid == 7)
+           if (packetid == 7777)
             {
-                Packet_Client packet = new Packet_Client();
+                /*Packet_Client packet = new Packet_Client();
                 Packet_ClientSerializer.DeserializeBuffer(data, data.Length, packet);
                 
                 Packet_ActivateInventorySlot paisA = packet.ActivateInventorySlot;
-                int selectedtab = paisA.TabIndex;
-                if (allinv == null||selectedtab>=allinv.Count()) { return; }
-                ItemStack selecteditem = allinv[selectedtab];
+                int selectedtab = paisA.TargetSlot;
+                SetVirtualInventory();
+                if (systeminventory == null||selectedtab>=systeminventory.Count()) { return; }
+                ItemSlot slot = systeminventory[selectedtab];*/
                 
             }
             return;
