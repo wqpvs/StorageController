@@ -498,22 +498,69 @@ namespace storagecontroller
         public override void OnReceivedClientPacket(IPlayer player, int packetid, byte[] data)
         {
             
-           //we can get the selected index, but the problem is the inventory list is generated client side
-           //so we need to figure out how to sync up the selection on both sides before we can transfer any inventory
+           
+           //How to handle taking multiple stacks?
+           //just search and grab/relieve the first stack we find 
            if (packetid == 7777)
             {
                 ItemStack clickedstack = new ItemStack(data);
                 clickedstack.ResolveBlockOrItem(Api.World);
                 if (clickedstack == null) { return; }
                 // we got the stack now let's see if we can send it to the player
-                SetVirtualInventory();
-                if (systeminventory==null||systeminventory.Count == 0) { return; } //inventory wasn't made for some reason
-                var relevantslots = systeminventory.Where(x => x.Itemstack.Satisfies(clickedstack));
-                if (relevantslots == null || relevantslots.Count() == 0) { return; }
-
+                int qty = GetStackOf(clickedstack);
+                if (qty == 0) { return; }
+                clickedstack.StackSize = qty;
+                DummyInventory di = new DummyInventory(Api, 1);
+                di[0].Itemstack = clickedstack;
+                bool trygive=player.InventoryManager.TryGiveItemstack(clickedstack);
+                //no valid slot
+                if (!trygive)
+                {
+                    di.DropAll(Pos.ToVec3d());
+                
+                }
+                
+                
             }
             return;
             
+        }
+
+        /// <summary>
+        /// Attempts to find the item in the connected inventory, relieves it and returns the amount found
+        /// </summary>
+        /// <param name="findstack"></param>
+        /// <returns></returns>
+        public virtual int GetStackOf(ItemStack findstack)
+        {
+            int qty = 0;
+            
+            foreach (BlockPos p in containerlist)
+            {
+                if (qty != 0) { break; }
+                BlockEntity be = Api.World.BlockAccessor.GetBlockEntity(p);
+                Block b = Api.World.BlockAccessor.GetBlock(p);
+                BlockEntityContainer cont = be as BlockEntityContainer;
+                if (be == null || b == null || cont == null || cont.Inventory == null || cont.Inventory.Empty) { continue; }
+                //search inventory of this container if it exists and isn't empty
+                foreach (ItemSlot slot in cont.Inventory)
+                {
+                    if (slot == null || slot.Empty || slot.Itemstack == null || slot.StackSize == 0) { continue; }
+                    //if we don't have one yet then add one
+
+                    if (slot.Itemstack.Satisfies(findstack))
+                    {
+                        qty = slot.Itemstack.StackSize;
+                        slot.Itemstack= null;
+                        slot.MarkDirty();
+                        cont.MarkDirty();
+                        break;
+                    }
+                }
+            }
+            
+        
+            return qty;
         }
 
         public override void ToTreeAttributes(ITreeAttribute tree)
