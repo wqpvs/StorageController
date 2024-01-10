@@ -91,8 +91,12 @@ namespace storagecontroller
         private void GetClick(object data)
         {
             ItemSlot transferslot = clientAPI.World.Player.InventoryManager.MouseItemSlot;
-            
-            int test = 1;
+            if (transferslot == null || transferslot.Empty) return;
+
+            byte[] newdata = transferslot.Itemstack.ToBytes();
+            clientAPI.Network.SendBlockEntityPacket(BlockEntityPosition.X, BlockEntityPosition.Y, BlockEntityPosition.Z, 7777,newdata);
+            clientAPI.World.Player.InventoryManager.DropMouseSlotItems(true);
+
         }
 
       

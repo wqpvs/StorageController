@@ -502,15 +502,15 @@ namespace storagecontroller
            //so we need to figure out how to sync up the selection on both sides before we can transfer any inventory
            if (packetid == 7777)
             {
-                /*Packet_Client packet = new Packet_Client();
-                Packet_ClientSerializer.DeserializeBuffer(data, data.Length, packet);
-                
-                Packet_ActivateInventorySlot paisA = packet.ActivateInventorySlot;
-                int selectedtab = paisA.TargetSlot;
+                ItemStack clickedstack = new ItemStack(data);
+                clickedstack.ResolveBlockOrItem(Api.World);
+                if (clickedstack == null) { return; }
+                // we got the stack now let's see if we can send it to the player
                 SetVirtualInventory();
-                if (systeminventory == null||selectedtab>=systeminventory.Count()) { return; }
-                ItemSlot slot = systeminventory[selectedtab];*/
-                
+                if (systeminventory==null||systeminventory.Count == 0) { return; } //inventory wasn't made for some reason
+                var relevantslots = systeminventory.Where(x => x.Itemstack.Satisfies(clickedstack));
+                if (relevantslots == null || relevantslots.Count() == 0) { return; }
+
             }
             return;
             
