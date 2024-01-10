@@ -87,16 +87,19 @@ namespace storagecontroller
         {
             TryClose();
         }
-        
+        //we need to re-add the slot number so we can hopefully repopulate the players grid if there's multiple stacks
+        //we also need to sort out non stacking items
+        //can we update the grid in real time to adjust the inventory after the transfer??
         private void GetClick(object data)
         {
             ItemSlot transferslot = clientAPI.World.Player.InventoryManager.MouseItemSlot;
             if (transferslot == null || transferslot.Empty) return;
 
             byte[] newdata = transferslot.Itemstack.ToBytes();
-            clientAPI.Network.SendBlockEntityPacket(BlockEntityPosition.X, BlockEntityPosition.Y, BlockEntityPosition.Z, 7777,newdata);
+            clientAPI.Network.SendBlockEntityPacket(BlockEntityPosition.X, BlockEntityPosition.Y, BlockEntityPosition.Z, 7777, newdata);
             clientAPI.World.Player.InventoryManager.DropMouseSlotItems(true);
-
+            TryClose();
+            
         }
 
       

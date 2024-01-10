@@ -356,11 +356,10 @@ namespace storagecontroller
                 {
                     Api.World.HighlightBlocks(byPlayer, 1, new List<BlockPos>());
                 }
-                if (Api is ICoreClientAPI) { SetVirtualInventory(); }
-                if (systeminventory != null && Api is ICoreClientAPI)
+                
+                if (Api is ICoreClientAPI)
                 {
-                    guistorage= new GUIDialogStorageAccess("storagessytem", systeminventory, Pos, this.Api as ICoreClientAPI);
-                    guistorage.TryOpen();
+                    OpenStorageInterface();
                 }
                 //GetLinkedInventory(); //TEMPOARY CODE - just to test the breakpoint
             }
@@ -408,7 +407,22 @@ namespace storagecontroller
             }
         }
 
+        public virtual void OpenStorageInterface()
+        {
+            if (!(Api is ICoreClientAPI)) { return; }
+            
+            if (guistorage != null)
+            {
+                guistorage.TryClose();
+                guistorage = null;
+            }
+            SetVirtualInventory();
+            if (systeminventory == null || systeminventory.Empty) { return; }
+            guistorage = new GUIDialogStorageAccess("storagesystem", systeminventory, Pos, this.Api as ICoreClientAPI);
+            guistorage.TryOpen();
+        }
 
+       
 
         public override void OnBlockPlaced(ItemStack byItemStack = null)
         {
@@ -519,13 +533,26 @@ namespace storagecontroller
                     di.DropAll(Pos.ToVec3d());
                 
                 }
-                
+                (Api as ICoreServerAPI).Network.SendBlockEntityPacket(player as IServerPlayer, Pos.X,Pos.Y,Pos.Z, 7778);
                 
             }
             return;
             
         }
 
+        public virtual void RefreshStorageInterface(float dt)
+        {
+            OpenStorageInterface();
+        }
+
+        public override void OnReceivedServerPacket(int packetid, byte[] data)
+        {
+            if (packetid == 7778) //signal from server to refresh to storage interface
+            {
+                RegisterDelayedCallback(RefreshStorageInterface,100);
+            }
+            base.OnReceivedServerPacket(packetid, data);
+        }
         /// <summary>
         /// Attempts to find the item in the connected inventory, relieves it and returns the amount found
         /// </summary>
