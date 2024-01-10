@@ -406,7 +406,9 @@ namespace storagecontroller
                 containerlist=JsonConvert.DeserializeObject<List<BlockPos>>(asString);
             }
         }
-
+        /// <summary>
+        /// Opens the inventory of all storages (seprate from the local inventory of the controller itself)
+        /// </summary>
         public virtual void OpenStorageInterface()
         {
             if (!(Api is ICoreClientAPI)) { return; }
@@ -423,7 +425,6 @@ namespace storagecontroller
         }
 
        
-
         public override void OnBlockPlaced(ItemStack byItemStack = null)
         {
             base.OnBlockPlaced(byItemStack);
@@ -444,6 +445,11 @@ namespace storagecontroller
                 }
             }
         }
+
+        /// <summary>
+        /// Set a new list of containers (as block positions where those containers should be)
+        /// </summary>
+        /// <param name="newlist"></param>
         public void SetContainers(List<BlockPos> newlist)
         {
             if (newlist != null)
@@ -457,7 +463,10 @@ namespace storagecontroller
             MarkDirty();
         }
 
-        //return a bunch of itemstacks adding up all linked inventory
+        /// <summary>
+        /// Returns a list of everything in linked inventories
+        /// </summary>
+        /// <returns></returns>
         public List<ItemStack> GetLinkedInventory()
         {
             List<ItemStack> allinv=new List<ItemStack>();
@@ -494,7 +503,9 @@ namespace storagecontroller
             allinv = allinv.OrderBy(x => x.GetName()).ToList();
             return allinv;
         }
-        
+        /// <summary>
+        /// Builds a giant virtual inventory of all populated, linked containers
+        /// </summary>
         public virtual void SetVirtualInventory()
         {
             List<ItemStack> allinv;
@@ -539,7 +550,12 @@ namespace storagecontroller
             return;
             
         }
-
+        /// <summary>
+        /// This is just meant to be called after an inventory operation after
+        /// a little delay so that a refreshed inventory screen can be generated
+        /// probably cheaper than constantly polling.
+        /// </summary>
+        /// <param name="dt"></param>
         public virtual void RefreshStorageInterface(float dt)
         {
             OpenStorageInterface();
@@ -549,7 +565,7 @@ namespace storagecontroller
         {
             if (packetid == 7778) //signal from server to refresh to storage interface
             {
-                RegisterDelayedCallback(RefreshStorageInterface,100);
+                RegisterDelayedCallback(RefreshStorageInterface,100); //set the gui to reopen after 100ms, hopefully enough time for the inventory changes to go thru
             }
             base.OnReceivedServerPacket(packetid, data);
         }
@@ -575,7 +591,7 @@ namespace storagecontroller
                     if (slot == null || slot.Empty || slot.Itemstack == null || slot.StackSize == 0) { continue; }
                     //if we don't have one yet then add one
 
-                    if (slot.Itemstack.Satisfies(findstack))
+                    if (slot.Itemstack.Collectible.Equals(findstack.Collectible))
                     {
                         qty = slot.Itemstack.StackSize;
                         slot.Itemstack= null;
