@@ -1,5 +1,7 @@
 ﻿1.0.4
-- storage access controller?
+- Vintage Story 1.19.0 rc support
+- You can control + right click on the storage controller to get a list of all items in the network
+   - you can transfer one stack at a time by left clicking (shift+left clicking currently will just fail and give you ghost items)
 
 1.0.3
 - can now link storage controllers CTRL+LEFT Click with linker on a storage controller
