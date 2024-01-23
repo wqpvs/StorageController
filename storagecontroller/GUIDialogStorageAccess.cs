@@ -23,6 +23,7 @@ namespace storagecontroller
     public class GUIDialogStorageAccess : GuiDialogBlockEntity
     {
         ICoreClientAPI clientAPI;
+        InventoryBase virtualinventory;
         public GUIDialogStorageAccess(string dialogTitle, InventoryBase inventory, BlockPos blockEntityPos, ICoreClientAPI capi) : base(dialogTitle, inventory, blockEntityPos, capi)
         {
             if (IsDuplicate)
@@ -30,10 +31,15 @@ namespace storagecontroller
                 return;
             }
             clientAPI = capi;
-            capi.World.Player.InventoryManager.OpenInventory((IInventory)inventory);
+            virtualinventory= inventory;
+            //capi.World.Player.InventoryManager.OpenInventory((IInventory)inventory);
             SetupDialog();
         }
-
+        public void SetVirtualInventory(InventoryBase newinventory)
+        {
+            virtualinventory= newinventory;
+            SetupDialog();
+        }
         protected virtual void SetupDialog()
         {
             double SSB = (GuiElementPassiveItemSlot.unscaledSlotSize);
@@ -57,29 +63,31 @@ namespace storagecontroller
             int maxRows = itemsincolumn;
             int curColumn = 0;
             int columnsAISG = 3;
-            for (int i = 0; i < (Inventory.Count-1); i++)
+            double offsetx = 10;
+            double offsety = 10;
+            for (int i = 0; i < (virtualinventory.Count); i++)
             {
                 if (i != 0 && i % maxRows == 0)
                 {
                     curColumn++;
                 }
-                var selectiveSlots = new int[] { i };
                 
-                var boundsAISG = ElementBounds.FixedPos(EnumDialogArea.LeftTop, tradeSlotsBounds.fixedX +  curColumn * (SSP + SSB), 50+ (i % maxRows) * (SSP + SSB))
-                    .WithFixedWidth(((162)))
+                var boundsAISG = ElementBounds.FixedPos(EnumDialogArea.LeftTop,offsetx+ tradeSlotsBounds.fixedX +  curColumn * (SSP + SSB),offsety+ 50+ (i % maxRows) * (SSP + SSB))
+                    .WithFixedWidth(162)
                  .WithFixedHeight(48);
                 
                 tradeSlotsBounds.WithChild(boundsAISG);
-                SingleComposer.AddPassiveItemSlot(boundsAISG, this.Inventory, this.Inventory[i],true);
-                /*SingleComposer.AddItemSlotGrid(this.Inventory,
-                    GetClick,
-                    columnsAISG,
-                    selectiveSlots,
-                    boundsAISG,
-                    "storageRaw" + i.ToString());*/
+                int slotno = i;
+                SingleComposer.AddButton("", () => {
+                    return GetClick(slotno);
+                }, boundsAISG, CairoFont.WhiteSmallText(), EnumButtonStyle.None, "button-" + i);
+                SingleComposer.AddPassiveItemSlot(boundsAISG, virtualinventory, virtualinventory[i],false);
+                
+                //SingleComposer.AddAutoSizeHoverText(this.Inventory[i].Itemstack.GetName(), CairoFont.WhiteSmallText(), 300, boundsAISG);
+                
                 ElementBounds tmpEB = ElementBounds.FixedPos(EnumDialogArea.LeftTop, tradeSlotsBounds.fixedX + 30 + curColumn * 200 + 165, (i % maxRows) * 60 + 25).WithFixedHeight(GuiElement.scaled((200.0))).WithFixedWidth(35);
                 tradeSlotsBounds.WithChild(tmpEB);
-                //SingleComposer.AddDynamicText((this.Inventory).be.stocks[i].ToString(), CairoFont.WhiteDetailText(), tmpEB, "stock" + i);
+                
 
             }
             SingleComposer.Compose();
@@ -89,16 +97,17 @@ namespace storagecontroller
             TryClose();
         }
         
-        private void GetClick(object data)
+        private bool GetClick(int slotno)
         {
-            ItemSlot transferslot = clientAPI.World.Player.InventoryManager.MouseItemSlot;
-            if (transferslot == null || transferslot.Empty) return;
+            if (slotno >= virtualinventory.Count) { return true; }
+            ItemSlot transferslot = virtualinventory[slotno];
+            if (transferslot == null || transferslot.Empty) return true;
 
             byte[] newdata = transferslot.Itemstack.ToBytes();
             clientAPI.Network.SendBlockEntityPacket(BlockEntityPosition.X, BlockEntityPosition.Y, BlockEntityPosition.Z, 7777, newdata);
             clientAPI.World.Player.InventoryManager.DropMouseSlotItems(true);
             TryClose();
-            
+            return true;
         }
 
       

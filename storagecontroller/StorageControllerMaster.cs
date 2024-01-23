@@ -416,8 +416,10 @@ namespace storagecontroller
             if (guistorage != null)
             {
                 guistorage.TryClose();
+                
                 guistorage = null;
             }
+            systeminventory = null;
             SetVirtualInventory();
             if (systeminventory == null || systeminventory.Empty) { return; }
             guistorage = new GUIDialogStorageAccess("storagesystem", systeminventory, Pos, this.Api as ICoreClientAPI);
@@ -520,7 +522,7 @@ namespace storagecontroller
 
         }
 
-        public override void OnReceivedClientPacket(IPlayer player, int packetid, byte[] data)
+        /*public override void OnReceivedClientPacket(IPlayer player, int packetid, byte[] data)
         {
             
            
@@ -549,7 +551,7 @@ namespace storagecontroller
             }
             return;
             
-        }
+        }*/
         /// <summary>
         /// This is just meant to be called after an inventory operation after
         /// a little delay so that a refreshed inventory screen can be generated
