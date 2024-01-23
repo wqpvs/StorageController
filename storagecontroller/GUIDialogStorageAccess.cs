@@ -70,12 +70,13 @@ namespace storagecontroller
                  .WithFixedHeight(48);
                 
                 tradeSlotsBounds.WithChild(boundsAISG);
-                SingleComposer.AddItemSlotGrid(this.Inventory,
+                SingleComposer.AddPassiveItemSlot(boundsAISG, this.Inventory, this.Inventory[i],true);
+                /*SingleComposer.AddItemSlotGrid(this.Inventory,
                     GetClick,
                     columnsAISG,
                     selectiveSlots,
                     boundsAISG,
-                    "storageRaw" + i.ToString());
+                    "storageRaw" + i.ToString());*/
                 ElementBounds tmpEB = ElementBounds.FixedPos(EnumDialogArea.LeftTop, tradeSlotsBounds.fixedX + 30 + curColumn * 200 + 165, (i % maxRows) * 60 + 25).WithFixedHeight(GuiElement.scaled((200.0))).WithFixedWidth(35);
                 tradeSlotsBounds.WithChild(tmpEB);
                 //SingleComposer.AddDynamicText((this.Inventory).be.stocks[i].ToString(), CairoFont.WhiteDetailText(), tmpEB, "stock" + i);
