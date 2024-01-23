@@ -63,8 +63,7 @@ namespace storagecontroller
             int maxRows = itemsincolumn;
             int curColumn = 0;
             int columnsAISG = 3;
-            double offsetx = 10;
-            double offsety = 10;
+            
             for (int i = 0; i < (virtualinventory.Count); i++)
             {
                 if (i != 0 && i % maxRows == 0)
@@ -72,8 +71,8 @@ namespace storagecontroller
                     curColumn++;
                 }
                 
-                var boundsAISG = ElementBounds.FixedPos(EnumDialogArea.LeftTop,offsetx+ tradeSlotsBounds.fixedX +  curColumn * (SSP + SSB),offsety+ 50+ (i % maxRows) * (SSP + SSB))
-                    .WithFixedWidth(162)
+                var boundsAISG = ElementBounds.FixedPos(EnumDialogArea.LeftTop, tradeSlotsBounds.fixedX +  curColumn * (SSP + SSB), 50+ (i % maxRows) * (SSP + SSB))
+                    .WithFixedWidth(48)
                  .WithFixedHeight(48);
                 
                 tradeSlotsBounds.WithChild(boundsAISG);

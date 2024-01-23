@@ -45,6 +45,18 @@ namespace storagecontroller
             }
             return base.OnPickBlock(world, pos);
         }
-        
+        public override bool OnBlockInteractStart(IWorldAccessor world, IPlayer byPlayer, BlockSelection blockSel)
+        {
+            if (byPlayer.Entity.Controls.CtrlKey)
+            {
+                StorageControllerMaster scm = world.BlockAccessor.GetBlockEntity(blockSel.Position) as StorageControllerMaster;
+                if (scm != null)
+                {
+                    scm.OnPlayerRightClick(byPlayer, blockSel);
+                    return false;
+                }
+            }
+            return base.OnBlockInteractStart(world, byPlayer, blockSel);
+        }
     }
 }
