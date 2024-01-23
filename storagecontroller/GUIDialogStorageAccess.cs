@@ -104,7 +104,7 @@ namespace storagecontroller
             if (transferslot == null || transferslot.Empty) return true;
 
             byte[] newdata = transferslot.Itemstack.ToBytes();
-            clientAPI.Network.SendBlockEntityPacket(BlockEntityPosition.X, BlockEntityPosition.Y, BlockEntityPosition.Z, 7777, newdata);
+            clientAPI.Network.SendBlockEntityPacket(BlockEntityPosition.X, BlockEntityPosition.Y, BlockEntityPosition.Z, StorageControllerMaster.inventoryPacket, newdata);
             clientAPI.World.Player.InventoryManager.DropMouseSlotItems(true);
             TryClose();
             return true;

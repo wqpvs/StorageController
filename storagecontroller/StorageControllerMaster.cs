@@ -521,14 +521,14 @@ namespace storagecontroller
             }
 
         }
-
-        /*public override void OnReceivedClientPacket(IPlayer player, int packetid, byte[] data)
+        public static int inventoryPacket = 320000;
+        public override void OnReceivedClientPacket(IPlayer player, int packetid, byte[] data)
         {
-            
+
            
            //How to handle taking multiple stacks?
            //just search and grab/relieve the first stack we find 
-           if (packetid == 7777)
+           if (packetid == inventoryPacket)
             {
                 ItemStack clickedstack = new ItemStack(data);
                 clickedstack.ResolveBlockOrItem(Api.World);
@@ -546,12 +546,13 @@ namespace storagecontroller
                     di.DropAll(Pos.ToVec3d());
                 
                 }
-                (Api as ICoreServerAPI).Network.SendBlockEntityPacket(player as IServerPlayer, Pos.X,Pos.Y,Pos.Z, 7778);
-                
+                (Api as ICoreServerAPI).Network.SendBlockEntityPacket(player as IServerPlayer, Pos.X,Pos.Y,Pos.Z, inventoryPacket);
+                return;
             }
-            return;
+            base.OnReceivedClientPacket(player, packetid, data);
             
-        }*/
+            
+        }
         /// <summary>
         /// This is just meant to be called after an inventory operation after
         /// a little delay so that a refreshed inventory screen can be generated
@@ -565,9 +566,10 @@ namespace storagecontroller
 
         public override void OnReceivedServerPacket(int packetid, byte[] data)
         {
-            if (packetid == 7778) //signal from server to refresh to storage interface
+            if (packetid == inventoryPacket) //signal from server to refresh to storage interface
             {
                 RegisterDelayedCallback(RefreshStorageInterface,100); //set the gui to reopen after 100ms, hopefully enough time for the inventory changes to go thru
+                return;
             }
             base.OnReceivedServerPacket(packetid, data);
         }
