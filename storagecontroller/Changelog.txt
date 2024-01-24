@@ -1,4 +1,8 @@
-﻿1.0.5
+﻿1.0.6
+- clear connections button
+- connect nearby containers - with options? (Start & End coords maybe? Add commands?)
+
+1.0.5
 - fixing bugs introduced with the interface
 - interface cannot be opened at the same time as the regular inventory
 

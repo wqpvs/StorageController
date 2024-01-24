@@ -522,6 +522,7 @@ namespace storagecontroller
 
         }
         public static int inventoryPacket = 320000;
+        public static int clearInventoryPacket = 320001;
         public override void OnReceivedClientPacket(IPlayer player, int packetid, byte[] data)
         {
 
@@ -547,6 +548,11 @@ namespace storagecontroller
                 
                 }
                 (Api as ICoreServerAPI).Network.SendBlockEntityPacket(player as IServerPlayer, Pos.X,Pos.Y,Pos.Z, inventoryPacket);
+                return;
+            }
+           else if (packetid == clearInventoryPacket)
+            {
+                ClearConnections();
                 return;
             }
             base.OnReceivedClientPacket(player, packetid, data);
@@ -635,6 +641,18 @@ namespace storagecontroller
                 dsc.AppendLine("Not linked to any containers");
             }
 
+        }
+
+        public void ClearConnections()
+        {
+            containerlist = new List<BlockPos>();
+            MarkDirty(true);
+        }
+
+        public void ClearHighlighted(IPlayer byPlayer)
+        {
+            if (Api is ICoreServerAPI) { return; }
+            Api.World.HighlightBlocks(byPlayer, 1, new List<BlockPos>());
         }
     }
 }
