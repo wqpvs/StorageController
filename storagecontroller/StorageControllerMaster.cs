@@ -421,7 +421,7 @@ namespace storagecontroller
             }
             systeminventory = null;
             SetVirtualInventory();
-            if (systeminventory == null || systeminventory.Empty) { return; }
+            //if (systeminventory == null || systeminventory.Empty) { return; }
             guistorage = new GUIDialogStorageAccess("storagesystem", systeminventory, Pos, this.Api as ICoreClientAPI);
             guistorage.TryOpen();
         }
@@ -523,6 +523,7 @@ namespace storagecontroller
         }
         public static int inventoryPacket = 320000;
         public static int clearInventoryPacket = 320001;
+        public static int linkAllChestsPacket = 320002;
         public override void OnReceivedClientPacket(IPlayer player, int packetid, byte[] data)
         {
 
@@ -554,6 +555,10 @@ namespace storagecontroller
             {
                 ClearConnections();
                 return;
+            }
+           else if (packetid == linkAllChestsPacket)
+            {
+                LinkAll(enLinkTargets.CHESTS);
             }
             base.OnReceivedClientPacket(player, packetid, data);
             
@@ -643,16 +648,54 @@ namespace storagecontroller
 
         }
 
+        /// <summary>
+        /// removes all connections to this controller
+        /// </summary>
         public void ClearConnections()
         {
             containerlist = new List<BlockPos>();
             MarkDirty(true);
         }
 
+        /// <summary>
+        /// Clears all highlighted blocks on client
+        /// </summary>
+        /// <param name="byPlayer"></param>
         public void ClearHighlighted(IPlayer byPlayer)
         {
             if (Api is ICoreServerAPI) { return; }
             Api.World.HighlightBlocks(byPlayer, 1, new List<BlockPos>());
+        }
+
+
+        
+        public enum enLinkTargets { ALL,CHESTS,BETTERCRATES}
+        /// <summary>
+        /// Attempt to link all chests in range
+        /// </summary>
+        /// <param name="targets"></param>
+        public void LinkAll(enLinkTargets targets)
+        {
+            BlockPos startPos = Pos.Copy();
+            startPos.X -= MaxRange;
+            startPos.Y -= MaxRange;
+            startPos.Z -= MaxRange;
+            BlockPos endPos = Pos.Copy();
+            endPos.X += MaxRange;
+            endPos.Y += MaxRange;
+            endPos.Z += MaxRange;
+            Api.World.BlockAccessor.WalkBlocks(startPos, endPos, LinkChestPos);
+        }
+
+        public void LinkChestPos(Block toblock,int tox, int toy, int toz)
+        {
+            if (toblock == null) { return; }
+            if (toblock.EntityClass == null) { return; }
+            if (toblock.EntityClass != "GenericTypedContainer") { return; }
+            if (containerlist == null) { containerlist= new List<BlockPos> (); }
+            BlockPos p= new BlockPos(tox, toy, toz);
+            if (!containerlist.Contains(p)) { containerlist.Add(p); }
+            MarkDirty();
         }
     }
 }
