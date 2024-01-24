@@ -684,7 +684,7 @@ namespace storagecontroller
             endPos.X += MaxRange;
             endPos.Y += MaxRange;
             endPos.Z += MaxRange;
-            Api.World.BlockAccessor.WalkBlocks(startPos, endPos, LinkChestPos);
+            Api.World.BlockAccessor.WalkBlocks(startPos, endPos, LinkChestPos,true);
         }
 
         public void LinkChestPos(Block toblock,int tox, int toy, int toz)
