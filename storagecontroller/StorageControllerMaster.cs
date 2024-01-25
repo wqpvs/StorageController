@@ -16,6 +16,7 @@ using System.Reflection;
 using Vintagestory.API.Util;
 using System.Xml.Linq;
 using VintagestoryLib;
+using Vintagestory.API.Common.Entities;
 
 
 namespace storagecontroller
@@ -37,6 +38,8 @@ namespace storagecontroller
         int tickTime = 250;
         bool dopruning = false; //should invalid locations be moved every time?
         public GUIDialogStorageAccess guistorage;
+        ICoreClientAPI capi;
+        ICoreServerAPI sapi;
         DummyInventory systeminventory;
         public virtual DummyInventory SystemInventory => systeminventory;
         public override void Initialize(ICoreAPI api)
@@ -50,8 +53,8 @@ namespace storagecontroller
                 maxRange = Block.Attributes["maxRange"].AsInt(maxRange);
                 tickTime = Block.Attributes["tickTime"].AsInt(TickTime);
             }
-                if (Api is ICoreServerAPI) { RegisterGameTickListener(OnServerTick, TickTime); }
-            
+            if (Api is ICoreServerAPI) { RegisterGameTickListener(OnServerTick, TickTime); sapi = api as ICoreServerAPI; }
+            else if (Api is ICoreClientAPI) { capi = api as ICoreClientAPI; }
         }
         //Better crates: BBetterCrate, BEBetterCrate, Crate, GenericTypedContainer
         
@@ -524,6 +527,7 @@ namespace storagecontroller
         public static int inventoryPacket = 320000;
         public static int clearInventoryPacket = 320001;
         public static int linkAllChestsPacket = 320002;
+        public static int linkChestPacket = 320003;
         public override void OnReceivedClientPacket(IPlayer player, int packetid, byte[] data)
         {
 
@@ -558,12 +562,37 @@ namespace storagecontroller
             }
            else if (packetid == linkAllChestsPacket)
             {
-                LinkAll(enLinkTargets.CHESTS);
+                
+                LinkAll(enLinkTargets.ALL,player);
+                return;
+            }
+            else if (packetid == linkChestPacket) //link a particular chest
+            {
+                BlockPos p = SerializerUtil.Deserialize<BlockPos>(data);
+                if (p == null) { return; }
+                //do nothing if container in list
+                if (containerlist.Contains(p)) { return; }
+                //don't link if container is reinforced
+                if (sapi.ModLoader.GetModSystem<ModSystemBlockReinforcement>()?.IsReinforced(p) == true)
+                {
+                    return;
+                }
+                //ensure player as access rights
+                if (!player.Entity.World.Claims.TryAccess(player, p, EnumBlockAccessFlags.BuildOrBreak))
+                {
+
+                    return;
+                }
+                containerlist.Add(p);
+                MarkDirty();
             }
             base.OnReceivedClientPacket(player, packetid, data);
             
             
         }
+
+        
+
         /// <summary>
         /// This is just meant to be called after an inventory operation after
         /// a little delay so that a refreshed inventory screen can be generated
@@ -672,9 +701,10 @@ namespace storagecontroller
         public enum enLinkTargets { ALL,CHESTS,BETTERCRATES}
         /// <summary>
         /// Attempt to link all chests in range
+        /// will build a list of valid chests
         /// </summary>
         /// <param name="targets"></param>
-        public void LinkAll(enLinkTargets targets)
+        public void LinkAll(enLinkTargets targets,IPlayer forplayer)
         {
             BlockPos startPos = Pos.Copy();
             startPos.X -= MaxRange;
@@ -684,18 +714,29 @@ namespace storagecontroller
             endPos.X += MaxRange;
             endPos.Y += MaxRange;
             endPos.Z += MaxRange;
+           
             Api.World.BlockAccessor.WalkBlocks(startPos, endPos, LinkChestPos,true);
         }
 
+        /// <summary>
+        /// Check supplied position for relevant blocks and 
+        /// if linkable block found send request to link to the server
+        /// </summary>
+        /// <param name="toblock"></param>
+        /// <param name="tox"></param>
+        /// <param name="toy"></param>
+        /// <param name="toz"></param>
         public void LinkChestPos(Block toblock,int tox, int toy, int toz)
         {
+            
+            if (capi == null) { return; }
             if (toblock == null) { return; }
             if (toblock.EntityClass == null) { return; }
             if (toblock.EntityClass != "GenericTypedContainer") { return; }
-            if (containerlist == null) { containerlist= new List<BlockPos> (); }
-            BlockPos p= new BlockPos(tox, toy, toz);
-            if (!containerlist.Contains(p)) { containerlist.Add(p); }
-            MarkDirty();
+            BlockPos p = new BlockPos(tox, toy, toz, 0);
+            byte[] data = SerializerUtil.Serialize<BlockPos>(p);
+            capi.Network.SendBlockEntityPacket(Pos, linkChestPacket, data);
+            
         }
     }
 }

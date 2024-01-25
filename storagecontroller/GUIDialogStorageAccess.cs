@@ -170,10 +170,11 @@ namespace storagecontroller
 
         private bool OnClickLinkAllChests()
         {
-            clientAPI.Network.SendBlockEntityPacket(BlockEntityPosition.X, BlockEntityPosition.Y, BlockEntityPosition.Z, StorageControllerMaster.linkAllChestsPacket, null);
+            //clientAPI.Network.SendBlockEntityPacket(BlockEntityPosition.X, BlockEntityPosition.Y, BlockEntityPosition.Z, StorageControllerMaster.linkAllChestsPacket, null);
             StorageControllerMaster scm = clientAPI.World.BlockAccessor.GetBlockEntity(BlockEntityPosition) as StorageControllerMaster;
             if (scm != null) { scm.ClearHighlighted(clientAPI.World.Player); }
             TryClose();
+            scm.LinkAll(StorageControllerMaster.enLinkTargets.ALL, clientAPI.World.Player);
             return true;
         }
 
