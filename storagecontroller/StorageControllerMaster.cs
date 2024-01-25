@@ -486,7 +486,7 @@ namespace storagecontroller
                 foreach (ItemSlot slot in cont.Inventory)
                 {
                     if (slot == null || slot.Empty || slot.Itemstack == null || slot.StackSize == 0) { continue; }
-                    ItemStack exists = allinv.FirstOrDefault<ItemStack>(x => x.GetEmptyClone().Equals(slot.Itemstack.GetEmptyClone()));
+                    ItemStack exists = allinv.FirstOrDefault<ItemStack>(x => x.Satisfies(slot.Itemstack));
                     if (exists == null)
                     {
                         allinv.Add(slot.Itemstack.Clone());
@@ -503,7 +503,7 @@ namespace storagecontroller
             systeminventory = new DummyInventory(Api, allinv.Count);
             for (int c=0; c<allinv.Count;c++)
             {
-                systeminventory[c].Itemstack=new ItemStack(allinv[c].Collectible, allinv[c].StackSize);
+                systeminventory[c].Itemstack=allinv[c];
 
             }
 
