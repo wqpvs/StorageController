@@ -487,20 +487,10 @@ namespace storagecontroller
                 foreach (ItemSlot slot in cont.Inventory)
                 {
                     if (slot == null || slot.Empty || slot.Itemstack == null || slot.StackSize == 0) { continue; }
-                    //exclude chiseled blocks
-                    
-                    //check if we already made a slot for this collectible
-                    //TODO: We need to make sure the stack is actually compatible, like if there's attributes or something
                     ItemStack exists = allinv.FirstOrDefault<ItemStack>(x => x.Collectible.Equals(slot.Itemstack.Collectible)&&(x.Attributes==null||x.Attributes.Equals(slot.Itemstack.Attributes)));
-                    //ItemStack exists = allinv.FirstOrDefault<ItemStack>(x=>x.Satisfies(slot.Itemstack));
-                    //if we don't have one yet then add one
                     if (exists == null)
                     {
-                        ItemStack newstack = new ItemStack(slot.Itemstack.Collectible,slot.StackSize);
-                        newstack.ResolveBlockOrItem(Api.World);
-                        newstack.Attributes = slot.Itemstack.Attributes.Clone();
-                        allinv.Add(new ItemStack(slot.Itemstack.Collectible,slot.Itemstack.StackSize));
-
+                        allinv.Add(slot.Itemstack.Clone());
                     }
                     //otherwise add the inventory to the stack
                     else {
