@@ -469,45 +469,36 @@ namespace storagecontroller
         }
 
         /// <summary>
-        /// Returns a list of everything in linked inventories
+        /// Builds a giant virtual inventory of all populated, linked containers
         /// </summary>
-        /// <returns></returns>
-        public List<ItemStack> GetLinkedInventory()
+        public virtual void SetVirtualInventory()
         {
-            List<ItemStack> allinv=new List<ItemStack>();
-            if (containerlist == null || containerlist.Count == 0) { return allinv; }
+            List<ItemStack> allinv = new List<ItemStack>();
+            if (containerlist == null || containerlist.Count == 0) { systeminventory = null; return; }
             //search all positions
             foreach (BlockPos p in containerlist)
             {
                 BlockEntity be = Api.World.BlockAccessor.GetBlockEntity(p);
                 Block b = Api.World.BlockAccessor.GetBlock(p);
                 BlockEntityContainer cont = be as BlockEntityContainer;
-                if (be == null || b == null || cont == null||cont.Inventory==null||cont.Inventory.Empty) { continue; }
+                if (be == null || b == null || cont == null || cont.Inventory == null || cont.Inventory.Empty) { continue; }
                 //search inventory of this container if it exists and isn't empty
                 foreach (ItemSlot slot in cont.Inventory)
                 {
                     if (slot == null || slot.Empty || slot.Itemstack == null || slot.StackSize == 0) { continue; }
-                    ItemStack exists = allinv.FirstOrDefault<ItemStack>(x => x.Collectible.Equals(slot.Itemstack.Collectible)&&(x.Attributes==null||x.Attributes.Equals(slot.Itemstack.Attributes)));
+                    ItemStack exists = allinv.FirstOrDefault<ItemStack>(x => x.GetEmptyClone().Equals(slot.Itemstack.GetEmptyClone()));
                     if (exists == null)
                     {
                         allinv.Add(slot.Itemstack.Clone());
                     }
                     //otherwise add the inventory to the stack
-                    else {
+                    else
+                    {
                         exists.StackSize += slot.StackSize;
                     }
                 }
             }
             allinv = allinv.OrderBy(x => x.GetName()).ToList();
-            return allinv;
-        }
-        /// <summary>
-        /// Builds a giant virtual inventory of all populated, linked containers
-        /// </summary>
-        public virtual void SetVirtualInventory()
-        {
-            List<ItemStack> allinv;
-            allinv = GetLinkedInventory();
             if (allinv==null|| allinv.Count == 0) { return; }
             systeminventory = new DummyInventory(Api, allinv.Count);
             for (int c=0; c<allinv.Count;c++)
