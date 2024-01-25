@@ -702,6 +702,11 @@ namespace storagecontroller
         /// <summary>
         /// Attempt to link all chests in range
         /// will build a list of valid chests
+        /// Logic:
+        /// - (CLIENT) WalkBlocks which calls LinkChestPos for each block basically
+        /// - (CLIENT) LinkChestPos checks for chests and if it finds one sends a message to server for linking
+        /// - (SERVER) On Receiving the packet (which encodes the blockpos), the server just ensures that the block
+        ///            location is not reinforced or claimed, and if it's ok adds it to the list and then marks the list dirty
         /// </summary>
         /// <param name="targets"></param>
         public void LinkAll(enLinkTargets targets,IPlayer forplayer)
