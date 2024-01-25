@@ -23,6 +23,12 @@ namespace storagecontroller
 {
     public class StorageControllerMaster:BlockEntityGenericTypedContainer
     {
+        /// <summary>
+        /// TODO Bugs
+        /// - when sending stacks seems to be a bug where items could be duped
+        /// - some items don't get stored properly, may also cause a desync issue
+        /// - add in other classes to supported classes: SupportedChests.Contains(b.EntityClass)
+        /// </summary>
         public static string containerlistkey = "containerlist";
         List<BlockPos> containerlist; 
         public List<BlockPos> ContainerList=>containerlist;
@@ -113,7 +119,7 @@ namespace storagecontroller
                 // - fill empty chests last
 
                 //Priority slots: filtered crate slots with space, other populated crates with space
-                Dictionary<CollectibleObject, List<ItemSlot>> priorityslots = new Dictionary<CollectibleObject, List<ItemSlot>>();
+                Dictionary<ItemStack, List<ItemSlot>> priorityslots = new Dictionary<ItemStack, List<ItemSlot>>();
                 //Partial Chest slots - slots in chests that have space
                 List<ItemSlot> populatedslots = new List<ItemSlot>();
                 //Empty slots with nothing, including the first slot of an empty, unfiltered crate
@@ -138,20 +144,20 @@ namespace storagecontroller
                         var bettercratelockingslot = bettercratelock.GetValue(be) as InventoryGeneric;
                         bool lockedcrate = false;
                         bool emptycrate = false;
-                        CollectibleObject inslot = null;
+                        ItemStack inslot = null;
                         if (bettercratelockingslot != null && bettercratelockingslot[0] != null && bettercratelockingslot[0].Itemstack != null)
                         {
                             lockedcrate = true;
-                            inslot = bettercratelockingslot[0].Itemstack.Collectible;
+                            inslot = bettercratelockingslot[0].Itemstack.GetEmptyClone();
                         }
                         else if (cont.Inventory.Empty) { emptycrate = true; }
-                        else { inslot = cont.Inventory[0].Itemstack.Collectible; }
+                        else { inslot = cont.Inventory[0].Itemstack.GetEmptyClone(); }
                         //case one - filtered or not empty - add first slot with space to priority list
                         if (lockedcrate || !emptycrate)
                         {
                             foreach (ItemSlot crateslot in cont.Inventory)
                             {
-                                if (crateslot.StackSize < inslot.MaxStackSize)
+                                if (crateslot.StackSize < inslot.Collectible.MaxStackSize)
                                 {
                                     if (priorityslots.ContainsKey(inslot))
                                     {
@@ -189,11 +195,11 @@ namespace storagecontroller
                         else
                         {
                             //use the contents of the first slot to set what this crate should contain
-                            CollectibleObject inslot = cont.Inventory[0].Itemstack.Collectible;
+                            ItemStack inslot = cont.Inventory[0].Itemstack.GetEmptyClone();
                             foreach (ItemSlot crateslot in cont.Inventory)
                             {
                                 //if (crateslot.Itemstack == null || crateslot.Itemstack.Collectible == null) { continue; }
-                                if (crateslot.StackSize < inslot.MaxStackSize)
+                                if (crateslot.StackSize < inslot.Collectible.MaxStackSize)
                                 {
                                     if (priorityslots.ContainsKey(inslot))
                                     {
@@ -239,7 +245,7 @@ namespace storagecontroller
                 {
                     //skip empty slots
                     if (ownslot == null || ownslot.Itemstack == null || ownslot.Empty) { continue; }
-                    CollectibleObject myitem = ownslot.Itemstack.Collectible;
+                    ItemStack myitem = ownslot.Itemstack.GetEmptyClone();
                     if (myitem == null) { continue; }
 
                     //start trying to find an empty slot
@@ -254,7 +260,7 @@ namespace storagecontroller
                     //we didn't find anything in a priority slot, next check for other populated slots to fill in
                     if (outputslot == null)
                     {
-                        outputslot = populatedslots.FirstOrDefault(x => (x.Itemstack != null) && (x.Itemstack.Collectible == myitem));
+                        outputslot = populatedslots.FirstOrDefault(x => (x.Itemstack != null) && (x.Itemstack.Satisfies(myitem)));
 
                     }
                     //if we didn't anything still, try and find an empty slot
@@ -620,7 +626,7 @@ namespace storagecontroller
                     if (slot == null || slot.Empty || slot.Itemstack == null || slot.StackSize == 0) { continue; }
                     //if we don't have one yet then add one
 
-                    if (slot.Itemstack.Collectible.Equals(findstack.Collectible))
+                    if (slot.Itemstack.Satisfies(findstack))
                     {
                         qty = slot.Itemstack.StackSize;
                         slot.Itemstack= null;
