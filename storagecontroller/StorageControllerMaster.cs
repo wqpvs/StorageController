@@ -149,7 +149,8 @@ namespace storagecontroller
                             lockedcrate = true;
                             inslot = bettercratelockingslot[0].Itemstack.GetEmptyClone();
                         }
-                        else if (cont.Inventory.Empty) { emptycrate = true; } //no lock and no inventory, this is an empty crate
+                        else if (cont.Inventory == null || cont.Inventory.Empty) { emptycrate = true; }
+                        else if (cont.Inventory[0]==null||cont.Inventory[0].Itemstack == null) { emptycrate = true; }//Hmmm this is an odd situation
                         else { inslot = cont.Inventory[0].Itemstack.GetEmptyClone(); } //otherwise set inslot to the first item in crate
                         //case one - filtered or not empty - add first slot with space to priority list
                         if (lockedcrate || !emptycrate)
@@ -249,13 +250,12 @@ namespace storagecontroller
 
                     //start trying to find an empty slot
                     ItemSlot outputslot = null;
-                    ItemStack relevantpslot = priorityslots.FirstOrDefault(x => x.Key.Satisfies(myitem)).Key;
-                    if (relevantpslot!=null)
+                    if (priorityslots != null)
                     {
-                        
-                        if (priorityslots[relevantpslot] != null) //HERE WE AREN'T FINDING THE KEY
+                        List<ItemSlot> foundslots= priorityslots.FirstOrDefault(x => x.Key.Satisfies(myitem)).Value;
+                        if (foundslots !=null && foundslots.Count > 0)
                         {
-                            outputslot = priorityslots[myitem][0]; //grab the first viable slot (anything in here should be legit)
+                            outputslot = foundslots[0];
                         }
                     }
                     //we didn't find anything in a priority slot, next check for other populated slots to fill in
