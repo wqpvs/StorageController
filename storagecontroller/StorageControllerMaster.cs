@@ -25,9 +25,7 @@ namespace storagecontroller
     {
         /// <summary>
         /// TODO Bugs
-        /// - when sending stacks seems to be a bug where items could be duped
-        /// - some items don't get stored properly, may also cause a desync issue
-        /// - add in other classes to supported classes: SupportedChests.Contains(b.EntityClass)
+        /// CRATES - won't fill up crates properly with same item
         /// </summary>
         public static string containerlistkey = "containerlist";
         List<BlockPos> containerlist; 
@@ -559,7 +557,8 @@ namespace storagecontroller
             else if (packetid == linkChestPacket) //link a particular chest
             {
                 BlockPos p = SerializerUtil.Deserialize<BlockPos>(data);
-                if (p == null) { return; }
+                if (p == null||p==Pos) { return; }
+                
                 if (containerlist == null) { containerlist = new List<BlockPos>(); }
                 //do nothing if container in list
                 if (containerlist.Contains(p)) { return; }
@@ -689,7 +688,7 @@ namespace storagecontroller
 
 
         
-        public enum enLinkTargets { ALL,CHESTS,BETTERCRATES}
+        public enum enLinkTargets { ALL}
         /// <summary>
         /// Attempt to link all chests in range
         /// will build a list of valid chests
@@ -728,7 +727,8 @@ namespace storagecontroller
             if (capi == null) { return; }
             if (toblock == null) { return; }
             if (toblock.EntityClass == null) { return; }
-            if (toblock.EntityClass != "GenericTypedContainer") { return; }
+            
+            if (toblock.EntityClass!= "StorageControllerMaster"&&!SupportedChests.Contains( toblock.EntityClass)&&!SupportedCrates.Contains(toblock.EntityClass)) { return; }
             BlockPos p = new BlockPos(tox, toy, toz, 0);
             byte[] data = SerializerUtil.Serialize<BlockPos>(p);
             capi.Network.SendBlockEntityPacket(Pos, linkChestPacket, data);
