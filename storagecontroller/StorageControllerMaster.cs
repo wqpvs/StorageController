@@ -90,6 +90,7 @@ namespace storagecontroller
                     if (be == null || !(be is BlockEntityContainer)) { prunelist.Add(pos); continue; }
                 }
                 int removecount = 0;
+
                 if (dopruning)
                 {
                     foreach (BlockPos pos in prunelist)
@@ -100,21 +101,7 @@ namespace storagecontroller
                     }
                     if (removecount > 0) { MarkDirty(); }
                 }
-                if (containerlist == null || containerlist.Count == 0) { return; } //if no locations were valid then quit
-                                                                                   //Need to populate containers if this container has inventory
-                                                                                   // - from list of container first find a stack or locked container with inventory
-                                                                                   // - then push in inventory if possible
-                                                                                   // - otherwise look for empty slots we can put our inventory into
-                                                                                   // TO FIX:
-                                                                                   //  - issues with crates:
-                                                                                   //     - crates do have multiple stacks, and will let you force in items, but really everything should be the same stack
-
-                // Fill order:
-                // - first top up any filtered better crates (including empties)
-                // - top up any crate that has something in it that matches  
-                // - start filling any other empty crate
-                // - fill any chests with partial stacks
-                // - fill empty chests last
+                if (containerlist == null || containerlist.Count == 0) { return; } 
 
                 //Priority slots: filtered crate slots with space, other populated crates with space
                 Dictionary<ItemStack, List<ItemSlot>> priorityslots = new Dictionary<ItemStack, List<ItemSlot>>();
