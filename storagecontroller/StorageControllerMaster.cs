@@ -680,11 +680,16 @@ namespace storagecontroller
         {
             if (containerlist == null || containerlist.Count == 0 || Api is ICoreServerAPI) return;
             showingblocks = true;
-            Api.World.HighlightBlocks(capi.World.Player, 1, containerlist);
+            List<int> colors = new List<int>();
+            colors.Add(ColorUtil.ColorFromRgba(0, 255, 0, 128));
+            Api.World.HighlightBlocks(capi.World.Player, 1, containerlist,colors,EnumHighlightBlocksMode.Absolute,EnumHighlightShape.Arbitrary);
             List<BlockPos> range = new List<BlockPos>();
             range.Add(new BlockPos(Pos.X - maxRange, Pos.Y - maxRange, Pos.Z - maxRange, 0));
+            colors[0]=(ColorUtil.ColorFromRgba(255, 255, 0, 128));
             range.Add(new BlockPos(Pos.X + maxRange, Pos.Y + maxRange, Pos.Z + maxRange, 0));
-            Api.World.HighlightBlocks(capi.World.Player, 2, range, EnumHighlightBlocksMode.Absolute, EnumHighlightShape.Cube);
+            
+            
+            Api.World.HighlightBlocks(capi.World.Player, 2, range,colors, EnumHighlightBlocksMode.Absolute, EnumHighlightShape.Cube);
         }
         
 

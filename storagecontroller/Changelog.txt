@@ -1,6 +1,7 @@
 ﻿1.0.7
-- show/highlight button
+- show/highlight button - now shows range of device!
 - mouse over text for inventory
+- move large .afphoto out of assets (oops!)
 
 1.0.6
 - clear connections button
