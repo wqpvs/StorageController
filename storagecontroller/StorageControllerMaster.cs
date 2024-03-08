@@ -343,16 +343,8 @@ namespace storagecontroller
             //    ICoreAPI capi= Api as ICoreClientAPI;
             if (byPlayer.Entity.Controls.CtrlKey)
             {
-                showingblocks = !showingblocks;
-                if (showingblocks && containerlist != null)
-                {
-                    Api.World.HighlightBlocks(byPlayer, 1, containerlist);
-             
-                }
-                else
-                {
-                    Api.World.HighlightBlocks(byPlayer, 1, new List<BlockPos>());
-                }
+                
+                
                 
                 if (Api is ICoreClientAPI)
                 {
@@ -392,7 +384,12 @@ namespace storagecontroller
             }
             return base.OnPlayerRightClick(byPlayer, blockSel);
         }
-        
+        public void HightLightBlocks()
+        {
+            if (containerlist==null||containerlist.Count==0||Api is ICoreServerAPI) return;
+            showingblocks = true ;
+            Api.World.HighlightBlocks(capi.World.Player, 1, containerlist);
+        }
 
         public override void FromTreeAttributes(ITreeAttribute tree, IWorldAccessor worldForResolving)
         {
@@ -670,13 +667,19 @@ namespace storagecontroller
         /// Clears all highlighted blocks on client
         /// </summary>
         /// <param name="byPlayer"></param>
-        public void ClearHighlighted(IPlayer byPlayer)
+        public void ClearHighlighted()
         {
             if (Api is ICoreServerAPI) { return; }
-            Api.World.HighlightBlocks(byPlayer, 1, new List<BlockPos>());
+            showingblocks = false;
+            Api.World.HighlightBlocks(capi.World.Player, 1, new List<BlockPos>());
         }
 
-
+        public void ToggleHightlights()
+        {
+            if (Api is ICoreServerAPI) { return; }
+            if (showingblocks) { ClearHighlighted(); }
+            else { HightLightBlocks(); }
+        }
         
         public enum enLinkTargets { ALL}
         /// <summary>

@@ -83,6 +83,10 @@ namespace storagecontroller
             Composers[optionCompKey].AddAutoSizeHoverText("Links all chests in range", CairoFont.WhiteSmallText(), 300, button);
             button = button.BelowCopy();
 
+            Composers[optionCompKey].AddButton("Show/Hide", () => { return OnClickHighlightAttached(); }, button, CairoFont.WhiteSmallText(), EnumButtonStyle.Normal, "highlightbutton");
+            Composers[optionCompKey].AddAutoSizeHoverText("Links all chests in range", CairoFont.WhiteSmallText(), 300, button);
+            button = button.BelowCopy();
+
             Composers[optionCompKey].Compose();
 
 
@@ -130,9 +134,9 @@ namespace storagecontroller
                         return GetClick(slotno);
                     }, boundsAISG, CairoFont.WhiteSmallText(), EnumButtonStyle.None, "button-" + i);
                     Composers[storageCompKey].AddPassiveItemSlot(boundsAISG, virtualinventory, virtualinventory[i], false);
-
-                    //SingleComposer.AddAutoSizeHoverText(this.Inventory[i].Itemstack.GetName(), CairoFont.WhiteSmallText(), 300, boundsAISG);
-
+                   
+                        Composers[storageCompKey].AddAutoSizeHoverText(virtualinventory[i].Itemstack.GetName(), CairoFont.WhiteSmallText(), 300, boundsAISG);
+                   
                     ElementBounds tmpEB = ElementBounds.FixedPos(EnumDialogArea.LeftTop, tradeSlotsBounds.fixedX + 30 + curColumn * 200 + 165, (i % maxRows) * 60 + 25).WithFixedHeight(GuiElement.scaled((200.0))).WithFixedWidth(35);
                     tradeSlotsBounds.WithChild(tmpEB);
 
@@ -163,7 +167,7 @@ namespace storagecontroller
         {
             clientAPI.Network.SendBlockEntityPacket(BlockEntityPosition.X, BlockEntityPosition.Y, BlockEntityPosition.Z, StorageControllerMaster.clearInventoryPacket, null);
             StorageControllerMaster scm = clientAPI.World.BlockAccessor.GetBlockEntity(BlockEntityPosition) as StorageControllerMaster;
-            if (scm != null) { scm.ClearHighlighted(clientAPI.World.Player); }
+            
             TryClose();
             return true;
         }
@@ -172,11 +176,17 @@ namespace storagecontroller
         {
             //clientAPI.Network.SendBlockEntityPacket(BlockEntityPosition.X, BlockEntityPosition.Y, BlockEntityPosition.Z, StorageControllerMaster.linkAllChestsPacket, null);
             StorageControllerMaster scm = clientAPI.World.BlockAccessor.GetBlockEntity(BlockEntityPosition) as StorageControllerMaster;
-            if (scm != null) { scm.ClearHighlighted(clientAPI.World.Player); }
+            
             TryClose();
             scm.LinkAll(StorageControllerMaster.enLinkTargets.ALL, clientAPI.World.Player);
             return true;
         }
-
+        private bool OnClickHighlightAttached()
+        {
+            StorageControllerMaster scm = clientAPI.World.BlockAccessor.GetBlockEntity(BlockEntityPosition) as StorageControllerMaster;
+            if (scm != null) { scm.ToggleHightlights(); }
+            return true;
+        }
+        
     }
 }

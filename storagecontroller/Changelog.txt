@@ -1,4 +1,8 @@
-﻿1.0.6
+﻿1.0.7
+- show/highlight button
+- mouse over text for inventory
+
+1.0.6
 - clear connections button
 - connect nearby containers - with options? (Start & End coords maybe? Add commands?)
 
