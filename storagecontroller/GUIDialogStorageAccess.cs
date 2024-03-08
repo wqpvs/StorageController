@@ -84,7 +84,7 @@ namespace storagecontroller
             button = button.BelowCopy();
 
             Composers[optionCompKey].AddButton("Show/Hide", () => { return OnClickHighlightAttached(); }, button, CairoFont.WhiteSmallText(), EnumButtonStyle.Normal, "highlightbutton");
-            Composers[optionCompKey].AddAutoSizeHoverText("Links all chests in range", CairoFont.WhiteSmallText(), 300, button);
+            Composers[optionCompKey].AddAutoSizeHoverText("Show/Hide linked Chests", CairoFont.WhiteSmallText(), 300, button);
             button = button.BelowCopy();
 
             Composers[optionCompKey].Compose();
@@ -187,6 +187,6 @@ namespace storagecontroller
             if (scm != null) { scm.ToggleHightlights(); }
             return true;
         }
-        
+
     }
 }
