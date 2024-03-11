@@ -14,6 +14,8 @@ namespace storagecontroller
 
         ElementBounds gridSlots;
 
+        private byte[] data { get; set; }
+
         public StorageMasterInv StorageMasterInv;
 
         protected int curTab;
@@ -142,23 +144,18 @@ namespace storagecontroller
             Composers[optionCompKey].Compose();
         }
 
-        private void SendPacket(object obj)
+        private void SendPacket(object packet)
         {
             IClientPlayer byPlayer = capi.World.Player;
 
-            foreach (ItemStack liststacks in storageControllerMaster.ListStacks) 
+            data = byPlayer.InventoryManager?.MouseItemSlot?.Itemstack?.ToBytes();
+            if (data != null)
             {
-                if (byPlayer.InventoryManager.MouseItemSlot?.Itemstack?.Id == liststacks.Id)
-                {
-                    byPlayer.InventoryManager.MouseItemSlot.Itemstack = null;
-                    byte[] data = liststacks?.ToBytes();
-                    if (data != null)
-                    {
-                        clientAPI.Network.SendBlockEntityPacket(BlockEntityPosition.X, BlockEntityPosition.Y, BlockEntityPosition.Z, StorageControllerMaster.inventoryPacket, data);
-                        break;
-                    }
-                };
+                byPlayer.InventoryManager.MouseItemSlot.Itemstack = null;
+                clientAPI.Network.SendBlockEntityPacket(BlockEntityPosition.X, BlockEntityPosition.Y, BlockEntityPosition.Z, StorageControllerMaster.inventoryPacket, data);
             }
+
+
         }
 
         private void GridPage()

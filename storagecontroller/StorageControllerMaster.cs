@@ -2,46 +2,49 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using Vintagestory.API.Common;
 using Vintagestory.API.Server;
 using Vintagestory.API.Client;
 using Vintagestory.GameContent;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Datastructures;
-using ProtoBuf;
 using Newtonsoft.Json;
-using Vintagestory.API.Config;
 using System.Reflection;
 using Vintagestory.API.Util;
-using System.Xml.Linq;
-using VintagestoryLib;
-using Vintagestory.API.Common.Entities;
-using Vintagestory.Common;
-
 namespace storagecontroller
 {
 
     public class StorageMasterInv : DummyInventory
     {
+        private int StorageMasterInvId = 1;
+
         public StorageMasterInv(ICoreAPI api, int quantitySlots = 1) : base(api, quantitySlots)
         {
+            StorageMasterInvId++;
+
+            className = "StorageMasterInv-" + StorageMasterInvId;
         }
 
         public override object ActivateSlot(int slotId, ItemSlot sourceSlot, ref ItemStackMoveOperation op)
         {
            var mouseSlot = op.ActingPlayer.InventoryManager.MouseItemSlot;
 
-
-            if (mouseSlot.Empty == false)
+            //if itemslot isn't empty. We don't want to insert it. temp fix
+            if (!mouseSlot.Empty)
             {
                 if (sourceSlot.CanHold(mouseSlot))
                 {
                     return null;
                 }
             }
-       
 
+            //if player press shift click. we don't want them to get the stack. temp fix
+            if (op.ShiftDown)
+            {
+                return null;
+            }
+
+            // back to normal.
             return base.ActivateSlot(slotId, sourceSlot, ref op);
         }
     }
@@ -53,8 +56,9 @@ namespace storagecontroller
         /// CRATES - won't fill up crates properly with same item
         /// </summary>
         public static string containerlistkey = "containerlist";
+
         List<BlockPos> containerlist; 
-        public List<BlockPos> ContainerList=>containerlist;
+        public List<BlockPos> ContainerList => containerlist;
         List<string> supportedChests;
         public virtual List<string> SupportedChests => supportedChests;
         List<string> supportedCrates;
@@ -327,7 +331,7 @@ namespace storagecontroller
         public void AddContainer(ItemSlot slot, EntityAgent byEntity, BlockSelection blockSel)
         {
             //don't want to link to ourself!
-            if (blockSel.Position == this.Pos) { return; }
+            if (blockSel.Position == Pos) { return; }
             //check for valid container
             IPlayer byPlayer = (byEntity as EntityPlayer)?.Player;
             BlockEntityContainer cont = Api.World.BlockAccessor.GetBlockEntity(blockSel.Position) as BlockEntityContainer;
@@ -368,20 +372,15 @@ namespace storagecontroller
         public static int highlightid = 1;
         public override bool OnPlayerRightClick(IPlayer byPlayer, BlockSelection blockSel)
         {
-            //if (Api is ICoreClientAPI && containerlist!=null && containerlist.Count>0)
-            //{
-            //    ICoreAPI capi= Api as ICoreClientAPI;
             if (byPlayer.Entity.Controls.CtrlKey)
             {
-                
-                
-                
                 if (Api is ICoreClientAPI)
                 {
                     OpenStorageInterface();
-                }
-                //GetLinkedInventory(); //TEMPOARY CODE - just to test the breakpoint
+                    return false;
+                } 
             }
+
             if (byPlayer.InventoryManager.ActiveHotbarSlot!=null&&!byPlayer.InventoryManager.ActiveHotbarSlot.Empty&& byPlayer.InventoryManager.ActiveHotbarSlot.Itemstack.Item!=null)
             {
                 Item activeitem = byPlayer.InventoryManager.ActiveHotbarSlot.Itemstack.Item;
@@ -471,11 +470,8 @@ namespace storagecontroller
 
         public override void OnBlockRemoved()
         {
-            if (ContainerList.Count > 0)
-            {
-                ClearConnections();
-                ClearHighlighted();
-            }
+            ClearConnections();
+            ClearHighlighted();
 
             base.OnBlockRemoved();
         }
@@ -503,45 +499,78 @@ namespace storagecontroller
         /// </summary>
         public virtual void SetVirtualInventory()
         {
-            ListStacks = new List<ItemStack>();
-            if (containerlist == null || containerlist.Count == 0) { storageMasterInv = null; return; }
-            //search all positions
-            foreach (BlockPos p in containerlist)
+            // Initialize a list to store unique item stacks
+            List<ItemStack> uniqueStacks = new List<ItemStack>();
+
+            // Check if the container list is empty or null
+            if (containerlist == null || containerlist.Count == 0)
             {
-                BlockEntity be = Api.World.BlockAccessor.GetBlockEntity(p);
-                Block b = Api.World.BlockAccessor.GetBlock(p);
-                BlockEntityContainer cont = be as BlockEntityContainer;
-                if (be == null || b == null || cont == null || cont.Inventory == null || cont.Inventory.Empty) { continue; }
-                //search inventory of this container if it exists and isn't empty
-                foreach (ItemSlot slot in cont.Inventory)
+                storageMasterInv = null;
+                return;
+            }
+
+            // Iterate through each container block in the container list
+            foreach (BlockPos blockPos in containerlist)
+            {
+                // Get the container block entity from the world
+                BlockEntityContainer blockEntityContainer = Api.World.BlockAccessor.GetBlockEntity(blockPos) as BlockEntityContainer;
+
+                // Skip if the block entity container is null or its inventory is empty
+                if (blockEntityContainer == null || blockEntityContainer.Inventory == null || blockEntityContainer.Inventory.Empty)
                 {
-                    if (slot == null || slot.Empty || slot.Itemstack == null || slot.StackSize == 0) { continue; }
-                    ItemStack exists = ListStacks.FirstOrDefault(x => x.Satisfies(slot.Itemstack));
-                    if (exists == null)
+                    continue;
+                }
+
+                // Iterate through each item slot in the container's inventory
+                foreach (ItemSlot slot in blockEntityContainer.Inventory)
+                {
+                    // Skip if the slot is null, empty, or has a null itemstack
+                    if (slot == null || slot.Empty || slot.Itemstack == null || slot.StackSize == 0)
                     {
-                        ListStacks.Add(slot.Itemstack.Clone());
+                        continue;
                     }
-                    //otherwise add the inventory to the stack
+
+                    // Check if a matching item stack already exists in the uniqueStacks list
+                    ItemStack existingStack = uniqueStacks.FirstOrDefault(itemstack => itemstack.Satisfies(slot.Itemstack));
+
+                    // If a matching stack exists, update its stack size
+                    if (existingStack != null)
+                    {
+                        existingStack.StackSize += slot.StackSize;
+                    }
                     else
                     {
-                        exists.StackSize += slot.StackSize;
+                        // Clone and add the itemstack to the uniqueStacks list
+                        uniqueStacks.Add(slot.Itemstack.Clone());
                     }
                 }
             }
 
-            ListStacks = ListStacks.OrderBy(x => x.GetName()).ToList();
+            // Sort the unique stacks alphabetically by item name
+            uniqueStacks = uniqueStacks.OrderBy(x => x.GetName()).ToList();
 
-            if (ListStacks == null|| ListStacks.Count == 0) { return; }
-
-            storageMasterInv = new StorageMasterInv(Api, ListStacks.Count);
-
-            for (int c = 0; c < ListStacks.Count; c++)
+            // Check if the list of unique stacks is empty
+            if (uniqueStacks.Count == 0)
             {
-                storageMasterInv[c].Itemstack = ListStacks[c];
-
+                return;
             }
 
+            // Create a new storage master inventory with the size equal to the count of unique stacks
+            storageMasterInv = new StorageMasterInv(Api, uniqueStacks.Count);
+
+            // Assign each unique item stack to the corresponding slot in the storage master inventory
+            for (int i = 0; i < uniqueStacks.Count; i++)
+            {
+                if (storageMasterInv[0] is ItemSlotInput) continue;
+
+                storageMasterInv[i].Itemstack = uniqueStacks[i];
+            }
         }
+
+        public void ContainerByChoice() { 
+          
+        }
+
         public static int inventoryPacket = 320000;
         public static int clearInventoryPacket = 320001;
         public static int linkAllChestsPacket = 320002;
@@ -564,21 +593,15 @@ namespace storagecontroller
 
                 if (stacksize == 0) { return; }
 
-                StorageMasterInv itemSlots = new StorageMasterInv(Api, 1);
-
-                itemSlots[0].Itemstack = itemStack;
-
                 itemStack.StackSize = stacksize;
 
                 //no valid slot
-                if (player.InventoryManager.TryGiveItemstack(itemStack))
+                if (!player.InventoryManager.TryGiveItemstack(itemStack))
                 {
                     Api.World.SpawnItemEntity(itemStack, player.Entity.Pos.XYZ);
                 }
 
                 (Api as ICoreServerAPI).Network.SendBlockEntityPacket(player as IServerPlayer, Pos.X,Pos.Y,Pos.Z, inventoryPacket);
-
-                player.InventoryManager.ActiveHotbarSlot.Itemstack = null;
 
                 return;
             }
@@ -730,24 +753,39 @@ namespace storagecontroller
 
         public void ToggleHightlights()
         {
-            if (Api is ICoreServerAPI) { return; }
-            if (showingblocks) { ClearHighlighted(); }
-            else { HighLightBlocks(); }
+            if (Api is ICoreClientAPI) 
+            {
+                if (showingblocks) 
+                { 
+                    ClearHighlighted();
+                }
+                else 
+                { 
+                    HighLightBlocks(); 
+                }
+            }
         }
+
         public void HighLightBlocks()
         {
             if (containerlist == null || containerlist.Count == 0 || Api is ICoreServerAPI) return;
             showingblocks = true;
-            List<int> colors = new List<int>();
-            colors.Add(ColorUtil.ColorFromRgba(0, 255, 0, 128));
-            Api.World.HighlightBlocks(capi.World.Player, 1, containerlist,colors,EnumHighlightBlocksMode.Absolute,EnumHighlightShape.Arbitrary);
-            List<BlockPos> range = new List<BlockPos>();
-            range.Add(new BlockPos(Pos.X - maxRange, Pos.Y - maxRange, Pos.Z - maxRange, 0));
-            colors[0]=(ColorUtil.ColorFromRgba(255, 255, 0, 128));
+            List<int> colors = new List<int>
+            {
+                ColorUtil.ColorFromRgba(0, 255, 0, 128)
+            };
+
+            Api.World.HighlightBlocks(capi.World.Player, 1, containerlist,colors,EnumHighlightBlocksMode.Absolute, EnumHighlightShape.Arbitrary);
+
+            List<BlockPos> range = new List<BlockPos>
+            {
+                new BlockPos(Pos.X - maxRange, Pos.Y - maxRange, Pos.Z - maxRange, 0)
+            };
+
+            colors[0] = ColorUtil.ColorFromRgba(255, 255, 0, 128);
             range.Add(new BlockPos(Pos.X + maxRange, Pos.Y + maxRange, Pos.Z + maxRange, 0));
             
-            
-            Api.World.HighlightBlocks(capi.World.Player, 2, range,colors, EnumHighlightBlocksMode.Absolute, EnumHighlightShape.Cube);
+            Api.World.HighlightBlocks(capi.World.Player, 2, range, colors, EnumHighlightBlocksMode.Absolute, EnumHighlightShape.Cube);
         }
         
 
