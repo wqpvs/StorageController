@@ -31,7 +31,7 @@ namespace storagecontroller
 
             clientAPI = capi;
 
-            curTab = 1;
+            curTab = 0; 
 
             virtualInventory = inventory;
 
@@ -103,27 +103,24 @@ namespace storagecontroller
                 .AddDialogTitleBar("Controls", CloseIconPressed)
                 .AddButton("Clear All", () => { return OnClickClearAll(); }, button1, CairoFont.WhiteSmallText(), EnumButtonStyle.Normal, "clearactive")
                 .AddAutoSizeHoverText("Clears all connections from controller", CairoFont.WhiteSmallText(), 300, button1)
-                .AddIf(storageControllerMaster?.ContainerList?.Count > 1)
-                .AddButton("Clear All", () => { return OnClickClearAll(); }, button1, CairoFont.WhiteSmallText(), EnumButtonStyle.Normal, "cleardeactivate")
-                .AddAutoSizeHoverText("Clears all connections from controller", CairoFont.WhiteSmallText(), 300, button1)
-                .EndIf()
                 .AddButton("Link All Chests", () => { return OnClickLinkAllChests(); }, button2, CairoFont.WhiteSmallText(), EnumButtonStyle.Normal, "linkbutton")
                 .AddAutoSizeHoverText("Links all chests in range", CairoFont.WhiteSmallText(), 300, button2)
                 .AddButton("Highlight", () => { return OnClickHighlightAttached(); }, button3, CairoFont.WhiteSmallText(), EnumButtonStyle.Normal, "highlightbutton")
                 .AddAutoSizeHoverText("Highlight linked containers and range", CairoFont.WhiteSmallText(), 300, button3)
-                .AddButton("<", PreviousPage, button4, CairoFont.WhiteSmallText(), EnumButtonStyle.Small)
-                .AddButton(">", NextPage, button5, CairoFont.WhiteSmallText(), EnumButtonStyle.Small)
+                .AddButton("<", PreviousGrid, button4, CairoFont.WhiteSmallText(), EnumButtonStyle.Small, "prevGrid")
+                .AddButton(">", NextGrid, button5, CairoFont.WhiteSmallText(), EnumButtonStyle.Small, "nextGrid")
+                .EndIf()
                 .Compose();
 
-            var compKey = Composers[storageCompKey] = capi.Gui.CreateCompo(storageCompKey, mainDialogBound);
-
+            GuiComposer storagecompKey = Composers[storageCompKey] = capi.Gui.CreateCompo(storageCompKey, mainDialogBound);
 
             if (virtualInventory != null && !virtualInventory.Empty)
             {
-                compKey
+                storagecompKey
                 .AddItemSlotGrid(virtualInventory, SendPacket, 10, gridSlots, "slotgrid")
-                .AddInset(gridSlots, 10, 0.7f)
-                .Compose();
+                .AddInset(gridSlots, 10, 0.7f);
+
+                curTab = 1;
 
                 //Fixed number are slot showed
                 Composers[storageCompKey].GetSlotGrid("slotgrid")
@@ -131,16 +128,14 @@ namespace storagecontroller
             }
             else 
             {
-                compKey
-                .AddInset(gridSlots, 10, 0.7f)
-                .Compose();
+                storagecompKey
+                .AddInset(gridSlots, 10, 0.7f);
             }
 
-         
-            compKey.Compose(true);
-            Composers[optionCompKey].Compose(true);
-        }
 
+            storagecompKey.Compose();
+            Composers[optionCompKey].Compose();
+        }
 
         private void SendPacket(object obj)
         {
@@ -163,53 +158,53 @@ namespace storagecontroller
 
         }
 
-
         private void GridPage()
         {
-            int slots = virtualInventory.Count;
-            int startIndex = (curTab - 1) * 50; // Calculate the starting slot index
+            int slots = virtualInventory?.Count ?? 0;
+            int startIndex = (curTab - 1) * 100; // Calculate the starting slot index
             startIndex = Math.Max(0, startIndex); // Ensure startIndex doesn't go below 0
-            startIndex = Math.Min(slots - 50, startIndex); // Ensure startIndex doesn't exceed the maximum index - 50
+            startIndex = Math.Min(slots - 100, startIndex); // Ensure startIndex doesn't exceed the maximum index - 100
 
-            if (startIndex >= 0)
+            var compKey = Composers[storageCompKey];
+
+            if (compKey.GetSlotGrid("slotgrid") != null)
             {
                 Composers[storageCompKey].GetSlotGrid("slotgrid")
-                    .DetermineAvailableSlots(Enumerable.Range(startIndex, 100).ToArray());
+                .DetermineAvailableSlots(Enumerable.Range(startIndex, 100).ToArray());
+                Composers[storageCompKey].Compose();
             }
-            Composers[storageCompKey].Compose();
+
+            compKey.Compose();
         }
 
-
-
-        private bool PreviousPage()
+        private bool PreviousGrid()
         {
-            this.curTab--;
-            this.curTab = Math.Max(1, curTab); // Ensure curTab doesn't go below 1
+            curTab = Math.Max(1, curTab - 1); // Decrease curTab by 1, but ensure it doesn't go below 1
             GridPage();
             return true;
         }
 
-        private bool NextPage()
+        private bool NextGrid()
         {
-            curTab++; // Increase curTab by 1
-            GridPage(); // Update the grid
+            int slots = virtualInventory?.Count ?? 0;
+            int maxTabs = (int)Math.Ceiling((double) slots / 100); // Calculate the maximum number of tabs
+            curTab = Math.Min(maxTabs, curTab + 1); // Increase curTab by 1, but ensure it doesn't exceed the maximum
+            GridPage(); 
             return true;
         }
 
         private bool OnClickClearAll()
         {
             clientAPI.Network.SendBlockEntityPacket(BlockEntityPosition.X, BlockEntityPosition.Y, BlockEntityPosition.Z, StorageControllerMaster.clearInventoryPacket, null);
-            storageControllerMaster?.SystemInventory?.Clear();
             storageControllerMaster?.ClearHighlighted();
-            storageControllerMaster?.MarkDirty();
-            SetupDialog();
+            TryClose();
             return true;
         }
 
         private bool OnClickLinkAllChests()
         {
-            TryClose();
             storageControllerMaster?.LinkAll(StorageControllerMaster.enLinkTargets.ALL, clientAPI.World.Player);
+            TryClose();
             return true;
         }
         private bool OnClickHighlightAttached()
