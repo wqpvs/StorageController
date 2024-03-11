@@ -46,6 +46,9 @@ namespace storagecontroller
         ICoreServerAPI sapi;
         DummyInventory systeminventory;
         public virtual DummyInventory SystemInventory => systeminventory;
+
+        public List<ItemStack> ListStacks;
+
         public override void Initialize(ICoreAPI api)
         {
             base.Initialize(api);
@@ -411,7 +414,7 @@ namespace storagecontroller
             systeminventory = null;
             SetVirtualInventory();
             //if (systeminventory == null || systeminventory.Empty) { return; }
-            guistorage = new GUIDialogStorageAccess("storagesystem", systeminventory, Pos, this.Api as ICoreClientAPI);
+            guistorage = new GUIDialogStorageAccess("storagesystem", this, systeminventory, Pos, this.Api as ICoreClientAPI);
             guistorage.TryOpen();
         }
 
@@ -459,7 +462,7 @@ namespace storagecontroller
         /// </summary>
         public virtual void SetVirtualInventory()
         {
-            List<ItemStack> allinv = new List<ItemStack>();
+            ListStacks = new List<ItemStack>();
             if (containerlist == null || containerlist.Count == 0) { systeminventory = null; return; }
             //search all positions
             foreach (BlockPos p in containerlist)
@@ -472,10 +475,10 @@ namespace storagecontroller
                 foreach (ItemSlot slot in cont.Inventory)
                 {
                     if (slot == null || slot.Empty || slot.Itemstack == null || slot.StackSize == 0) { continue; }
-                    ItemStack exists = allinv.FirstOrDefault<ItemStack>(x => x.Satisfies(slot.Itemstack));
+                    ItemStack exists = ListStacks.FirstOrDefault(x => x.Satisfies(slot.Itemstack));
                     if (exists == null)
                     {
-                        allinv.Add(slot.Itemstack.Clone());
+                        ListStacks.Add(slot.Itemstack.Clone());
                     }
                     //otherwise add the inventory to the stack
                     else
@@ -484,12 +487,16 @@ namespace storagecontroller
                     }
                 }
             }
-            allinv = allinv.OrderBy(x => x.GetName()).ToList();
-            if (allinv==null|| allinv.Count == 0) { return; }
-            systeminventory = new DummyInventory(Api, allinv.Count);
-            for (int c=0; c<allinv.Count;c++)
+
+            ListStacks = ListStacks.OrderBy(x => x.GetName()).ToList();
+
+            if (ListStacks == null|| ListStacks.Count == 0) { return; }
+
+            systeminventory = new DummyInventory(Api, ListStacks.Count);
+
+            for (int c = 0; c < ListStacks.Count; c++)
             {
-                systeminventory[c].Itemstack=allinv[c];
+                systeminventory[c].Itemstack = ListStacks[c];
 
             }
 

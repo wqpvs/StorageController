@@ -1,190 +1,224 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Vintagestory.API.Common;
-using Vintagestory.API.Server;
+﻿using Vintagestory.API.Common;
 using Vintagestory.API.Client;
-using Vintagestory.GameContent;
 using Vintagestory.API.MathTools;
-using Vintagestory.API.Datastructures;
-using ProtoBuf;
-using Newtonsoft.Json;
-using Vintagestory.API.Config;
-using System.Reflection;
-using Vintagestory.API.Util;
-using System.Xml.Linq;
+using System;
+using Vintagestory.GameContent;
 using Newtonsoft.Json.Linq;
-using static System.Runtime.InteropServices.JavaScript.JSType;
+using System.Numerics;
+using System.Linq;
 
 namespace storagecontroller
 {
     public class GUIDialogStorageAccess : GuiDialogBlockEntity
     {
         ICoreClientAPI clientAPI;
-        InventoryBase virtualinventory;
-        public GUIDialogStorageAccess(string dialogTitle, InventoryBase inventory, BlockPos blockEntityPos, ICoreClientAPI capi) : base(dialogTitle, inventory, blockEntityPos, capi)
+
+        ElementBounds mainDialogBound;
+
+        ElementBounds gridSlots;
+
+        DummyInventory virtualInventory;
+
+        protected int curTab;
+
+        StorageControllerMaster storageControllerMaster;
+        public GUIDialogStorageAccess(string dialogTitle, StorageControllerMaster ownBlock, DummyInventory inventory, BlockPos blockEntityPos, ICoreClientAPI capi) : base(dialogTitle, inventory, blockEntityPos, capi)
         {
             if (IsDuplicate)
             {
                 return;
             }
+
             clientAPI = capi;
-            virtualinventory= inventory;
-            //capi.World.Player.InventoryManager.OpenInventory((IInventory)inventory);
+
+            curTab = 1;
+
+            virtualInventory = inventory;
+
+            storageControllerMaster = ownBlock;
+
             SetupDialog();
         }
-        public void SetVirtualInventory(InventoryBase newinventory)
+
+
+        public void SetupDialog()
         {
-            virtualinventory= newinventory;
-            SetupDialog();
+            ComposersDialog();
         }
 
-        public virtual string storageCompKey => "storageCompo";
-        public virtual string optionCompKey => "storageOptionCompo";
+        public string storageCompKey => "storageCompo";
+        public string optionCompKey => "storageOptionCompo";
 
-        protected virtual void SetupDialog()
+        protected void ComposersDialog()
         {
-            ClearComposers();
-            double SSB = (GuiElementPassiveItemSlot.unscaledSlotSize);
-            double SSP = (GuiElementItemSlotGridBase.unscaledSlotPadding);
-            int itemsincolumn = 15;
-            int columns = 1;
-            if (virtualinventory != null)
-            {
-                columns = (this.Inventory.Count - 2) / itemsincolumn;
-            }
-            double inventoryWindowWidth = 50 + (columns < 10 ? 10 : columns) * (SSB + SSP);
-            double inventoryWindowHeight = 50 + itemsincolumn * (SSB + SSP);
 
-            //This is the option inventory screen
-            double elemToDlgPad = GuiStyle.ElementToDialogPadding;
+        
+            ElementBounds element = ElementBounds.Fixed(0, 0, 500, 400);
+            ElementBounds buttonlist = ElementBounds.Fixed(0, 0, -200, -390).FixedUnder(element, 10);
+            gridSlots = ElementStdBounds.SlotGrid(EnumDialogArea.None, 0, 0, 10, 10)
+                .FixedUnder(element, 10)
+                .WithFixedPosition(-5, 25)
+                .WithFixedPadding(2, 2);
 
-            ElementBounds button = ElementBounds.Fixed(32, 40, 125, 48);//;.WithFixedPadding(5, 5);
-            //ElementBounds textbounds = ElementBounds.Fixed(15 + 64 + 5, 50, 128, 64).WithFixedPadding(5, 5);
-            ElementBounds dialogBounds =
-                ElementBounds.Fixed(EnumDialogArea.LeftMiddle, 30, 0, 150, inventoryWindowHeight)
-                .ForkBoundingParent(elemToDlgPad, elemToDlgPad, elemToDlgPad, elemToDlgPad)
-            ;
+            ElementBounds button1 = ElementBounds.Fixed(100, -25) //Clear All
+                .FixedUnder(buttonlist, 10)
+                .WithAlignment(EnumDialogArea.LeftFixed)
+                .WithFixedPadding(10.0, 2.0)
+                .WithFixedMargin(-30, -30);
 
+            ElementBounds button2 = ElementBounds.Fixed(185, -10) //Link All Chests
+                .FixedUnder(button1, 10)
+                .WithAlignment(EnumDialogArea.LeftFixed)
+                .WithFixedPadding(10.0, 2.0)
+                .WithFixedMargin(-30, -30);
+
+            ElementBounds button3 = ElementBounds.Fixed(312, -10) //Highlight
+                .FixedUnder(button2, 10)
+                .WithAlignment(EnumDialogArea.LeftFixed)
+                .WithFixedPadding(10.0, 2.0)
+                .WithFixedMargin(-30, -30);
+
+            ElementBounds button4 = ElementBounds.Fixed(415, -10) //Highlight
+                .FixedUnder(button3, 10)
+                .WithAlignment(EnumDialogArea.LeftFixed)
+                .WithFixedPadding(10.0, 2.0)
+                .WithFixedMargin(-30, -30);
+
+            ElementBounds button5 = ElementBounds.Fixed(450, -10) //Highlight
+                .FixedUnder(button3, 10)
+                .WithAlignment(EnumDialogArea.LeftFixed)
+                .WithFixedPadding(10.0, 2.0)
+                .WithFixedMargin(-30, -30);
+
+
+            ElementBounds elementBounds7 = ElementBounds.Fill.WithFixedPadding(GuiStyle.ElementToDialogPadding);
+            elementBounds7.BothSizing = ElementSizing.FitToChildren;
+            elementBounds7.WithChildren(element, buttonlist, gridSlots);
+
+            mainDialogBound = ElementStdBounds.AutosizedMainDialog.WithAlignment(EnumDialogArea.LeftFixed).WithFixedAlignmentOffset(0.0 - GuiStyle.DialogToScreenPadding, 0.0);
             Composers[optionCompKey] =
                 capi.Gui
-                .CreateCompo(optionCompKey, dialogBounds)
-                .AddShadedDialogBG(ElementBounds.Fill)
+                .CreateCompo(optionCompKey, mainDialogBound)
+                .AddShadedDialogBG(elementBounds7)
                 .AddDialogTitleBar("Controls", CloseIconPressed)
-            ;
+                .AddButton("Clear All", () => { return OnClickClearAll(); }, button1, CairoFont.WhiteSmallText(), EnumButtonStyle.Normal, "clearactive")
+                .AddAutoSizeHoverText("Clears all connections from controller", CairoFont.WhiteSmallText(), 300, button1)
+                .AddIf(storageControllerMaster?.ContainerList?.Count > 1)
+                .AddButton("Clear All", () => { return OnClickClearAll(); }, button1, CairoFont.WhiteSmallText(), EnumButtonStyle.Normal, "cleardeactivate")
+                .AddAutoSizeHoverText("Clears all connections from controller", CairoFont.WhiteSmallText(), 300, button1)
+                .EndIf()
+                .AddButton("Link All Chests", () => { return OnClickLinkAllChests(); }, button2, CairoFont.WhiteSmallText(), EnumButtonStyle.Normal, "linkbutton")
+                .AddAutoSizeHoverText("Links all chests in range", CairoFont.WhiteSmallText(), 300, button2)
+                .AddButton("Highlight", () => { return OnClickHighlightAttached(); }, button3, CairoFont.WhiteSmallText(), EnumButtonStyle.Normal, "highlightbutton")
+                .AddAutoSizeHoverText("Highlight linked containers and range", CairoFont.WhiteSmallText(), 300, button3)
+                .AddButton("<", PreviousPage, button4, CairoFont.WhiteSmallText(), EnumButtonStyle.Small)
+                .AddButton(">", NextPage, button5, CairoFont.WhiteSmallText(), EnumButtonStyle.Small)
+                .Compose();
 
-            Composers[optionCompKey].AddButton("Clear All", () => { return OnClickClearAll(); }, button, CairoFont.WhiteSmallText(), EnumButtonStyle.Normal, "clearbutton");
-            Composers[optionCompKey].AddAutoSizeHoverText("Clears all connections from controller", CairoFont.WhiteSmallText(), 300, button);
-            button = button.BelowCopy();
-
-            Composers[optionCompKey].AddButton("Link All Chests", () => { return OnClickLinkAllChests(); }, button, CairoFont.WhiteSmallText(), EnumButtonStyle.Normal, "linkbutton");
-            Composers[optionCompKey].AddAutoSizeHoverText("Links all chests in range", CairoFont.WhiteSmallText(), 300, button);
-            button = button.BelowCopy();
-
-            Composers[optionCompKey].AddButton("Highlight", () => { return OnClickHighlightAttached(); }, button, CairoFont.WhiteSmallText(), EnumButtonStyle.Normal, "highlightbutton");
-            Composers[optionCompKey].AddAutoSizeHoverText("Highlight linked containers and range", CairoFont.WhiteSmallText(), 300, button);
-            button = button.BelowCopy();
-
-            Composers[optionCompKey].Compose();
-
-
+            var compKey = Composers[storageCompKey] = capi.Gui.CreateCompo(storageCompKey, mainDialogBound);
 
 
-
-            //This is the storage system inventory screen
-            if (virtualinventory != null && virtualinventory.Count > 0)
+            if (virtualInventory != null && !virtualInventory.Empty)
             {
-                dialogBounds = ElementStdBounds.AutosizedMainDialog.WithAlignment(EnumDialogArea.CenterMiddle);
-                ElementBounds bgBounds = ElementBounds.Fill.WithFixedPadding(GuiStyle.ElementToDialogPadding);
-                ElementBounds tradeSlotsBounds = ElementBounds.FixedPos(EnumDialogArea.LeftBottom, 0, 0)
-                    .WithFixedWidth(inventoryWindowWidth)
-                    .WithFixedHeight(inventoryWindowHeight);
-                bgBounds.WithChildren(tradeSlotsBounds);
-                bgBounds.BothSizing = ElementSizing.FitToChildren;
-                // Lastly, create the dialog
-                Composers[storageCompKey] = capi.Gui.CreateCompo(storageCompKey, dialogBounds)
-                    .AddShadedDialogBG(bgBounds, false)
-                    .AddDialogTitleBar(Lang.Get("storagecontroller:storageinventory"), OnTitleBarCloseClicked);
+                compKey
+                .AddItemSlotGrid(virtualInventory, SendPacket, 10, gridSlots, "slotgrid")
+                .AddInset(gridSlots, 10, 0.7f)
+                .Compose();
 
-                int maxRows = itemsincolumn;
-                int curColumn = 0;
-                int columnsAISG = 3;
-                var elementBounds = ElementBounds.FixedPos(EnumDialogArea.LeftTop, tradeSlotsBounds.fixedX + curColumn * (SSP + SSB), 50 * (SSP + SSB))
-                        .WithFixedWidth(100)
-                     .WithFixedHeight(48);
-
-
-                for (int i = 0; i < (virtualinventory.Count); i++)
-                {
-                    if (i != 0 && i % maxRows == 0)
-                    {
-                        curColumn++;
-                    }
-
-                    var boundsAISG = ElementBounds.FixedPos(EnumDialogArea.LeftTop, tradeSlotsBounds.fixedX + curColumn * (SSP + SSB), 50 + (i % maxRows) * (SSP + SSB))
-                        .WithFixedWidth(48)
-                     .WithFixedHeight(48);
-
-                    tradeSlotsBounds.WithChild(boundsAISG);
-                    int slotno = i;
-                    Composers[storageCompKey].AddButton("", () =>
-                    {
-                        return GetClick(slotno);
-                    }, boundsAISG, CairoFont.WhiteSmallText(), EnumButtonStyle.None, "button-" + i);
-                    Composers[storageCompKey].AddPassiveItemSlot(boundsAISG, virtualinventory, virtualinventory[i], false);
-                   
-                        Composers[storageCompKey].AddAutoSizeHoverText(virtualinventory[i].Itemstack.GetName(), CairoFont.WhiteSmallText(), 300, boundsAISG);
-                   
-                    ElementBounds tmpEB = ElementBounds.FixedPos(EnumDialogArea.LeftTop, tradeSlotsBounds.fixedX + 30 + curColumn * 200 + 165, (i % maxRows) * 60 + 25).WithFixedHeight(GuiElement.scaled((200.0))).WithFixedWidth(35);
-                    tradeSlotsBounds.WithChild(tmpEB);
-
-
-                }
-                Composers[storageCompKey].Compose();
+                //Fixed number are slot showed
+                Composers[storageCompKey].GetSlotGrid("slotgrid")
+                    .DetermineAvailableSlots(Enumerable.Range(0, 100).ToArray());
             }
-        }
-        private void OnTitleBarCloseClicked()
-        {
-            TryClose();
-        }
-        
-        private bool GetClick(int slotno)
-        {
-            if (slotno >= virtualinventory.Count) { return true; }
-            ItemSlot transferslot = virtualinventory[slotno];
-            if (transferslot == null || transferslot.Empty) return true;
+            else 
+            {
+                compKey
+                .AddInset(gridSlots, 10, 0.7f)
+                .Compose();
+            }
 
-            byte[] newdata = transferslot.Itemstack.ToBytes();
-            clientAPI.Network.SendBlockEntityPacket(BlockEntityPosition.X, BlockEntityPosition.Y, BlockEntityPosition.Z, StorageControllerMaster.inventoryPacket, newdata);
-            clientAPI.World.Player.InventoryManager.DropMouseSlotItems(true);
-            TryClose();
+         
+            compKey.Compose(true);
+            Composers[optionCompKey].Compose(true);
+        }
+
+
+        private void SendPacket(object obj)
+        {
+            IClientPlayer byPlayer = capi.World.Player;
+
+            foreach (ItemStack liststacks in storageControllerMaster.ListStacks) 
+            {
+                if (byPlayer.InventoryManager.MouseItemSlot.Itemstack.Id == liststacks.Id)
+                {
+                    byPlayer.InventoryManager.MouseItemSlot.Itemstack = null;
+                    byte[] data = liststacks?.ToBytes();
+                    if (data != null)
+                    {
+                        clientAPI.Network.SendBlockEntityPacket(BlockEntityPosition.X, BlockEntityPosition.Y, BlockEntityPosition.Z, StorageControllerMaster.inventoryPacket, data);
+                    
+                        break;
+                    }
+                };
+            }
+
+        }
+
+
+        private void GridPage()
+        {
+            int slots = virtualInventory.Count;
+            int startIndex = (curTab - 1) * 50; // Calculate the starting slot index
+            startIndex = Math.Max(0, startIndex); // Ensure startIndex doesn't go below 0
+            startIndex = Math.Min(slots - 50, startIndex); // Ensure startIndex doesn't exceed the maximum index - 50
+
+            if (startIndex >= 0)
+            {
+                Composers[storageCompKey].GetSlotGrid("slotgrid")
+                    .DetermineAvailableSlots(Enumerable.Range(startIndex, 100).ToArray());
+            }
+            Composers[storageCompKey].Compose();
+        }
+
+
+
+        private bool PreviousPage()
+        {
+            this.curTab--;
+            this.curTab = Math.Max(1, curTab); // Ensure curTab doesn't go below 1
+            GridPage();
+            return true;
+        }
+
+        private bool NextPage()
+        {
+            curTab++; // Increase curTab by 1
+            GridPage(); // Update the grid
             return true;
         }
 
         private bool OnClickClearAll()
         {
             clientAPI.Network.SendBlockEntityPacket(BlockEntityPosition.X, BlockEntityPosition.Y, BlockEntityPosition.Z, StorageControllerMaster.clearInventoryPacket, null);
-            StorageControllerMaster scm = clientAPI.World.BlockAccessor.GetBlockEntity(BlockEntityPosition) as StorageControllerMaster;
-            
-            TryClose();
+            storageControllerMaster?.SystemInventory?.Clear();
+            storageControllerMaster?.ClearHighlighted();
+            storageControllerMaster?.MarkDirty();
+            SetupDialog();
             return true;
         }
 
         private bool OnClickLinkAllChests()
         {
-            //clientAPI.Network.SendBlockEntityPacket(BlockEntityPosition.X, BlockEntityPosition.Y, BlockEntityPosition.Z, StorageControllerMaster.linkAllChestsPacket, null);
-            StorageControllerMaster scm = clientAPI.World.BlockAccessor.GetBlockEntity(BlockEntityPosition) as StorageControllerMaster;
-            
             TryClose();
-            scm.LinkAll(StorageControllerMaster.enLinkTargets.ALL, clientAPI.World.Player);
+            storageControllerMaster?.LinkAll(StorageControllerMaster.enLinkTargets.ALL, clientAPI.World.Player);
             return true;
         }
         private bool OnClickHighlightAttached()
         {
-            StorageControllerMaster scm = clientAPI.World.BlockAccessor.GetBlockEntity(BlockEntityPosition) as StorageControllerMaster;
-            if (scm != null) { scm.ToggleHightlights(); }
+            if (storageControllerMaster != null)
+            {
+                storageControllerMaster.ToggleHightlights();
+            }
+
             return true;
         }
 
