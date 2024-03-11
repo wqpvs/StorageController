@@ -2,9 +2,6 @@
 using Vintagestory.API.Client;
 using Vintagestory.API.MathTools;
 using System;
-using Vintagestory.GameContent;
-using Newtonsoft.Json.Linq;
-using System.Numerics;
 using System.Linq;
 
 namespace storagecontroller
@@ -17,23 +14,23 @@ namespace storagecontroller
 
         ElementBounds gridSlots;
 
-        DummyInventory virtualInventory;
+        public StorageMasterInv StorageMasterInv;
 
         protected int curTab;
 
         StorageControllerMaster storageControllerMaster;
-        public GUIDialogStorageAccess(string dialogTitle, StorageControllerMaster ownBlock, DummyInventory inventory, BlockPos blockEntityPos, ICoreClientAPI capi) : base(dialogTitle, inventory, blockEntityPos, capi)
+        public GUIDialogStorageAccess(string dialogTitle, StorageControllerMaster ownBlock, StorageMasterInv storageMasterInv, BlockPos blockEntityPos, ICoreClientAPI capi) : base(dialogTitle, storageMasterInv, blockEntityPos, capi)
         {
             if (IsDuplicate)
             {
                 return;
             }
 
-            clientAPI = capi;
+            clientAPI = capi;   
 
-            curTab = 0; 
+            curTab = 0;
 
-            virtualInventory = inventory;
+            StorageMasterInv = storageMasterInv;
 
             storageControllerMaster = ownBlock;
 
@@ -48,11 +45,11 @@ namespace storagecontroller
 
         public string storageCompKey => "storageCompo";
         public string optionCompKey => "storageOptionCompo";
+        public string searchComkey => "searchCompo";
 
         protected void ComposersDialog()
         {
 
-        
             ElementBounds element = ElementBounds.Fixed(0, 0, 500, 400);
             ElementBounds buttonlist = ElementBounds.Fixed(0, 0, -200, -390).FixedUnder(element, 10);
             gridSlots = ElementStdBounds.SlotGrid(EnumDialogArea.None, 0, 0, 10, 10)
@@ -85,11 +82,18 @@ namespace storagecontroller
                 .WithFixedMargin(-30, -30);
 
             ElementBounds button5 = ElementBounds.Fixed(450, -10) //Highlight
-                .FixedUnder(button3, 10)
+                .FixedUnder(button4, 10)
                 .WithAlignment(EnumDialogArea.LeftFixed)
                 .WithFixedPadding(10.0, 2.0)
                 .WithFixedMargin(-30, -30);
 
+
+            ElementBounds button6 = ElementBounds.Fixed(0, -10) //Highlight
+                .FixedUnder(button5, 10)
+                .WithAlignment(EnumDialogArea.LeftFixed)
+                .WithFixedHeight(10)
+                .WithFixedPadding(10.0, 2.0)
+                .WithFixedMargin(-30, -30);
 
             ElementBounds elementBounds7 = ElementBounds.Fill.WithFixedPadding(GuiStyle.ElementToDialogPadding);
             elementBounds7.BothSizing = ElementSizing.FitToChildren;
@@ -113,22 +117,24 @@ namespace storagecontroller
 
             GuiComposer storagecompKey = Composers[storageCompKey] = capi.Gui.CreateCompo(storageCompKey, mainDialogBound);
 
-            if (virtualInventory != null && !virtualInventory.Empty)
+            if (StorageMasterInv != null && !StorageMasterInv.Empty)
             {
                 storagecompKey
-                .AddItemSlotGrid(virtualInventory, SendPacket, 10, gridSlots, "slotgrid")
+                .AddItemSlotGrid(StorageMasterInv, SendPacket, 10, gridSlots, "slotgrid")
                 .AddInset(gridSlots, 10, 0.7f);
 
                 curTab = 1;
 
                 //Fixed number are slot showed
+                int slotsCount = StorageMasterInv?.Count ?? 0; // Number of slots in virtualInventory, or 0 if virtualInventory is null
                 Composers[storageCompKey].GetSlotGrid("slotgrid")
-                    .DetermineAvailableSlots(Enumerable.Range(0, 100).ToArray());
+                    .DetermineAvailableSlots(Enumerable.Range(0, Math.Min(100, slotsCount)).ToArray());
             }
             else 
             {
                 storagecompKey
                 .AddInset(gridSlots, 10, 0.7f);
+
             }
 
 
@@ -142,40 +148,37 @@ namespace storagecontroller
 
             foreach (ItemStack liststacks in storageControllerMaster.ListStacks) 
             {
-                if (byPlayer.InventoryManager.MouseItemSlot.Itemstack.Id == liststacks.Id)
+                if (byPlayer.InventoryManager.MouseItemSlot?.Itemstack?.Id == liststacks.Id)
                 {
                     byPlayer.InventoryManager.MouseItemSlot.Itemstack = null;
                     byte[] data = liststacks?.ToBytes();
                     if (data != null)
                     {
                         clientAPI.Network.SendBlockEntityPacket(BlockEntityPosition.X, BlockEntityPosition.Y, BlockEntityPosition.Z, StorageControllerMaster.inventoryPacket, data);
-                    
                         break;
                     }
                 };
             }
-
         }
 
         private void GridPage()
         {
-            int slots = virtualInventory?.Count ?? 0;
+            int slots = StorageMasterInv?.Count ?? 0;
             int startIndex = (curTab - 1) * 100; // Calculate the starting slot index
             startIndex = Math.Max(0, startIndex); // Ensure startIndex doesn't go below 0
-            startIndex = Math.Min(slots - 100, startIndex); // Ensure startIndex doesn't exceed the maximum index - 100
 
             var compKey = Composers[storageCompKey];
 
             if (compKey.GetSlotGrid("slotgrid") != null)
             {
+                int remainingSlots = Math.Max(0, slots - startIndex); // Calculate the number of slots remaining after startIndex
+                int minSlots = Math.Min(100, remainingSlots); // Determine the number of slots to display, capped at 100
                 Composers[storageCompKey].GetSlotGrid("slotgrid")
-                .DetermineAvailableSlots(Enumerable.Range(startIndex, 100).ToArray());
-                Composers[storageCompKey].Compose();
+                    .DetermineAvailableSlots(Enumerable.Range(startIndex, minSlots).ToArray());
             }
 
             compKey.Compose();
         }
-
         private bool PreviousGrid()
         {
             curTab = Math.Max(1, curTab - 1); // Decrease curTab by 1, but ensure it doesn't go below 1
@@ -185,7 +188,7 @@ namespace storagecontroller
 
         private bool NextGrid()
         {
-            int slots = virtualInventory?.Count ?? 0;
+            int slots = StorageMasterInv?.Count ?? 0;
             int maxTabs = (int)Math.Ceiling((double) slots / 100); // Calculate the maximum number of tabs
             curTab = Math.Min(maxTabs, curTab + 1); // Increase curTab by 1, but ensure it doesn't exceed the maximum
             GridPage(); 

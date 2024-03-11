@@ -21,7 +21,32 @@ using Vintagestory.Common;
 
 namespace storagecontroller
 {
-    public class StorageControllerMaster:BlockEntityGenericTypedContainer
+
+    public class StorageMasterInv : DummyInventory
+    {
+        public StorageMasterInv(ICoreAPI api, int quantitySlots = 1) : base(api, quantitySlots)
+        {
+        }
+
+        public override object ActivateSlot(int slotId, ItemSlot sourceSlot, ref ItemStackMoveOperation op)
+        {
+           var mouseSlot = op.ActingPlayer.InventoryManager.MouseItemSlot;
+
+
+            if (mouseSlot.Empty == false)
+            {
+                if (sourceSlot.CanHold(mouseSlot))
+                {
+                    return null;
+                }
+            }
+       
+
+            return base.ActivateSlot(slotId, sourceSlot, ref op);
+        }
+    }
+
+    public class StorageControllerMaster : BlockEntityGenericTypedContainer
     {
         /// <summary>
         /// TODO Bugs
@@ -42,10 +67,12 @@ namespace storagecontroller
         int tickTime = 250;
         bool dopruning = false; //should invalid locations be moved every time?
         public GUIDialogStorageAccess guistorage;
+
         ICoreClientAPI capi;
         ICoreServerAPI sapi;
-        DummyInventory systeminventory;
-        public virtual DummyInventory SystemInventory => systeminventory;
+
+        StorageMasterInv storageMasterInv;
+        public virtual StorageMasterInv StorageMasterInv => storageMasterInv;
 
         public List<ItemStack> ListStacks;
 
@@ -281,7 +308,7 @@ namespace storagecontroller
 
                 }
             }
-            catch (Exception e)
+            catch (Exception)
             {
 
             }
@@ -411,10 +438,12 @@ namespace storagecontroller
                 
                 guistorage = null;
             }
-            systeminventory = null;
+            storageMasterInv = null;
+
             SetVirtualInventory();
+
             //if (systeminventory == null || systeminventory.Empty) { return; }
-            guistorage = new GUIDialogStorageAccess("storagesystem", this, systeminventory, Pos, this.Api as ICoreClientAPI);
+            guistorage = new GUIDialogStorageAccess("storagesystem", this, storageMasterInv, Pos, this.Api as ICoreClientAPI);
             guistorage.TryOpen();
         }
 
@@ -440,6 +469,18 @@ namespace storagecontroller
             }
         }
 
+        public override void OnBlockRemoved()
+        {
+            if (ContainerList.Count > 0)
+            {
+                ClearConnections();
+                ClearHighlighted();
+            }
+
+            base.OnBlockRemoved();
+        }
+
+
         /// <summary>
         /// Set a new list of containers (as block positions where those containers should be)
         /// </summary>
@@ -463,7 +504,7 @@ namespace storagecontroller
         public virtual void SetVirtualInventory()
         {
             ListStacks = new List<ItemStack>();
-            if (containerlist == null || containerlist.Count == 0) { systeminventory = null; return; }
+            if (containerlist == null || containerlist.Count == 0) { storageMasterInv = null; return; }
             //search all positions
             foreach (BlockPos p in containerlist)
             {
@@ -492,11 +533,11 @@ namespace storagecontroller
 
             if (ListStacks == null|| ListStacks.Count == 0) { return; }
 
-            systeminventory = new DummyInventory(Api, ListStacks.Count);
+            storageMasterInv = new StorageMasterInv(Api, ListStacks.Count);
 
             for (int c = 0; c < ListStacks.Count; c++)
             {
-                systeminventory[c].Itemstack = ListStacks[c];
+                storageMasterInv[c].Itemstack = ListStacks[c];
 
             }
 
@@ -513,23 +554,32 @@ namespace storagecontroller
            //just search and grab/relieve the first stack we find 
            if (packetid == inventoryPacket)
             {
-                ItemStack clickedstack = new ItemStack(data);
-                clickedstack.ResolveBlockOrItem(Api.World);
-                if (clickedstack == null) { return; }
+                ItemStack itemStack = new ItemStack(data);
+
+                itemStack.ResolveBlockOrItem(Api.World);
+
+                if (itemStack == null) { return; }
                 // we got the stack now let's see if we can send it to the player
-                int qty = GetStackOf(clickedstack);
-                if (qty == 0) { return; }
-                clickedstack.StackSize = qty;
-                DummyInventory di = new DummyInventory(Api, 1);
-                di[0].Itemstack = clickedstack;
-                bool trygive=player.InventoryManager.TryGiveItemstack(clickedstack);
+                int stacksize = GetStackOf(itemStack);
+
+                if (stacksize == 0) { return; }
+
+                StorageMasterInv itemSlots = new StorageMasterInv(Api, 1);
+
+                itemSlots[0].Itemstack = itemStack;
+
+                itemStack.StackSize = stacksize;
+
                 //no valid slot
-                if (!trygive)
+                if (player.InventoryManager.TryGiveItemstack(itemStack))
                 {
-                    di.DropAll(Pos.ToVec3d());
-                
+                    Api.World.SpawnItemEntity(itemStack, player.Entity.Pos.XYZ);
                 }
+
                 (Api as ICoreServerAPI).Network.SendBlockEntityPacket(player as IServerPlayer, Pos.X,Pos.Y,Pos.Z, inventoryPacket);
+
+                player.InventoryManager.ActiveHotbarSlot.Itemstack = null;
+
                 return;
             }
            else if (packetid == clearInventoryPacket)
@@ -599,34 +649,35 @@ namespace storagecontroller
         /// <returns></returns>
         public virtual int GetStackOf(ItemStack findstack)
         {
-            int qty = 0;
+            int stacksize = 0;
             
-            foreach (BlockPos p in containerlist)
+            foreach (BlockPos blockPos in containerlist)
             {
-                if (qty != 0) { break; }
-                BlockEntity be = Api.World.BlockAccessor.GetBlockEntity(p);
-                Block b = Api.World.BlockAccessor.GetBlock(p);
-                BlockEntityContainer cont = be as BlockEntityContainer;
-                if (be == null || b == null || cont == null || cont.Inventory == null || cont.Inventory.Empty) { continue; }
+                if (stacksize != 0) { break; }
+
+                Block block = Api.World.BlockAccessor.GetBlock(blockPos);
+
+                BlockEntityContainer blockEntityContainer = Api.World.BlockAccessor.GetBlockEntity(blockPos) as BlockEntityContainer;
+
+                if (block == null || blockEntityContainer == null || blockEntityContainer.Inventory == null || blockEntityContainer.Inventory.Empty) continue; 
                 //search inventory of this container if it exists and isn't empty
-                foreach (ItemSlot slot in cont.Inventory)
+                foreach (ItemSlot slot in blockEntityContainer.Inventory)
                 {
                     if (slot == null || slot.Empty || slot.Itemstack == null || slot.StackSize == 0) { continue; }
                     //if we don't have one yet then add one
 
                     if (slot.Itemstack.Satisfies(findstack))
                     {
-                        qty = slot.Itemstack.StackSize;
-                        slot.Itemstack= null;
+                        stacksize = slot.Itemstack.StackSize;
+                        slot.Itemstack = null;
                         slot.MarkDirty();
-                        cont.MarkDirty();
+                        blockEntityContainer.MarkDirty();
                         break;
                     }
                 }
             }
             
-        
-            return qty;
+            return stacksize;
         }
 
         public override void ToTreeAttributes(ITreeAttribute tree)
