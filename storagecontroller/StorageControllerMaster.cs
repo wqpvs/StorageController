@@ -515,8 +515,15 @@ namespace storagecontroller
 
             if (packetid == inventoryPacket)
             {
-                ItemStack itemStack = new ItemStack(data);
-
+                ItemStack itemStack;
+                try
+                {
+                    itemStack = new ItemStack(data);
+                }
+                catch
+                {
+                    return;
+                }
                 itemStack.ResolveBlockOrItem(Api.World);
 
                 if (itemStack == null) { return; }
