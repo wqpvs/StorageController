@@ -11,7 +11,6 @@ using Vintagestory.API.Datastructures;
 using Newtonsoft.Json;
 using System.Reflection;
 using Vintagestory.API.Util;
-using HarmonyLib;
 
 namespace storagecontroller
 {
@@ -42,7 +41,7 @@ namespace storagecontroller
         ICoreClientAPI capi;
         ICoreServerAPI sapi;
 
-        StorageVirtualInv storageVirtualInv;
+        internal StorageVirtualInv storageVirtualInv;
         public virtual StorageVirtualInv StorageVirtualInv => storageVirtualInv;
 
         public List<ItemStack> ListStacks;
@@ -58,6 +57,7 @@ namespace storagecontroller
                 maxRange = Block.Attributes["maxRange"].AsInt(maxRange);
                 tickTime = Block.Attributes["tickTime"].AsInt(TickTime);
             }
+
             if (Api is ICoreServerAPI) { RegisterGameTickListener(OnServerTick, TickTime); sapi = api as ICoreServerAPI; }
             else if (Api is ICoreClientAPI) { capi = api as ICoreClientAPI; }
         }
@@ -69,40 +69,48 @@ namespace storagecontroller
             try
             {
                 //Check if we have any inventory to bother with
-                if (this.Inventory == null || this.Inventory.Empty) { return; }
-                if (containerlist == null || containerlist.Count == 0 || SupportedChests == null) { return; }
+                if (this.Inventory == null || this.Inventory.Empty) 
+                { 
+                    return;
+                }
+
+                if (containerlist == null || containerlist.Count == 0 || SupportedChests == null) 
+                { 
+                    return;
+                }
+
                 //Manage linked container list
-                // - only check so many blocks per tick
-                List<BlockPos> prunelist = new List<BlockPos>(); //This is a list of invalid blockpos that should be deleted from list
+                //// - only check so many blocks per tick
+                //List<BlockPos> prunelist = new List<BlockPos>(); //This is a list of invalid blockpos that should be deleted from list
 
 
-                foreach (BlockPos pos in containerlist)
-                {
+                //foreach (BlockPos pos in containerlist)
+                //{
 
-                    if (pos == null || Api == null || Api.World == null || Api.World.BlockAccessor == null) { continue; }
-                    if (!IsInRange(pos)) { prunelist.Add(pos); continue; }
-                    Block b = Api.World.BlockAccessor.GetBlock(pos);
-                    if (b == null || b.EntityClass == null) { prunelist.Add(pos); continue; }
-                    if (!(SupportedChests.Contains(b.EntityClass) || SupportedCrates.Contains(b.EntityClass)))
-                    {
-                        prunelist.Add(pos); continue;
-                    }
-                    BlockEntity be = Api.World.BlockAccessor.GetBlockEntity(pos);
-                    if (be == null || !(be is BlockEntityContainer)) { prunelist.Add(pos); continue; }
-                }
-                int removecount = 0;
+                //    if (pos == null || Api == null || Api.World == null || Api.World.BlockAccessor == null) { continue; }
+                //    if (!IsInRange(pos)) { prunelist.Add(pos); continue; }
+                //    Block b = Api.World.BlockAccessor.GetBlock(pos);
+                //    if (b == null || b.EntityClass == null) { prunelist.Add(pos); continue; }
+                //    if (!(SupportedChests.Contains(b.EntityClass) || SupportedCrates.Contains(b.EntityClass)))
+                //    {
+                //        prunelist.Add(pos); continue;
+                //    }
+                //    BlockEntity be = Api.World.BlockAccessor.GetBlockEntity(pos);
+                //    if (be == null || !(be is BlockEntityContainer)) { prunelist.Add(pos); continue; }
+                //}
+                //int removecount = 0;
 
-                if (dopruning)
-                {
-                    foreach (BlockPos pos in prunelist)
-                    {
-                        if (pos == null) { continue; }
-                        removecount += containerlist.RemoveAll(x => x.Equals(pos));
+                //if (dopruning)
+                //{
+                //    foreach (BlockPos pos in prunelist)
+                //    {
+                //        if (pos == null) { continue; }
+                //        removecount += containerlist.RemoveAll(x => x.Equals(pos));
 
-                    }
-                    if (removecount > 0) { MarkDirty(); }
-                }
-                if (containerlist == null || containerlist.Count == 0) { return; }
+                //    }
+                //    if (removecount > 0) { MarkDirty(); }
+                //}
+                //if (containerlist == null || containerlist.Count == 0) { return; }
 
                 //Priority slots: filtered crate slots with space, other populated crates with space
                 Dictionary<ItemStack, List<ItemSlot>> priorityslots = new Dictionary<ItemStack, List<ItemSlot>>();
@@ -113,21 +121,21 @@ namespace storagecontroller
                 //This slotreference is to match the slot back up to its originating container
                 Dictionary<ItemSlot, BlockEntityContainer> slotreference = new Dictionary<ItemSlot, BlockEntityContainer>();
                 //Cycle thru our blocks to find containers we can use
-                foreach (BlockPos p in containerlist)
+                foreach (BlockPos pos in containerlist)
                 {
-                    if (p == null) { continue; }
-                    BlockEntity be = Api.World.BlockAccessor.GetBlockEntity(p);
-                    Block b = Api.World.BlockAccessor.GetBlock(p);
-                    BlockEntityContainer cont = be as BlockEntityContainer;
+                    if (pos == null) { continue; }
+                    BlockEntity blockEntity = Api.World.BlockAccessor.GetBlockEntity(pos);
+                    Block block = Api.World.BlockAccessor.GetBlock(pos);
+                    BlockEntityContainer blockEntityContainer = blockEntity as BlockEntityContainer;
 
-                    if (be == null || cont == null || cont.Inventory == null) { continue; }//this shouldn't happen, but better to check
+                    if (blockEntity == null || blockEntityContainer == null || blockEntityContainer.Inventory == null) { continue; }//this shouldn't happen, but better to check
                                                                                            //find better crates
-                    FieldInfo bettercratelock = be.GetType().GetField("lockedItemInventory");
+                    FieldInfo bettercratelock = blockEntity.GetType().GetField("lockedItemInventory");
                     //ah, we have discovered a better crate!
                     //HANDLE BETTER CRATES
                     if (bettercratelock != null)
                     {
-                        var bettercratelockingslot = bettercratelock.GetValue(be) as InventoryGeneric;
+                        var bettercratelockingslot = bettercratelock.GetValue(blockEntity) as InventoryGeneric;
                         bool lockedcrate = false;
                         bool emptycrate = false;
                         ItemStack inslot = null;
@@ -137,26 +145,26 @@ namespace storagecontroller
                             lockedcrate = true;
                             inslot = bettercratelockingslot[0].Itemstack.GetEmptyClone();
                         }
-                        else if (cont.Inventory == null || cont.Inventory.Empty) { emptycrate = true; }
-                        else if (cont.Inventory[0] == null || cont.Inventory[0].Itemstack == null) { emptycrate = true; }//Hmmm this is an odd situation
-                        else { inslot = cont.Inventory[0].Itemstack.GetEmptyClone(); } //otherwise set inslot to the first item in crate
+                        else if (blockEntityContainer.Inventory == null || blockEntityContainer.Inventory.Empty) { emptycrate = true; }
+                        else if (blockEntityContainer.Inventory[0] == null || blockEntityContainer.Inventory[0].Itemstack == null) { emptycrate = true; }//Hmmm this is an odd situation
+                        else { inslot = blockEntityContainer.Inventory[0].Itemstack.GetEmptyClone(); } //otherwise set inslot to the first item in crate
                         //case one - filtered or not empty - add first slot with space to priority list
                         if (lockedcrate || !emptycrate)
                         {
-                            foreach (ItemSlot crateslot in cont.Inventory)
+                            foreach (ItemSlot crateslot in blockEntityContainer.Inventory)
                             {
                                 if (crateslot.StackSize < inslot.Collectible.MaxStackSize)
                                 {
                                     if (priorityslots.ContainsKey(inslot))
                                     {
                                         priorityslots[inslot].Add(crateslot);
-                                        slotreference[crateslot] = cont;
+                                        slotreference[crateslot] = blockEntityContainer;
                                         break;
                                     }
                                     else
                                     {
                                         priorityslots[inslot] = new List<ItemSlot> { crateslot };
-                                        slotreference[crateslot] = cont;
+                                        slotreference[crateslot] = blockEntityContainer;
                                         break;
                                     }
                                 }
@@ -165,26 +173,26 @@ namespace storagecontroller
                         //If create is empty and unfiltered then we add first slot to empty slots
                         else if (emptycrate)
                         {
-                            emptyslots.Add(cont.Inventory[0]);
-                            slotreference[cont.Inventory[0]] = cont;
+                            emptyslots.Add(blockEntityContainer.Inventory[0]);
+                            slotreference[blockEntityContainer.Inventory[0]] = blockEntityContainer;
                         }
                         ///*** ADD NONE EMPTY CRATE CODE ***
 
                     }
                     //NOT A BETTER CRATE So check if it's another crate and deal with it accordingly
-                    else if (SupportedCrates.Contains(b.EntityClass))
+                    else if (SupportedCrates.Contains(block.EntityClass))
                     {
                         //add to empty list if empty
-                        if (cont.Inventory.Empty)
+                        if (blockEntityContainer.Inventory.Empty)
                         {
-                            emptyslots.Add(cont.Inventory[0]);
-                            slotreference[cont.Inventory[0]] = cont;
+                            emptyslots.Add(blockEntityContainer.Inventory[0]);
+                            slotreference[blockEntityContainer.Inventory[0]] = blockEntityContainer;
                         }
                         else
                         {
                             //use the contents of the first slot to set what this crate should contain
-                            ItemStack inslot = cont.Inventory[0].Itemstack.GetEmptyClone();
-                            foreach (ItemSlot crateslot in cont.Inventory)
+                            ItemStack inslot = blockEntityContainer.Inventory[0].Itemstack.GetEmptyClone();
+                            foreach (ItemSlot crateslot in blockEntityContainer.Inventory)
                             {
                                 //if (crateslot.Itemstack == null || crateslot.Itemstack.Collectible == null) { continue; }
                                 if (crateslot.StackSize < inslot.Collectible.MaxStackSize)
@@ -192,13 +200,13 @@ namespace storagecontroller
                                     if (priorityslots.ContainsKey(inslot))
                                     {
                                         priorityslots[inslot].Add(crateslot);
-                                        slotreference[crateslot] = cont;
+                                        slotreference[crateslot] = blockEntityContainer;
                                         break;
                                     }
                                     else
                                     {
                                         priorityslots[inslot] = new List<ItemSlot> { crateslot };
-                                        slotreference[crateslot] = cont;
+                                        slotreference[crateslot] = blockEntityContainer;
                                         break;
                                     }
                                 }
@@ -206,21 +214,21 @@ namespace storagecontroller
                         }
                     }
                     //last of all deal with chests - slot by slot
-                    else if (supportedChests.Contains(b.EntityClass))
+                    else if (supportedChests.Contains(block.EntityClass))
                     {
-                        foreach (ItemSlot slot in cont.Inventory)
+                        foreach (ItemSlot slot in blockEntityContainer.Inventory)
                         {
                             if (slot == null || slot.Inventory == null) { continue; }
                             //add empty slots
                             if (slot.Empty || slot.Itemstack == null)
                             {
                                 emptyslots.Add(slot);
-                                slotreference[slot] = cont;
+                                slotreference[slot] = blockEntityContainer;
                             }
                             //ignore full slots
                             else if (slot.Itemstack.StackSize >= slot.Itemstack.Collectible.MaxStackSize) { continue; }
                             //this is a filled slot with space so add it
-                            else { populatedslots.Add(slot); slotreference[slot] = cont; }
+                            else { populatedslots.Add(slot); slotreference[slot] = blockEntityContainer; }
                         }
 
                     }
@@ -340,15 +348,36 @@ namespace storagecontroller
         bool showingblocks = false;
         public static int highlightid = 1;
 
+        public void toggleVirtualInvDialogClient(IPlayer byPlayer, CreateDialogDelegate onCreateDialog)
+        {
+            if (clientDialog == null)
+            {
+                ICoreClientAPI capi = Api as ICoreClientAPI;
+                clientDialog = (GUIDialogStorageAccess)onCreateDialog();
+                clientDialog.OnClosed += delegate
+                {
+                    clientDialog = null;
+                    capi.Network.SendBlockEntityPacket(Pos.X, Pos.Y, Pos.Z, 1001);
+                    capi.Network.SendPacketClient(StorageVirtualInv?.Close(byPlayer));
+                };
+                clientDialog.TryOpen();
+                capi.Network.SendPacketClient(StorageVirtualInv?.Open(byPlayer));
+                capi.Network.SendBlockEntityPacket(Pos.X, Pos.Y, Pos.Z, 1000);
+            }
+            else
+            {
+                clientDialog.TryClose();
+            }
+        }
 
         public override bool OnPlayerRightClick(IPlayer byPlayer, BlockSelection blockSel)
         {
+
             if (Api.Side == EnumAppSide.Client)
             {
-
-                toggleInventoryDialogClient(byPlayer, delegate
+                SetVirtualInventory();
+                toggleVirtualInvDialogClient(byPlayer, delegate
                 {
-                    SetVirtualInventory();
                     clientDialog = new GUIDialogStorageAccess(DialogTitle, Inventory, StorageVirtualInv, Pos, Api as ICoreClientAPI);
                     return clientDialog;
                 });
@@ -507,23 +536,30 @@ namespace storagecontroller
         public static int clearInventoryPacket = 320001;
         public static int linkAllChestsPacket = 320002;
         public static int linkChestPacket = 320003;
+        public static int updateInvPacket = 320004;
 
         public override void OnReceivedClientPacket(IPlayer player, int packetid, byte[] data)
         {
             //How to handle taking multiple stacks?
             //just search and grab/relieve the first stack we find 
 
+       
             if (packetid == inventoryPacket)
             {
-                ItemStack itemStack;
-                try
+                if (data == null) 
                 {
-                    itemStack = new ItemStack(data);
-                }
-                catch
-                {
+                    (Api as ICoreClientAPI)?.SendChatMessage("Data return null", 0);
                     return;
                 }
+
+                ItemStack itemStack = new ItemStack(data);
+
+                if (itemStack == null) 
+                {
+                    (Api as ICoreClientAPI)?.SendChatMessage("itemstack return null", 0);
+                    return;
+                }
+
                 itemStack.ResolveBlockOrItem(Api.World);
 
                 if (itemStack == null) { return; }
@@ -575,9 +611,8 @@ namespace storagecontroller
                 containerlist.Add(p);
                 MarkDirty();
             }
+
             base.OnReceivedClientPacket(player, packetid, data);
-
-
         }
 
         public override void OnReceivedServerPacket(int packetid, byte[] data)
@@ -585,27 +620,23 @@ namespace storagecontroller
             base.OnReceivedServerPacket(packetid, data);
         }
 
-        public float refreshIntervalSeconds = 100; // Adjust the refresh interval as needed (in seconds)
+        public float refreshIntervalSeconds = 2.5f; 
+
         public float timeSinceLastRefreshSeconds = 0;
 
-        // Method to handle the refresh logic
+        //Method to handle the refresh logic
         public void RefreshStorageInterface(float deltaTime)
         {
-          
             // Accumulate the elapsed time since the last refresh
-            timeSinceLastRefreshSeconds += Api.World.Calendar.ElapsedSeconds;
+            timeSinceLastRefreshSeconds += deltaTime;  
 
-            // Check if the accumulated time exceeds the refresh interval
-            if (timeSinceLastRefreshSeconds >= refreshIntervalSeconds)
+            if (timeSinceLastRefreshSeconds >= refreshIntervalSeconds) 
             { 
-                // Perform the refresh logic here
-                clientDialog.RefreshGrid();
-
-                // Reset the time since last refresh
+                SetVirtualInventory();
                 timeSinceLastRefreshSeconds = 0;
             }
 
-            Api.Logger.Debug("Time passed: " + timeSinceLastRefreshSeconds);
+            clientDialog.RefreshGrid();
         }
 
         // Register the game tick listener when the player enters the storage interface
@@ -614,7 +645,7 @@ namespace storagecontroller
         // Register the game tick listener when the player enters the storage interface
         public void OnPlayerEnterStorageInterface()
         {
-            storageInterfaceTickListenerId = Api.World.RegisterGameTickListener(RefreshStorageInterface, 100);
+            storageInterfaceTickListenerId = Api.World.RegisterGameTickListener(RefreshStorageInterface, 200);
         }
 
         // Unregister the game tick listener when the player exits the storage interface
@@ -802,7 +833,7 @@ namespace storagecontroller
         {
             base.OnBlockUnloaded();
 
-            Api.World.UnregisterGameTickListener(storageInterfaceTickListenerId);
+            //Api.World.UnregisterGameTickListener(storageInterfaceTickListenerId);
 
             if (clientDialog?.IsOpened() ?? false)
             {
@@ -819,7 +850,7 @@ namespace storagecontroller
             ClearConnections();
             ClearHighlighted();
 
-            Api.World.UnregisterGameTickListener(storageInterfaceTickListenerId);
+            //Api.World.UnregisterGameTickListener(storageInterfaceTickListenerId);
 
             if (clientDialog?.IsOpened() ?? false)
             {

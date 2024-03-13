@@ -1,12 +1,4 @@
-﻿using Vintagestory.API.Client;
-using Vintagestory.API.Common;
-using static System.Runtime.InteropServices.JavaScript.JSType;
-using Vintagestory.API.Server;
-using System.Drawing;
-using Vintagestory.API.MathTools;
-using System.Net.Sockets;
-using System.Reflection;
-using System;
+﻿using Vintagestory.API.Common;
 
 namespace storagecontroller
 {
@@ -26,8 +18,8 @@ namespace storagecontroller
         {
             ItemSlot mouseSlot = op.ActingPlayer.InventoryManager.MouseItemSlot;
 
-            if (op.MouseButton == EnumMouseButton.Left)
-            {
+            if (op.MouseButton == EnumMouseButton.Left) {
+
                 if (op.ShiftDown)
                 {
                     return false;
@@ -41,11 +33,7 @@ namespace storagecontroller
                     }
                 }
 
-
-                if (mouseSlot.Empty && !sourceSlot.CanTake())
-                {
-                    return false;
-                }
+                return base.ActivateSlot(slotId, sourceSlot, ref op);
             }
 
             return false;

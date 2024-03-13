@@ -46,7 +46,7 @@
 		},
 		variantByGroup: "side",
 		variantByGroupInventory: null,
-		"maxTransferPerTick": 99999,
+		"maxTransferPerTick": 15,
       "maxRange":48,
       "tickTime":150
 	},

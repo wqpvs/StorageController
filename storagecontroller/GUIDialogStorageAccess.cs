@@ -20,9 +20,7 @@ namespace storagecontroller
 
         public ElementBounds mainElement;
 
-        public int number => StorageVirtualInv.Count;
-
-        private byte[] data => capi.World.Player.InventoryManager?.CurrentHoveredSlot?.Itemstack?.ToBytes();
+        private byte[] data { get; set; }
 
         public StorageVirtualInv StorageVirtualInv;
 
@@ -177,7 +175,7 @@ namespace storagecontroller
         public override void OnGuiClosed()
         {
             StorageControllerMaster?.OnPlayerExitStorageInterface();
-     
+
             capi.Gui.PlaySound(CloseSound, randomizePitch: true);
 
             base.OnGuiClosed();
@@ -192,21 +190,36 @@ namespace storagecontroller
             base.OnGuiOpened();
         }
 
-        private void SendInvPacket(object obj)
+        private void SendInvPacket(object packet)
         {
-            coreClientAPI.Network.SendBlockEntityPacket(BlockEntityPosition.X, BlockEntityPosition.Y, BlockEntityPosition.Z, obj);
+            coreClientAPI.Network.SendBlockEntityPacket(BlockEntityPosition.X, BlockEntityPosition.Y, BlockEntityPosition.Z, packet);
+            coreClientAPI.Network.SendBlockEntityPacket(BlockEntityPosition.X, BlockEntityPosition.Y, BlockEntityPosition.Z, StorageControllerMaster.updateInvPacket);
         }
+
 
         private void SendVirtualPacket(object packet)
         {
-            coreClientAPI.Network.SendBlockEntityPacket(BlockEntityPosition.X, BlockEntityPosition.Y, BlockEntityPosition.Z, StorageControllerMaster.inventoryPacket, data);
+            ItemStack itemStack = capi.World.Player.InventoryManager.MouseItemSlot?.Itemstack ?? null;
+
+            if (itemStack != null)
+            {
+                data = itemStack?.ToBytes();
+
+                if (data != null)
+                {
+                    capi.World.Player.InventoryManager.MouseItemSlot.Itemstack = null;
+
+                    coreClientAPI.Network.SendBlockEntityPacket(BlockEntityPosition.X, BlockEntityPosition.Y, BlockEntityPosition.Z, StorageControllerMaster.updateInvPacket);
+                    coreClientAPI.Network.SendBlockEntityPacket(BlockEntityPosition.X, BlockEntityPosition.Y, BlockEntityPosition.Z, StorageControllerMaster.inventoryPacket, data);
+                }
+
+            }
         }
 
-        
         public void RefreshGrid()
         {
-            // Set the virtual inventory
-            StorageControllerMaster.SetVirtualInventory();
+            //Set the virtual inventory
+           
 
             var storageVirtualInv = StorageControllerMaster.StorageVirtualInv;
 
@@ -250,6 +263,7 @@ namespace storagecontroller
             int currentCount = StorageVirtualInv.Count;
 
             // Check if there's been a change in the number of items
+            
             if (currentCount != previousCount)
             {
                 // Refresh the grid display
