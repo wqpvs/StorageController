@@ -1,11 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 using Vintagestory.API.Common;
-using Vintagestory.API.Config;
 using Vintagestory.API.MathTools;
+using Vintagestory.API.Server;
 using Vintagestory.API.Util;
 using Vintagestory.GameContent;
 
@@ -45,18 +41,15 @@ namespace storagecontroller
             }
             return base.OnPickBlock(world, pos);
         }
+
         public override bool OnBlockInteractStart(IWorldAccessor world, IPlayer byPlayer, BlockSelection blockSel)
         {
-            if (byPlayer.Entity.Controls.CtrlKey)
+            if (world.BlockAccessor.GetBlockEntity(blockSel.Position) is StorageControllerMaster storageControllerMaster)
             {
-                StorageControllerMaster scm = world.BlockAccessor.GetBlockEntity(blockSel.Position) as StorageControllerMaster;
-                if (scm != null)
-                {
-                    scm.OnPlayerRightClick(byPlayer, blockSel);
-                    return false;
-                }
+                storageControllerMaster.OnPlayerRightClick(byPlayer, blockSel);
             }
-            return base.OnBlockInteractStart(world, byPlayer, blockSel);
+
+            return true;
         }
     }
 }
