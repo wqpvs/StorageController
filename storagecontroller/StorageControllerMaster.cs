@@ -11,59 +11,10 @@ using Vintagestory.API.Datastructures;
 using Newtonsoft.Json;
 using System.Reflection;
 using Vintagestory.API.Util;
-<<<<<<< Updated upstream
-=======
-<<<<<<< Updated upstream
-using System.Xml.Linq;
-using VintagestoryLib;
-using Vintagestory.API.Common.Entities;
-using Vintagestory.Common;
-
->>>>>>> Stashed changes
-namespace storagecontroller
-{
-
-    public class StorageMasterInv : DummyInventory
-    {
-        private int StorageMasterInvId = 1;
-
-        public StorageMasterInv(ICoreAPI api, int quantitySlots = 1) : base(api, quantitySlots)
-        {
-            StorageMasterInvId++;
-
-            className = "StorageMasterInv-" + StorageMasterInvId;
-        }
-
-        public override object ActivateSlot(int slotId, ItemSlot sourceSlot, ref ItemStackMoveOperation op)
-        {
-           var mouseSlot = op.ActingPlayer.InventoryManager.MouseItemSlot;
-
-            //if itemslot isn't empty. We don't want to insert it. temp fix
-            if (!mouseSlot.Empty)
-            {
-                if (sourceSlot.CanHold(mouseSlot))
-                {
-                    return null;
-                }
-            }
-
-            //if player press shift click. we don't want them to get the stack. temp fix
-            if (op.ShiftDown)
-            {
-                return null;
-            }
-
-            // back to normal.
-            return base.ActivateSlot(slotId, sourceSlot, ref op);
-        }
-    }
-
-=======
 using HarmonyLib;
 
 namespace storagecontroller
 {
->>>>>>> Stashed changes
     public class StorageControllerMaster : BlockEntityGenericTypedContainer
     {
         /// <summary>
@@ -71,20 +22,9 @@ namespace storagecontroller
         /// CRATES - won't fill up crates properly with same item
         /// </summary>
         public static string containerlistkey = "containerlist";
-<<<<<<< Updated upstream
-
-        List<BlockPos> containerlist; 
-        public List<BlockPos> ContainerList => containerlist;
-=======
-<<<<<<< Updated upstream
-        List<BlockPos> containerlist; 
-        public List<BlockPos> ContainerList=>containerlist;
-=======
 
         List<BlockPos> containerlist;
         public List<BlockPos> ContainerList => containerlist;
->>>>>>> Stashed changes
->>>>>>> Stashed changes
         List<string> supportedChests;
         public virtual List<string> SupportedChests => supportedChests;
         List<string> supportedCrates;
@@ -403,54 +343,6 @@ namespace storagecontroller
 
         public override bool OnPlayerRightClick(IPlayer byPlayer, BlockSelection blockSel)
         {
-<<<<<<< Updated upstream
-=======
-<<<<<<< Updated upstream
-            //if (Api is ICoreClientAPI && containerlist!=null && containerlist.Count>0)
-            //{
-            //    ICoreAPI capi= Api as ICoreClientAPI;
->>>>>>> Stashed changes
-            if (byPlayer.Entity.Controls.CtrlKey)
-            {
-                if (Api is ICoreClientAPI)
-                {
-                    OpenStorageInterface();
-                    return false;
-                } 
-            }
-
-            if (byPlayer.InventoryManager.ActiveHotbarSlot!=null&&!byPlayer.InventoryManager.ActiveHotbarSlot.Empty&& byPlayer.InventoryManager.ActiveHotbarSlot.Itemstack.Item!=null)
-            {
-                Item activeitem = byPlayer.InventoryManager.ActiveHotbarSlot.Itemstack.Item;
-                if (activeitem==null||activeitem.Attributes==null)
-                {
-                    return base.OnPlayerRightClick(byPlayer, blockSel);
-                }
-                string[] upgradesfrom = activeitem.Attributes["upgradesfrom"].AsArray<string>();
-                if (upgradesfrom == null) { return base.OnPlayerRightClick(byPlayer, blockSel); }
-                string mymetal = Block.Code.FirstCodePart();
-                if (!(upgradesfrom.Contains(mymetal))) { return base.OnPlayerRightClick(byPlayer, blockSel); }
-                string upgradesto = activeitem.Attributes["upgradesto"].AsString("");
-                if (upgradesto == "") { return base.OnPlayerRightClick(byPlayer, blockSel); }
-                upgradesto += "-" + Block.LastCodePart();
-                //ok this is a valid upgrade
-                Block upgradedblock=Api.World.GetBlock(new AssetLocation(upgradesto));
-                Api.World.BlockAccessor.SetBlock(upgradedblock.BlockId, Pos);
-                StorageControllerMaster newmaster=Api.World.BlockAccessor.GetBlockEntity(Pos) as StorageControllerMaster;
-                newmaster.SetContainers(ContainerList);
-                Inventory.DropAll(Pos.ToVec3d());
-                if (byPlayer?.WorldData.CurrentGameMode != EnumGameMode.Creative)
-                {
-                    byPlayer.InventoryManager.ActiveHotbarSlot.Itemstack.StackSize--;
-                    if (byPlayer.InventoryManager.ActiveHotbarSlot.Itemstack.StackSize == 0)
-                    {
-                        byPlayer.InventoryManager.ActiveHotbarSlot.Itemstack = null;
-                    }
-                    byPlayer.InventoryManager.ActiveHotbarSlot.MarkDirty();
-                }
-            }
-            return base.OnPlayerRightClick(byPlayer, blockSel);
-=======
             if (Api.Side == EnumAppSide.Client)
             {
 
@@ -494,7 +386,6 @@ namespace storagecontroller
             //        byPlayer.InventoryManager.ActiveHotbarSlot.MarkDirty();
             //    }
             //}
->>>>>>> Stashed changes
         }
 
 
@@ -529,18 +420,6 @@ namespace storagecontroller
             }
         }
 
-<<<<<<< Updated upstream
-        public override void OnBlockRemoved()
-        {
-            ClearConnections();
-            ClearHighlighted();
-
-            base.OnBlockRemoved();
-        }
-
-
-=======
->>>>>>> Stashed changes
         /// <summary>
         /// Set a new list of containers (as block positions where those containers should be)
         /// </summary>
@@ -563,61 +442,6 @@ namespace storagecontroller
         /// </summary>
         public virtual void SetVirtualInventory()
         {
-<<<<<<< Updated upstream
-            // Initialize a list to store unique item stacks
-            List<ItemStack> uniqueStacks = new List<ItemStack>();
-
-            // Check if the container list is empty or null
-            if (containerlist == null || containerlist.Count == 0)
-=======
-<<<<<<< Updated upstream
-            ListStacks = new List<ItemStack>();
-            if (containerlist == null || containerlist.Count == 0) { storageMasterInv = null; return; }
-            //search all positions
-            foreach (BlockPos p in containerlist)
->>>>>>> Stashed changes
-            {
-                storageMasterInv = null;
-                return;
-            }
-
-            // Iterate through each container block in the container list
-            foreach (BlockPos blockPos in containerlist)
-            {
-                // Get the container block entity from the world
-                BlockEntityContainer blockEntityContainer = Api.World.BlockAccessor.GetBlockEntity(blockPos) as BlockEntityContainer;
-
-                // Skip if the block entity container is null or its inventory is empty
-                if (blockEntityContainer == null || blockEntityContainer.Inventory == null || blockEntityContainer.Inventory.Empty)
-                {
-                    continue;
-                }
-
-                // Iterate through each item slot in the container's inventory
-                foreach (ItemSlot slot in blockEntityContainer.Inventory)
-                {
-                    // Skip if the slot is null, empty, or has a null itemstack
-                    if (slot == null || slot.Empty || slot.Itemstack == null || slot.StackSize == 0)
-                    {
-                        continue;
-                    }
-
-                    // Check if a matching item stack already exists in the uniqueStacks list
-                    ItemStack existingStack = uniqueStacks.FirstOrDefault(itemstack => itemstack.Satisfies(slot.Itemstack));
-
-                    // If a matching stack exists, update its stack size
-                    if (existingStack != null)
-                    {
-                        existingStack.StackSize += slot.StackSize;
-                    }
-                    else
-                    {
-<<<<<<< Updated upstream
-                        // Clone and add the itemstack to the uniqueStacks list
-                        uniqueStacks.Add(slot.Itemstack.Clone());
-=======
-                        exists.StackSize += slot.StackSize;
-=======
             List<ItemStack> allItems = new List<ItemStack>();
 
             if (containerlist == null || containerlist.Count == 0)
@@ -655,45 +479,10 @@ namespace storagecontroller
                             // If yes, increment the stack size of the existing item stack
                             existingStack.StackSize += slot.StackSize;
                         }
->>>>>>> Stashed changes
->>>>>>> Stashed changes
                     }
                 }
             }
 
-<<<<<<< Updated upstream
-            // Sort the unique stacks alphabetically by item name
-            uniqueStacks = uniqueStacks.OrderBy(x => x.GetName()).ToList();
-=======
-<<<<<<< Updated upstream
-            ListStacks = ListStacks.OrderBy(x => x.GetName()).ToList();
->>>>>>> Stashed changes
-
-            // Check if the list of unique stacks is empty
-            if (uniqueStacks.Count == 0)
-            {
-                return;
-            }
-
-            // Create a new storage master inventory with the size equal to the count of unique stacks
-            storageMasterInv = new StorageMasterInv(Api, uniqueStacks.Count);
-
-            // Assign each unique item stack to the corresponding slot in the storage master inventory
-            for (int i = 0; i < uniqueStacks.Count; i++)
-            {
-                if (storageMasterInv[0] is ItemSlotInput) continue;
-
-                storageMasterInv[i].Itemstack = uniqueStacks[i];
-            }
-        }
-<<<<<<< Updated upstream
-
-        public void ContainerByChoice() { 
-          
-        }
-
-=======
-=======
             // Sort the list of item stacks by name
             allItems.Sort((x, y) => x.GetName().CompareTo(y.GetName()));
 
@@ -714,8 +503,6 @@ namespace storagecontroller
             }
         }
 
->>>>>>> Stashed changes
->>>>>>> Stashed changes
         public static int inventoryPacket = 320000;
         public static int clearInventoryPacket = 320001;
         public static int linkAllChestsPacket = 320002;
@@ -746,15 +533,6 @@ namespace storagecontroller
                     Api.World.SpawnItemEntity(itemStack, player.Entity.Pos.XYZ);
                 }
 
-<<<<<<< Updated upstream
-                (Api as ICoreServerAPI).Network.SendBlockEntityPacket(player as IServerPlayer, Pos.X,Pos.Y,Pos.Z, inventoryPacket);
-
-<<<<<<< Updated upstream
-=======
-                
-=======
->>>>>>> Stashed changes
->>>>>>> Stashed changes
                 return;
             }
             else if (packetid == clearInventoryPacket)
@@ -930,24 +708,6 @@ namespace storagecontroller
 
         public void ToggleHightlights()
         {
-<<<<<<< Updated upstream
-            if (Api is ICoreClientAPI) 
-            {
-                if (showingblocks) 
-                { 
-                    ClearHighlighted();
-                }
-                else 
-                { 
-                    HighLightBlocks(); 
-                }
-            }
-=======
-<<<<<<< Updated upstream
-            if (Api is ICoreServerAPI) { return; }
-            if (showingblocks) { ClearHighlighted(); }
-            else { HighLightBlocks(); }
-=======
             if (Api is ICoreClientAPI)
             {
                 if (showingblocks)
@@ -959,51 +719,16 @@ namespace storagecontroller
                     HighLightBlocks();
                 }
             }
->>>>>>> Stashed changes
->>>>>>> Stashed changes
         }
 
         public void HighLightBlocks()
         {
             if (containerlist == null || containerlist.Count == 0 || Api is ICoreServerAPI) return;
             showingblocks = true;
-<<<<<<< Updated upstream
             List<int> colors = new List<int>
             {
                 ColorUtil.ColorFromRgba(0, 255, 0, 128)
             };
-
-            Api.World.HighlightBlocks(capi.World.Player, 1, containerlist,colors,EnumHighlightBlocksMode.Absolute, EnumHighlightShape.Arbitrary);
-
-            List<BlockPos> range = new List<BlockPos>
-            {
-                new BlockPos(Pos.X - maxRange, Pos.Y - maxRange, Pos.Z - maxRange, 0)
-            };
-
-            colors[0] = ColorUtil.ColorFromRgba(255, 255, 0, 128);
-            range.Add(new BlockPos(Pos.X + maxRange, Pos.Y + maxRange, Pos.Z + maxRange, 0));
-            
-            Api.World.HighlightBlocks(capi.World.Player, 2, range, colors, EnumHighlightBlocksMode.Absolute, EnumHighlightShape.Cube);
-        }
-        
-=======
-<<<<<<< Updated upstream
-            List<int> colors = new List<int>();
-            colors.Add(ColorUtil.ColorFromRgba(0, 255, 0, 128));
-            Api.World.HighlightBlocks(capi.World.Player, 1, containerlist,colors,EnumHighlightBlocksMode.Absolute,EnumHighlightShape.Arbitrary);
-            List<BlockPos> range = new List<BlockPos>();
-            range.Add(new BlockPos(Pos.X - maxRange, Pos.Y - maxRange, Pos.Z - maxRange, 0));
-            colors[0]=(ColorUtil.ColorFromRgba(255, 255, 0, 128));
-            range.Add(new BlockPos(Pos.X + maxRange, Pos.Y + maxRange, Pos.Z + maxRange, 0));
-            
-            
-            Api.World.HighlightBlocks(capi.World.Player, 2, range,colors, EnumHighlightBlocksMode.Absolute, EnumHighlightShape.Cube);
-=======
-            List<int> colors = new List<int>
-            {
-                ColorUtil.ColorFromRgba(0, 255, 0, 128)
-            };
->>>>>>> Stashed changes
 
             Api.World.HighlightBlocks(capi.World.Player, 1, containerlist, colors, EnumHighlightBlocksMode.Absolute, EnumHighlightShape.Arbitrary);
 
@@ -1016,7 +741,6 @@ namespace storagecontroller
             range.Add(new BlockPos(Pos.X + maxRange, Pos.Y + maxRange, Pos.Z + maxRange, 0));
 
             Api.World.HighlightBlocks(capi.World.Player, 2, range, colors, EnumHighlightBlocksMode.Absolute, EnumHighlightShape.Cube);
->>>>>>> Stashed changes
         }
 
 

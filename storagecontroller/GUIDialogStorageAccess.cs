@@ -3,17 +3,10 @@ using Vintagestory.API.Client;
 using Vintagestory.API.MathTools;
 using System;
 using System.Linq;
-<<<<<<< Updated upstream
-=======
-<<<<<<< Updated upstream
-using System.Collections.Generic;
-=======
 using Vintagestory.GameContent;
 using HarmonyLib;
 using Vintagestory.API.Datastructures;
 using System.Xml.Linq;
->>>>>>> Stashed changes
->>>>>>> Stashed changes
 
 namespace storagecontroller
 {
@@ -25,18 +18,9 @@ namespace storagecontroller
 
         public ElementBounds gridSlots;
 
-<<<<<<< Updated upstream
-        private byte[] data { get; set; }
-
-=======
-<<<<<<< Updated upstream
->>>>>>> Stashed changes
-        public StorageMasterInv StorageMasterInv;
-=======
         public ElementBounds mainElement;
 
         public int number => StorageVirtualInv.Count;
->>>>>>> Stashed changes
 
         private byte[] data => capi.World.Player.InventoryManager?.CurrentHoveredSlot?.Itemstack?.ToBytes();
 
@@ -190,36 +174,12 @@ namespace storagecontroller
             storagecompKey.Compose();
         }
 
-<<<<<<< Updated upstream
-        private void SendPacket(object packet)
-=======
-<<<<<<< Updated upstream
-        private void SendPacket(object obj)
-=======
         public override void OnGuiClosed()
->>>>>>> Stashed changes
->>>>>>> Stashed changes
         {
             StorageControllerMaster?.OnPlayerExitStorageInterface();
      
             capi.Gui.PlaySound(CloseSound, randomizePitch: true);
 
-<<<<<<< Updated upstream
-            data = byPlayer.InventoryManager?.MouseItemSlot?.Itemstack?.ToBytes();
-            if (data != null)
-=======
-<<<<<<< Updated upstream
-            foreach (ItemStack liststacks in storageControllerMaster.ListStacks) 
->>>>>>> Stashed changes
-            {
-                byPlayer.InventoryManager.MouseItemSlot.Itemstack = null;
-                clientAPI.Network.SendBlockEntityPacket(BlockEntityPosition.X, BlockEntityPosition.Y, BlockEntityPosition.Z, StorageControllerMaster.inventoryPacket, data);
-            }
-<<<<<<< Updated upstream
-
-
-=======
-=======
             base.OnGuiClosed();
         }
 
@@ -242,6 +202,7 @@ namespace storagecontroller
             coreClientAPI.Network.SendBlockEntityPacket(BlockEntityPosition.X, BlockEntityPosition.Y, BlockEntityPosition.Z, StorageControllerMaster.inventoryPacket, data);
         }
 
+        
         public void RefreshGrid()
         {
             // Set the virtual inventory
@@ -294,8 +255,6 @@ namespace storagecontroller
                 // Refresh the grid display
                 GridSlots();
             }
->>>>>>> Stashed changes
->>>>>>> Stashed changes
         }
 
         private void GridPage()
