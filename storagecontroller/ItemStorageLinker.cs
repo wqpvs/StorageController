@@ -13,68 +13,71 @@ using System.Security.Cryptography;
 
 namespace storagecontroller
 {
-    internal class ItemStorageLinker:Item
+    internal class ItemStorageLinker : Item
     {
         public static string islkey="linkto";
         public static string isldesc = "linktodesc";
-        //public override void OnHeldAttackStart(ItemSlot slot, EntityAgent byEntity, BlockSelection blockSel, EntitySelection entitySel, ref EnumHandHandling handling)
-        //{
-        //    base.OnHeldAttackStart(slot, byEntity, blockSel, entitySel, ref handling);
-        //}
+
         public override void OnHeldAttackStart(ItemSlot slot, EntityAgent byEntity, BlockSelection blockSel, EntitySelection entitySel, ref EnumHandHandling handling)
         {
-            if (blockSel == null) { return; }
+            if (blockSel == null) return;
+
             ICoreAPI api = byEntity.Api;
-            if (api == null || slot == null || slot.Itemstack == null||slot.Itemstack.Item==null)
-            {
-                
-                //base.OnHeldAttackStart(slot, byEntity, blockSel, entitySel, ref handling);
+
+            if (api == null || slot == null || slot.Itemstack == null || slot.Itemstack.Item == null)
                 return;
-            }
-            //ensure block isn't reinforced
+
+            // Ensure block isn't reinforced
             if (api.ModLoader.GetModSystem<ModSystemBlockReinforcement>()?.IsReinforced(blockSel.Position) == true)
-            {
                 return;
-            }
-            //ensure player as access rights
+
+            // Ensure player has access rights
             IPlayer byPlayer = (byEntity as EntityPlayer)?.Player;
             if (!byEntity.World.Claims.TryAccess(byPlayer, blockSel.Position, EnumBlockAccessFlags.BuildOrBreak))
-            {
-
                 return;
-            }
-            // get targetted block
-            BlockEntity targetentity = api.World.BlockAccessor.GetBlockEntity(blockSel.Position);
+
+            // Get targeted block entity
+            BlockEntity targetEntity = api.World.BlockAccessor.GetBlockEntity(blockSel.Position);
             handling = EnumHandHandling.PreventDefaultAction;
-            //if the block is a storage controller then set it as the target
-            if (targetentity is StorageControllerMaster && !byPlayer.Entity.Controls.CtrlKey) {
+
+            // If the block is a storage controller, set it as the target
+            if (targetEntity is StorageControllerMaster && !byPlayer.Entity.Controls.CtrlKey)
+            {
                 slot.Itemstack.Attributes.SetBlockPos(islkey, blockSel.Position);
                 slot.Itemstack.Attributes.SetString(isldesc, blockSel.Position.ToLocalPosition(api).ToString());
                 slot.MarkDirty();
-                
                 return;
             }
 
-            //otherwise we will see if it's a valid storage device and tell controller about it
-            BlockEntityContainer targetcont=targetentity as BlockEntityContainer;
-            if ( targetentity==null)
+            // Otherwise, check if it's a valid storage device and tell controller about it
+            BlockEntityContainer targetContainer = targetEntity as BlockEntityContainer;
+            if (targetContainer == null)
+                return;
+
+            // Quit if islkey is not set
+            if (!slot.Itemstack.Attributes.HasAttribute(islkey + "X"))
+                return;
+
+            // Check for valid SCM
+            BlockPos scmPos = slot.Itemstack.Attributes.GetBlockPos(islkey);
+            if (scmPos == null)
+                return;
+
+            StorageControllerMaster scm = api.World.BlockAccessor.GetBlockEntity(scmPos) as StorageControllerMaster;
+            if (scm == null)
+                return;
+
+            // Handle adding or removing container
+            if (api is ICoreServerAPI && byPlayer.Entity.Controls.ShiftKey)
             {
-                
-                return;
+                scm.RemoveContainer(slot, byEntity, blockSel);
             }
-            //quit if islkey is not set
-            if (!slot.Itemstack.Attributes.HasAttribute(islkey+"X")) { return; }
-
-            //Check for valid SCM
-            BlockPos scmpos = slot.Itemstack.Attributes.GetBlockPos(islkey);
-            if (scmpos == null) {  return; }
-            StorageControllerMaster scm = api.World.BlockAccessor.GetBlockEntity(scmpos) as StorageControllerMaster;
-            if (scm == null) { return; }
-            if (api is ICoreServerAPI && byPlayer.Entity.Controls.ShiftKey) { scm.RemoveContainer(slot, byEntity, blockSel); }
-            else if (api is ICoreServerAPI) { scm.AddContainer(slot,byEntity,blockSel); }
-            
-
+            else if (api is ICoreServerAPI)
+            {
+                scm.AddContainer(slot, byEntity, blockSel);
+            }
         }
+
         public override string GetHeldItemName(ItemStack itemStack)
         {
             if (itemStack != null && itemStack.Attributes.HasAttribute(isldesc))

@@ -28,15 +28,35 @@
     }
   },
 	"attributesByType": {
-		"*-tinbronze": { "upgradesfrom": ["storagecontrollercopper"],"upgradesto": "storagecontroller:storagecontrollertinbronze"},
-		"*-bismuthbronze": { "upgradesfrom": ["storagecontrollercopper"],"upgradesto": "storagecontroller:storagecontrollerbismuthbronze"},
-		"*-blackbronze": { "upgradesfrom": ["storagecontrollercopper"],"upgradesto": "storagecontroller:storagecontrollerblackbronze"},
-		"*-iron": { "upgradesfrom": ["storagecontrollercopper","storagecontrollertinbronze","storagecontrollerbismuthbronze","storagecontrollerblackbronze"],"upgradesto": "storagecontroller:storagecontrolleriron"},
-		"*-meteoriciron": { "upgradesfrom": ["storagecontrollercopper","storagecontrollertinbronze","storagecontrollerbismuthbronze","storagecontrollerblackbronze","storagecontrolleriron"],"upgradesto": "storagecontroller:storagecontrollermeteoriciron"},
-		"*-steel": { "upgradesfrom": ["storagecontrollercopper","storagecontrollertinbronze","storagecontrollerbismuthbronze","storagecontrollerblackbronze","storagecontrolleriron","storagecontrollermeteoriciron"],"upgradesto": "storagecontroller:storagecontrollersteel"},
-		"*-cupronickel": { "upgradesfrom": ["storagecontrollercopper","storagecontrollertinbronze","storagecontrollerbismuthbronze","storagecontrollerblackbronze","storagecontrolleriron","storagecontrollermeteoriciron","storagecontrollersteel"],"upgradesto": "storagecontroller:storagecontrollercupronickel"}
+		"*-tinbronze": {
+			"tier": [ "storagecontrollercopper" ],
+			"upgrade": "storagecontroller:storagecontrollertinbronze"
+		},
+		"*-bismuthbronze": {
+			"tier": [ "storagecontrollercopper" ],
+			"upgrade": "storagecontroller:storagecontrollerbismuthbronze"
+		},
+		"*-blackbronze": {
+			"tier": [ "storagecontrollercopper" ],
+			"upgrade": "storagecontroller:storagecontrollerblackbronze"
+		},
+		"*-iron": {
+			"tier": [ "storagecontrollercopper", "storagecontrollertinbronze", "storagecontrollerbismuthbronze", "storagecontrollerblackbronze" ],
+			"upgrade": "storagecontroller:storagecontrolleriron"
+		},
+		"*-meteoriciron": {
+			"tier": [ "storagecontrollercopper", "storagecontrollertinbronze", "storagecontrollerbismuthbronze", "storagecontrollerblackbronze", "storagecontrolleriron" ],
+			"upgrade": "storagecontroller:storagecontrollermeteoriciron"
+		},
+		"*-steel": {
+			"tier": [ "storagecontrollercopper", "storagecontrollertinbronze", "storagecontrollerbismuthbronze", "storagecontrollerblackbronze", "storagecontrolleriron", "storagecontrollermeteoriciron" ],
+			"upgrade": "storagecontroller:storagecontrollersteel"
+		},
+		"*-cupronickel": {
+			"tier": [ "storagecontrollercopper", "storagecontrollertinbronze", "storagecontrollerbismuthbronze", "storagecontrollerblackbronze", "storagecontrolleriron", "storagecontrollermeteoriciron", "storagecontrollersteel" ],
+			"upgrade": "storagecontroller:storagecontrollercupronickel"
+		}
 	},
-	
   "behaviors": [
     {
       "name": "GroundStorable",

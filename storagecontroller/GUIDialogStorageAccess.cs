@@ -3,42 +3,69 @@ using Vintagestory.API.Client;
 using Vintagestory.API.MathTools;
 using System;
 using System.Linq;
+<<<<<<< Updated upstream
+=======
+<<<<<<< Updated upstream
+using System.Collections.Generic;
+=======
+using Vintagestory.GameContent;
+using HarmonyLib;
+using Vintagestory.API.Datastructures;
+using System.Xml.Linq;
+>>>>>>> Stashed changes
+>>>>>>> Stashed changes
 
 namespace storagecontroller
 {
     public class GUIDialogStorageAccess : GuiDialogBlockEntity
     {
-        ICoreClientAPI clientAPI;
+        private ICoreClientAPI coreClientAPI;
 
-        ElementBounds mainDialogBound;
+        public ElementBounds mainDialogBound;
 
-        ElementBounds gridSlots;
+        public ElementBounds gridSlots;
 
+<<<<<<< Updated upstream
         private byte[] data { get; set; }
 
+=======
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
         public StorageMasterInv StorageMasterInv;
+=======
+        public ElementBounds mainElement;
 
-        protected int curTab;
+        public int number => StorageVirtualInv.Count;
+>>>>>>> Stashed changes
 
-        StorageControllerMaster storageControllerMaster;
-        public GUIDialogStorageAccess(string dialogTitle, StorageControllerMaster ownBlock, StorageMasterInv storageMasterInv, BlockPos blockEntityPos, ICoreClientAPI capi) : base(dialogTitle, storageMasterInv, blockEntityPos, capi)
+        private byte[] data => capi.World.Player.InventoryManager?.CurrentHoveredSlot?.Itemstack?.ToBytes();
+
+        public StorageVirtualInv StorageVirtualInv;
+
+        public InventoryBase InventoryBase;
+
+        public StorageControllerMaster StorageControllerMaster;
+
+        protected int curTab = 0;
+
+        public GUIDialogStorageAccess(string dialogTitle, InventoryBase Inventory, StorageVirtualInv storageVirtualInv, BlockPos BlockEntityPosition, ICoreClientAPI capi)
+             : base(dialogTitle, Inventory, BlockEntityPosition, capi)
         {
-            if (IsDuplicate)
+            if (IsDuplicate) return;
+
+            InventoryBase = Inventory;
+
+            coreClientAPI = capi;
+
+            if (capi.World.BlockAccessor.GetBlockEntity(BlockEntityPosition) is StorageControllerMaster storageControllerMaster) 
             {
-                return;
+                StorageControllerMaster = storageControllerMaster;
             }
 
-            clientAPI = capi;   
-
-            curTab = 0;
-
-            StorageMasterInv = storageMasterInv;
-
-            storageControllerMaster = ownBlock;
+            StorageVirtualInv = storageVirtualInv;
 
             SetupDialog();
         }
-
 
         public void SetupDialog()
         {
@@ -47,17 +74,18 @@ namespace storagecontroller
 
         public string storageCompKey => "storageCompo";
         public string optionCompKey => "storageOptionCompo";
-        public string searchComkey => "searchCompo";
+        public string sideSlotsComkey => "sideSlots";
 
         protected void ComposersDialog()
         {
+            //Main Element
+            mainElement = ElementBounds.Fixed(0, 0, 500, 400);
 
-            ElementBounds element = ElementBounds.Fixed(0, 0, 500, 400);
-            ElementBounds buttonlist = ElementBounds.Fixed(0, 0, -200, -390).FixedUnder(element, 10);
+            ElementBounds buttonlist = ElementBounds.Fixed(0, 0, -200, -390).FixedUnder(mainElement, 10);
+
             gridSlots = ElementStdBounds.SlotGrid(EnumDialogArea.None, 0, 0, 10, 10)
-                .FixedUnder(element, 10)
-                .WithFixedPosition(-5, 25)
-                .WithFixedPadding(2, 2);
+           .FixedUnder(mainElement, 10)
+           .WithFixedPosition(0, 30);
 
             ElementBounds button1 = ElementBounds.Fixed(100, -25) //Clear All
                 .FixedUnder(buttonlist, 10)
@@ -77,33 +105,27 @@ namespace storagecontroller
                 .WithFixedPadding(10.0, 2.0)
                 .WithFixedMargin(-30, -30);
 
-            ElementBounds button4 = ElementBounds.Fixed(415, -10) //Highlight
+            ElementBounds button4 = ElementBounds.Fixed(415, -10) //PreviousGrid
                 .FixedUnder(button3, 10)
                 .WithAlignment(EnumDialogArea.LeftFixed)
                 .WithFixedPadding(10.0, 2.0)
                 .WithFixedMargin(-30, -30);
 
-            ElementBounds button5 = ElementBounds.Fixed(450, -10) //Highlight
+            ElementBounds button5 = ElementBounds.Fixed(450, -10) //NextGrid
                 .FixedUnder(button4, 10)
                 .WithAlignment(EnumDialogArea.LeftFixed)
                 .WithFixedPadding(10.0, 2.0)
                 .WithFixedMargin(-30, -30);
 
 
-            ElementBounds button6 = ElementBounds.Fixed(0, -10) //Highlight
-                .FixedUnder(button5, 10)
-                .WithAlignment(EnumDialogArea.LeftFixed)
-                .WithFixedHeight(10)
-                .WithFixedPadding(10.0, 2.0)
-                .WithFixedMargin(-30, -30);
-
             ElementBounds elementBounds7 = ElementBounds.Fill.WithFixedPadding(GuiStyle.ElementToDialogPadding);
             elementBounds7.BothSizing = ElementSizing.FitToChildren;
-            elementBounds7.WithChildren(element, buttonlist, gridSlots);
+            elementBounds7.WithChildren(mainElement, buttonlist, gridSlots);
 
+            //Main Gui
             mainDialogBound = ElementStdBounds.AutosizedMainDialog.WithAlignment(EnumDialogArea.LeftFixed).WithFixedAlignmentOffset(0.0 - GuiStyle.DialogToScreenPadding, 0.0);
             Composers[optionCompKey] =
-                capi.Gui
+                coreClientAPI.Gui
                 .CreateCompo(optionCompKey, mainDialogBound)
                 .AddShadedDialogBG(elementBounds7)
                 .AddDialogTitleBar("Controls", CloseIconPressed)
@@ -116,51 +138,170 @@ namespace storagecontroller
                 .AddButton("<", PreviousGrid, button4, CairoFont.WhiteSmallText(), EnumButtonStyle.Small, "prevGrid")
                 .AddButton(">", NextGrid, button5, CairoFont.WhiteSmallText(), EnumButtonStyle.Small, "nextGrid")
                 .Compose();
+        
+            //Input Slots
+            ElementBounds inputDialogBound = ElementStdBounds.AutosizedMainDialog.WithAlignment(EnumDialogArea.LeftFixed).WithFixedPosition(555, -125).FixedUnder(mainElement).WithFixedAlignmentOffset(0.0 - GuiStyle.DialogToScreenPadding, 0.0);
 
-            GuiComposer storagecompKey = Composers[storageCompKey] = capi.Gui.CreateCompo(storageCompKey, mainDialogBound);
+            ElementBounds inputslots = ElementStdBounds.SlotGrid(EnumDialogArea.None ,0, 0, 2, 4) //Highlight
+                .WithFixedPosition(0, 50);
 
-            if (StorageMasterInv != null && !StorageMasterInv.Empty)
+            ElementBounds elementBounds8 = ElementBounds.Fill.WithFixedPadding(GuiStyle.ElementToDialogPadding);
+            elementBounds8.BothSizing = ElementSizing.FitToChildren;
+            elementBounds8.WithChildren(inputslots);
+
+
+            Composers[sideSlotsComkey] = coreClientAPI.Gui.CreateCompo(sideSlotsComkey, inputDialogBound).AddShadedDialogBG(elementBounds8)
+                .AddDialogTitleBar("Input", CloseIconPressed)
+                .AddItemSlotGrid(InventoryBase, SendInvPacket, 2, new int[8] { 0, 1, 2, 3, 4, 5, 6, 7 }, inputslots, "inputslotgrid")
+                .AddInset(inputslots, 10, 0.7f)
+                .Compose();
+
+
+            GridSlots();
+        }
+
+
+        public void GridSlots()
+        {
+            //SlotsGrid
+            GuiComposer storagecompKey = Composers[storageCompKey] = coreClientAPI.Gui.CreateCompo(storageCompKey, mainDialogBound);
+
+            if (StorageVirtualInv != null && !StorageVirtualInv.Empty)
             {
                 storagecompKey
-                .AddItemSlotGrid(StorageMasterInv, SendPacket, 10, gridSlots, "slotgrid")
-                .AddInset(gridSlots, 10, 0.7f);
-
+                .AddItemSlotGrid(StorageVirtualInv, SendVirtualPacket, 10, gridSlots, "slotgrid")
+                .AddInset(gridSlots, 10, 0.7f)
+                .Compose();
+               
                 curTab = 1;
 
                 //Fixed number are slot showed
-                int slotsCount = StorageMasterInv?.Count ?? 0; // Number of slots in virtualInventory, or 0 if virtualInventory is null
+
+                int slotsCount = StorageVirtualInv?.Count ?? 0; // Number of slots in virtualInventory, or 0 if virtualInventory is null
                 Composers[storageCompKey].GetSlotGrid("slotgrid")
                     .DetermineAvailableSlots(Enumerable.Range(0, Math.Min(100, slotsCount)).ToArray());
             }
-            else 
+            else
             {
-                storagecompKey
-                .AddInset(gridSlots, 10, 0.7f);
-
+                storagecompKey.AddInset(gridSlots, 10, 0.7f)
+                .Compose();
             }
 
-
             storagecompKey.Compose();
-            Composers[optionCompKey].Compose();
         }
 
+<<<<<<< Updated upstream
         private void SendPacket(object packet)
+=======
+<<<<<<< Updated upstream
+        private void SendPacket(object obj)
+=======
+        public override void OnGuiClosed()
+>>>>>>> Stashed changes
+>>>>>>> Stashed changes
         {
-            IClientPlayer byPlayer = capi.World.Player;
+            StorageControllerMaster?.OnPlayerExitStorageInterface();
+     
+            capi.Gui.PlaySound(CloseSound, randomizePitch: true);
 
+<<<<<<< Updated upstream
             data = byPlayer.InventoryManager?.MouseItemSlot?.Itemstack?.ToBytes();
             if (data != null)
+=======
+<<<<<<< Updated upstream
+            foreach (ItemStack liststacks in storageControllerMaster.ListStacks) 
+>>>>>>> Stashed changes
             {
                 byPlayer.InventoryManager.MouseItemSlot.Itemstack = null;
                 clientAPI.Network.SendBlockEntityPacket(BlockEntityPosition.X, BlockEntityPosition.Y, BlockEntityPosition.Z, StorageControllerMaster.inventoryPacket, data);
             }
+<<<<<<< Updated upstream
 
 
+=======
+=======
+            base.OnGuiClosed();
+        }
+
+        public override void OnGuiOpened()
+        {
+            StorageControllerMaster?.OnPlayerEnterStorageInterface();
+
+            capi.Gui.PlaySound(OpenSound, randomizePitch: true);
+
+            base.OnGuiOpened();
+        }
+
+        private void SendInvPacket(object obj)
+        {
+            coreClientAPI.Network.SendBlockEntityPacket(BlockEntityPosition.X, BlockEntityPosition.Y, BlockEntityPosition.Z, obj);
+        }
+
+        private void SendVirtualPacket(object packet)
+        {
+            coreClientAPI.Network.SendBlockEntityPacket(BlockEntityPosition.X, BlockEntityPosition.Y, BlockEntityPosition.Z, StorageControllerMaster.inventoryPacket, data);
+        }
+
+        public void RefreshGrid()
+        {
+            // Set the virtual inventory
+            StorageControllerMaster.SetVirtualInventory();
+
+            var storageVirtualInv = StorageControllerMaster.StorageVirtualInv;
+
+            if (storageVirtualInv == null)
+            {
+                // Handle the case where the storage virtual inventory is null
+                if (StorageVirtualInv != null)
+                {
+                    // Clear the virtual inventory
+                    StorageVirtualInv.Clear();
+                    // Refresh the grid display
+                    GridSlots();
+                }
+
+                return; // Exit the method
+            }
+
+            // Check if the storage virtual inventory has been initialized but is empty
+            if (StorageVirtualInv?.FirstNonEmptySlot == null)
+            {
+                // Update the storage virtual inventory
+                StorageVirtualInv = storageVirtualInv;
+                // Refresh the grid display
+                GridSlots();
+                return;
+            }
+            else if (storageVirtualInv.Count < 0)
+            {
+                // Handle the case where the virtual inventory count is negative (an error condition?)
+                GridSlots();
+                return;
+            }
+
+            // Get the previous count
+            int previousCount = StorageVirtualInv?.Count ?? 0;
+
+            // Update the storage virtual inventory
+            StorageVirtualInv = StorageControllerMaster.StorageVirtualInv;
+
+            // Get the current count after updating
+            int currentCount = StorageVirtualInv.Count;
+
+            // Check if there's been a change in the number of items
+            if (currentCount != previousCount)
+            {
+                // Refresh the grid display
+                GridSlots();
+            }
+>>>>>>> Stashed changes
+>>>>>>> Stashed changes
         }
 
         private void GridPage()
         {
-            int slots = StorageMasterInv?.Count ?? 0;
+
+            int slots = StorageVirtualInv?.Count ?? 0;
             int startIndex = (curTab - 1) * 100; // Calculate the starting slot index
             startIndex = Math.Max(0, startIndex); // Ensure startIndex doesn't go below 0
 
@@ -174,8 +315,10 @@ namespace storagecontroller
                     .DetermineAvailableSlots(Enumerable.Range(startIndex, minSlots).ToArray());
             }
 
+
             compKey.Compose();
         }
+
         private bool PreviousGrid()
         {
             curTab = Math.Max(1, curTab - 1); // Decrease curTab by 1, but ensure it doesn't go below 1
@@ -185,7 +328,7 @@ namespace storagecontroller
 
         private bool NextGrid()
         {
-            int slots = StorageMasterInv?.Count ?? 0;
+            int slots = StorageVirtualInv?.Count ?? 0;
             int maxTabs = (int)Math.Ceiling((double) slots / 100); // Calculate the maximum number of tabs
             curTab = Math.Min(maxTabs, curTab + 1); // Increase curTab by 1, but ensure it doesn't exceed the maximum
             GridPage(); 
@@ -194,23 +337,23 @@ namespace storagecontroller
 
         private bool OnClickClearAll()
         {
-            clientAPI.Network.SendBlockEntityPacket(BlockEntityPosition.X, BlockEntityPosition.Y, BlockEntityPosition.Z, StorageControllerMaster.clearInventoryPacket, null);
-            storageControllerMaster?.ClearHighlighted();
+            capi.Network.SendBlockEntityPacket(BlockEntityPosition.X, BlockEntityPosition.Y, BlockEntityPosition.Z, StorageControllerMaster.clearInventoryPacket, null);
+            StorageControllerMaster?.ClearHighlighted();
             TryClose();
             return true;
         }
 
         private bool OnClickLinkAllChests()
         {
-            storageControllerMaster?.LinkAll(StorageControllerMaster.enLinkTargets.ALL, clientAPI.World.Player);
+            StorageControllerMaster?.LinkAll(StorageControllerMaster.enLinkTargets.ALL, capi.World.Player);
             TryClose();
             return true;
         }
         private bool OnClickHighlightAttached()
         {
-            if (storageControllerMaster != null)
+            if (StorageControllerMaster != null)
             {
-                storageControllerMaster.ToggleHightlights();
+                StorageControllerMaster.ToggleHightlights();
             }
 
             return true;
