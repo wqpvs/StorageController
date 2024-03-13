@@ -124,7 +124,7 @@ namespace storagecontroller
                 .Compose();
         
             //Input Slots
-            ElementBounds inputDialogBound = ElementStdBounds.AutosizedMainDialog.WithAlignment(EnumDialogArea.LeftFixed).WithFixedPosition(570, -120).FixedUnder(mainElement).WithFixedAlignmentOffset(0.0 - GuiStyle.DialogToScreenPadding, 0.0);
+            ElementBounds inputDialogBound = ElementStdBounds.AutosizedMainDialog.WithAlignment(EnumDialogArea.LeftFixed).WithFixedPosition(570, -115).FixedUnder(mainElement).WithFixedAlignmentOffset(0.0 - GuiStyle.DialogToScreenPadding, 0.0);
 
             ElementBounds inputslots = ElementStdBounds.SlotGrid(EnumDialogArea.None ,0, 0, 2, 4) //Highlight
                 .WithFixedPosition(0, 50);
