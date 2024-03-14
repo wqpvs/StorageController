@@ -48,8 +48,7 @@
 		variantByGroupInventory: null,
 		"maxTransferPerTick": 1,
       "maxRange":8,
-      "tickTime":250,
-		"dropSelf": true
+      "tickTime":250
 	},
 
 	behaviors: [{name: "Lockable" }, {name: "Container"}],

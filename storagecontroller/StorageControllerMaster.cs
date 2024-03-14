@@ -11,6 +11,7 @@ using Vintagestory.API.Datastructures;
 using Newtonsoft.Json;
 using System.Reflection;
 using Vintagestory.API.Util;
+using System.IO;
 
 namespace storagecontroller
 {
@@ -34,7 +35,7 @@ namespace storagecontroller
         int maxTransferPerTick = 1;
         int maxRange = 10;
         int tickTime = 250;
-        bool dopruning = false; //should invalid locations be moved every time?
+        //bool dopruning = false; //should invalid locations be moved every time?
 
         private GUIDialogStorageAccess clientDialog;
 
@@ -348,35 +349,13 @@ namespace storagecontroller
         bool showingblocks = false;
         public static int highlightid = 1;
 
-        public void toggleVirtualInvDialogClient(IPlayer byPlayer, CreateDialogDelegate onCreateDialog)
-        {
-            if (clientDialog == null)
-            {
-                ICoreClientAPI capi = Api as ICoreClientAPI;
-                clientDialog = (GUIDialogStorageAccess)onCreateDialog();
-                clientDialog.OnClosed += delegate
-                {
-                    clientDialog = null;
-                    capi.Network.SendBlockEntityPacket(Pos.X, Pos.Y, Pos.Z, 1001);
-                    capi.Network.SendPacketClient(StorageVirtualInv?.Close(byPlayer));
-                };
-                clientDialog.TryOpen();
-                capi.Network.SendPacketClient(StorageVirtualInv?.Open(byPlayer));
-                capi.Network.SendBlockEntityPacket(Pos.X, Pos.Y, Pos.Z, 1000);
-            }
-            else
-            {
-                clientDialog.TryClose();
-            }
-        }
-
         public override bool OnPlayerRightClick(IPlayer byPlayer, BlockSelection blockSel)
         {
 
             if (Api.Side == EnumAppSide.Client)
             {
                 SetVirtualInventory();
-                toggleVirtualInvDialogClient(byPlayer, delegate
+                toggleInventoryDialogClient(byPlayer, delegate
                 {
                     clientDialog = new GUIDialogStorageAccess(DialogTitle, Inventory, StorageVirtualInv, Pos, Api as ICoreClientAPI);
                     return clientDialog;
@@ -493,20 +472,23 @@ namespace storagecontroller
                 // Iterate through each slot in the container's inventory
                 foreach (ItemSlot slot in container.Inventory)
                 {
+                    // Check if the slot contains an item stack
                     if (!slot.Empty && slot.Itemstack != null && slot.StackSize > 0)
                     {
-                        // Check if an equivalent item stack already exists in allItems
-                        ItemStack existingStack = allItems.FirstOrDefault(x => x.Equals(slot.Itemstack));
+                        // Find an equivalent item stack in allItems
+                        ItemStack existingStack = allItems.FirstOrDefault(x => x.Satisfies(slot.Itemstack));
 
                         if (existingStack == null)
                         {
-                            // If not, add a clone of the item stack to allItems
+                            // If not found, add a clone of the item stack to allItems
                             allItems.Add(slot.Itemstack.Clone());
                         }
                         else
-                        {
-                            // If yes, increment the stack size of the existing item stack
-                            existingStack.StackSize += slot.StackSize;
+                        {   // If found, update the stack size of the existing item stack
+                            if (existingStack.Id.Equals(slot.Itemstack.Id))
+                            {
+                                existingStack.StackSize += slot.StackSize;
+                            }
                         }
                     }
                 }
@@ -516,35 +498,27 @@ namespace storagecontroller
             allItems.Sort((x, y) => x.GetName().CompareTo(y.GetName()));
 
             // Create a new StorageVirtualInv instance and populate it with the item stacks
-            if (allItems.Count > 0)
-            {
-                storageVirtualInv = new StorageVirtualInv(Api, allItems.Count);
+            storageVirtualInv = new StorageVirtualInv(Api, allItems.Count);
 
-                for (int i = 0; i < allItems.Count; i++)
-                {
-                    storageVirtualInv[i].Itemstack = allItems[i];
-                }
-            }
-            else
-            {
-                // If the list of item stacks is empty, set storageVirtualInv to null
-                storageVirtualInv = null;
+            for (int i = 0; i < allItems.Count; i++)
+            {   
+                storageVirtualInv[i].Itemstack = allItems[i];
             }
         }
 
-        public static int inventoryPacket = 320000;
+        public static int itemStackPacket = 320000;
         public static int clearInventoryPacket = 320001;
         public static int linkAllChestsPacket = 320002;
         public static int linkChestPacket = 320003;
-        public static int updateInvPacket = 320004;
+        public static int InvOpenPacket = 320004;
+        public static int InvClosePacket = 320005;
 
         public override void OnReceivedClientPacket(IPlayer player, int packetid, byte[] data)
         {
             //How to handle taking multiple stacks?
             //just search and grab/relieve the first stack we find 
 
-       
-            if (packetid == inventoryPacket)
+            if (packetid == itemStackPacket)
             {
                 if (data == null) 
                 {
@@ -552,7 +526,7 @@ namespace storagecontroller
                     return;
                 }
 
-                ItemStack itemStack = new ItemStack(data);
+                ItemStack itemStack = new ItemStack(data).Clone();
 
                 if (itemStack == null) 
                 {
@@ -563,7 +537,9 @@ namespace storagecontroller
                 itemStack.ResolveBlockOrItem(Api.World);
 
                 if (itemStack == null) { return; }
+
                 // we got the stack now let's see if we can send it to the player
+
                 int stacksize = GetStackOf(itemStack);
 
                 if (stacksize == 0) { return; }
@@ -612,7 +588,11 @@ namespace storagecontroller
                 MarkDirty();
             }
 
+
             base.OnReceivedClientPacket(player, packetid, data);
+
+
+
         }
 
         public override void OnReceivedServerPacket(int packetid, byte[] data)
@@ -620,43 +600,43 @@ namespace storagecontroller
             base.OnReceivedServerPacket(packetid, data);
         }
 
-        public float refreshIntervalSeconds = 2.5f; 
+        //public float refreshIntervalSeconds = 2.5f; 
 
-        public float timeSinceLastRefreshSeconds = 0;
+        //public float timeSinceLastRefreshSeconds = 0;
 
         //Method to handle the refresh logic
-        public void RefreshStorageInterface(float deltaTime)
-        {
-            // Accumulate the elapsed time since the last refresh
-            timeSinceLastRefreshSeconds += deltaTime;  
+        //public void RefreshStorageInterface(float deltaTime)
+        //{
+        //    // Accumulate the elapsed time since the last refresh
+        //    timeSinceLastRefreshSeconds += deltaTime;  
 
-            if (timeSinceLastRefreshSeconds >= refreshIntervalSeconds) 
-            { 
-                SetVirtualInventory();
-                timeSinceLastRefreshSeconds = 0;
-            }
+        //    if (timeSinceLastRefreshSeconds >= refreshIntervalSeconds) 
+        //    { 
+        //        SetVirtualInventory();
+        //        timeSinceLastRefreshSeconds = 0;
+        //    }
 
-            clientDialog.RefreshGrid();
-        }
-
-        // Register the game tick listener when the player enters the storage interface
-        public long storageInterfaceTickListenerId = -1; // Initialize listener ID with a default value
+        //    clientDialog.RefreshGrid();
+        //}
 
         // Register the game tick listener when the player enters the storage interface
-        public void OnPlayerEnterStorageInterface()
-        {
-            storageInterfaceTickListenerId = Api.World.RegisterGameTickListener(RefreshStorageInterface, 200);
-        }
+        //public long storageInterfaceTickListenerId = -1; // Initialize listener ID with a default value
+
+        // Register the game tick listener when the player enters the storage interface
+        //public void OnPlayerEnterStorageInterface()
+        //{
+        //    storageInterfaceTickListenerId = Api.World.RegisterGameTickListener(RefreshStorageInterface, 200);
+        //}
 
         // Unregister the game tick listener when the player exits the storage interface
-        public void OnPlayerExitStorageInterface()
-        {
-            if (storageInterfaceTickListenerId != -1)
-            {
-                Api.World.UnregisterGameTickListener(storageInterfaceTickListenerId);
-                storageInterfaceTickListenerId = -1; // Reset the listener ID
-            }
-        }
+        //public void OnPlayerExitStorageInterface()
+        //{
+        //    if (storageInterfaceTickListenerId != -1)
+        //    {
+        //        Api.World.UnregisterGameTickListener(storageInterfaceTickListenerId);
+        //        storageInterfaceTickListenerId = -1; // Reset the listener ID
+        //    }
+        //}
 
         /// <summary>
         /// Attempts to find the item in the connected inventory, relieves it and returns the amount found
