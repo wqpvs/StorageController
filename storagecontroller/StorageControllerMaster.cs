@@ -510,62 +510,66 @@ namespace storagecontroller
         public static int clearInventoryPacket = 320001;
         public static int linkAllChestsPacket = 320002;
         public static int linkChestPacket = 320003;
-        public static int InvOpenPacket = 320004;
-        public static int InvClosePacket = 320005;
+        public static int binItemStackPacket = 320004;
 
         public override void OnReceivedClientPacket(IPlayer player, int packetid, byte[] data)
         {
             //How to handle taking multiple stacks?
             //just search and grab/relieve the first stack we find 
+            if (packetid == binItemStackPacket) 
+            {
+                player.InventoryManager.MouseItemSlot.Itemstack = null;
+
+                return;
+            }
 
             if (packetid == itemStackPacket)
             {
                 if (data == null) 
                 {
-                    (Api as ICoreClientAPI)?.SendChatMessage("Data return null", 0);
                     return;
                 }
 
-                ItemStack itemStack = new ItemStack(data).Clone();
+                ItemStack virtualStack = new ItemStack(data);
 
-                if (itemStack == null) 
+                if (virtualStack == null) 
                 {
-                    (Api as ICoreClientAPI)?.SendChatMessage("itemstack return null", 0);
                     return;
                 }
 
-                itemStack.ResolveBlockOrItem(Api.World);
-
-                if (itemStack == null) { return; }
+                virtualStack.ResolveBlockOrItem(Api.World);
 
                 // we got the stack now let's see if we can send it to the player
 
-                int stacksize = GetStackOf(itemStack);
+                int stacksize = ReturnStack(player, virtualStack);
 
-                if (stacksize == 0) { return; }
+                if (stacksize == 0) return;
 
-                itemStack.StackSize = stacksize;
+                virtualStack.StackSize = stacksize;
 
                 //no valid slot
-                if (!player.InventoryManager.TryGiveItemstack(itemStack))
+                if (!player.InventoryManager.TryGiveItemstack(virtualStack))
                 {
-                    Api.World.SpawnItemEntity(itemStack, player.Entity.Pos.XYZ);
+                    Api.World.SpawnItemEntity(virtualStack, player.Entity.Pos.XYZ);
                 }
 
                 return;
             }
-            else if (packetid == clearInventoryPacket)
+            else 
+            if (packetid == clearInventoryPacket)
             {
                 ClearConnections();
                 return;
             }
-            else if (packetid == linkAllChestsPacket)
+            else 
+            if (packetid == linkAllChestsPacket)
             {
 
                 LinkAll(enLinkTargets.ALL, player);
                 return;
             }
-            else if (packetid == linkChestPacket) //link a particular chest
+            else 
+            if (packetid == linkChestPacket) //link a particular chest
             {
                 BlockPos p = SerializerUtil.Deserialize<BlockPos>(data);
                 if (p == null || p == Pos) { return; }
@@ -643,7 +647,7 @@ namespace storagecontroller
         /// </summary>
         /// <param name="findstack"></param>
         /// <returns></returns>
-        public virtual int GetStackOf(ItemStack findstack)
+        public int ReturnStack(IPlayer byPlayer, ItemStack VirtualStack)
         {
             int stacksize = 0;
 
@@ -662,7 +666,7 @@ namespace storagecontroller
                     if (slot == null || slot.Empty || slot.Itemstack == null || slot.StackSize == 0) { continue; }
                     //if we don't have one yet then add one
 
-                    if (slot.Itemstack.Satisfies(findstack))
+                    if (MatchItemStack(byPlayer, slot.Itemstack, VirtualStack)) // < this works
                     {
                         stacksize = slot.Itemstack.StackSize;
                         slot.Itemstack = null;
@@ -676,6 +680,27 @@ namespace storagecontroller
             return stacksize;
         }
 
+
+        public bool MatchItemStack(IPlayer byPlayer, ItemStack containerStack, ItemStack virtualStack) 
+        {
+            if (containerStack.Satisfies(virtualStack))
+            {
+                return true;
+            }
+            
+            if (containerStack?.ItemAttributes?.Equals(virtualStack?.ItemAttributes) ?? false)
+            {
+                return true;
+            }
+            
+            if (containerStack.Id.Equals(virtualStack.Id))
+            {
+                return true;
+            }
+          
+            return false;
+        }
+
         public override void ToTreeAttributes(ITreeAttribute tree)
         {
             var asString = JsonConvert.SerializeObject(containerlist);
@@ -685,13 +710,14 @@ namespace storagecontroller
 
         public override void GetBlockInfo(IPlayer forPlayer, StringBuilder dsc)
         {
-            base.GetBlockInfo(forPlayer, dsc);
+            base.GetBlockInfo(forPlayer, dsc);// Adding it to Gui
             dsc.AppendLine("Range: " + MaxRange);
             if (MaxTransferPerTick <= 512)
             {
                 dsc.AppendLine("Transfer Speed: " + MaxTransferPerTick + " Items at a time.");
             }
-            else { dsc.AppendLine("Transfers full Stacks at a time"); }
+            else 
+            { dsc.AppendLine("Transfers full Stacks at a time"); }
             if (!(containerlist == null) && containerlist.Count > 0)
             {
                 dsc.AppendLine("Linked to " + containerlist.Count + " containers.");
