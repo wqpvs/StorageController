@@ -15,12 +15,12 @@ namespace storagecontroller
             StorageControllerMaster forstm = world.BlockAccessor.GetBlockEntity(pos) as StorageControllerMaster;
             if (forstm != null)
             {
-                ItemStack mystack = new ItemStack(world.BlockAccessor.GetBlock(pos),1);
-                byte[] data = SerializerUtil.Serialize<List<BlockPos>>(forstm.ContainerList);
+                ItemStack itemStack = new ItemStack(world.BlockAccessor.GetBlock(pos),1);
+                byte[] data = SerializerUtil.Serialize(forstm.ContainerList);
                 if (data != null)
                 {
-                    mystack.Attributes.SetBytes(StorageControllerMaster.containerlistkey, data);
-                    return new ItemStack[] { mystack };
+                    itemStack.Attributes.SetBytes(StorageControllerMaster.containerlistkey, data);
+                    return new ItemStack[] { itemStack };
                 }
             }
             
@@ -31,15 +31,21 @@ namespace storagecontroller
             StorageControllerMaster forstm = world.BlockAccessor.GetBlockEntity(pos) as StorageControllerMaster;
             if (forstm != null)
             {
-                ItemStack mystack = new ItemStack(world.BlockAccessor.GetBlock(pos), 1);
-                byte[] data = SerializerUtil.Serialize<List<BlockPos>>(forstm.ContainerList);
+                ItemStack itemStack = new ItemStack(world.BlockAccessor.GetBlock(pos), 1);
+                byte[] data = SerializerUtil.Serialize(forstm.ContainerList);
                 if (data != null)
                 {
-                    mystack.Attributes.SetBytes(StorageControllerMaster.containerlistkey, data);
-                    return mystack;
+                    itemStack.Attributes.SetBytes(StorageControllerMaster.containerlistkey, data);
+                    return itemStack;
                 }
             }
             return base.OnPickBlock(world, pos);
+        }
+
+        //check to see if we are in range of the linked blocks.
+        public override void OnBlockPlaced(IWorldAccessor world, BlockPos blockPos, ItemStack byItemStack = null)
+        {
+            base.OnBlockPlaced(world, blockPos, byItemStack);
         }
 
         public override bool OnBlockInteractStart(IWorldAccessor world, IPlayer byPlayer, BlockSelection blockSel)

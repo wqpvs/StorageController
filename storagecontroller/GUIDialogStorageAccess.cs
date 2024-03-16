@@ -4,11 +4,10 @@ using Vintagestory.API.MathTools;
 using System;
 using System.Linq;
 using Vintagestory.API.Config;
-using Cairo;
+using System.Collections.Generic;
+using System.Xml.Xsl;
 using Vintagestory.GameContent;
-using Vintagestory.Client.NoObf;
-using Microsoft.VisualBasic.FileIO;
-using System.Numerics;
+using Vintagestory.API.Util;
 
 namespace storagecontroller
 {
@@ -83,7 +82,8 @@ namespace storagecontroller
 
     public class GUIDialogStorageAccess : GuiDialogBlockEntity
     {
-        private ICoreClientAPI coreClientAPI;
+        protected string currentSearchText;
+        private byte[] data { get; set; }
 
         public ElementBounds mainDialogBound;
 
@@ -92,10 +92,7 @@ namespace storagecontroller
         public ElementBounds inputslots;
 
         public ElementBounds mainElement;
-
         private LoadedTexture refreshButtonTexture => capi.Gui.LoadSvg(new AssetLocation("game:textures/icons/refresh.svg"), 55, 55, 55, 55, new int?(ColorUtil.ColorFromRgba(206, 221, 233, 255)));
-
-        private byte[] data { get; set; }
 
         public StorageVirtualInv StorageVirtualInv;
 
@@ -106,7 +103,10 @@ namespace storagecontroller
         public StorageControllerMaster StorageControllerMaster;
 
         protected int curTab = 0;
-        private ElementBounds searchBarBounds;
+        public override double DrawOrder => 0.2;
+
+        public string gridCompKey => "storageGridCompo";
+        public string mainCompKey => "storageMainCompo";
 
         public GUIDialogStorageAccess(string dialogTitle, InventoryBase Inventory, StorageVirtualInv storageVirtualInv, BlockPos BlockEntityPosition, ICoreClientAPI capi)
              : base(dialogTitle, Inventory, BlockEntityPosition, capi)
@@ -114,8 +114,6 @@ namespace storagecontroller
             if (IsDuplicate) return;
 
             InventoryBase = Inventory;
-
-            coreClientAPI = capi;
 
             if (capi.World.BlockAccessor.GetBlockEntity(BlockEntityPosition) is StorageControllerMaster storageControllerMaster)
             {
@@ -134,22 +132,25 @@ namespace storagecontroller
 
             curTab = 1;
 
-            SetupDialog();
         }
-
-        public void SetupDialog()
+        protected override double FloatyDialogAlign
         {
-            ComposersDialog();
+            get
+            {
+                return 0.8;
+            }
         }
 
-        public string storageCompKey => "storageCompo";
-        public string optionCompKey => "storageOptionCompo";
-        public string sideSlotsComkey => "sideSlots";
-        public string binSlotComkey => "binSlotComkey";
+        protected override double FloatyDialogPosition
+        {
+            get
+            {
+                return 0.6;
+            }
+        }
 
         protected void ComposersDialog()
         {
-
             //Main Element
             mainElement = ElementBounds.Fixed(0, 0, 650, 600);
 
@@ -177,17 +178,15 @@ namespace storagecontroller
                 .WithFixedPadding(10.0, 2.0)
                 .WithFixedMargin(-30, -30);
 
-            ElementBounds button4 = ElementBounds.Fixed(415, -10) //PreviousGrid
+            ElementBounds button4 = ElementBounds.Fixed(540, 85) //PreviousGrid
                 .FixedUnder(button3, 10)
-                .WithAlignment(EnumDialogArea.LeftFixed)
-                .WithFixedPadding(10.0, 2.0)
-                .WithFixedMargin(-30, -30);
+                .WithFixedSize(26, 48)
+                .WithAlignment(EnumDialogArea.LeftFixed);
 
-            ElementBounds button5 = ElementBounds.Fixed(450, -10) //NextGrid
+            ElementBounds button5 = ElementBounds.Fixed(540, 403) //NextGrid
                 .FixedUnder(button4, 10)
-                .WithAlignment(EnumDialogArea.LeftFixed)
-                .WithFixedPadding(10.0, 2.0)
-                .WithFixedMargin(-30, -30);
+                .WithFixedSize(26, 48)
+                .WithAlignment(EnumDialogArea.LeftFixed);
 
             ElementBounds refreshButtonBounds = ElementBounds.Fixed(EnumDialogArea.None, 0, 0, 10.0, 26.0)
                .WithFixedPosition(610, 5)
@@ -206,11 +205,12 @@ namespace storagecontroller
             ElementBounds elementBounds7 = ElementBounds.Fill.WithFixedPadding(GuiStyle.ElementToDialogPadding);
             elementBounds7.BothSizing = ElementSizing.FitToChildren;
             elementBounds7.WithChildren(mainElement, buttonlist, gridSlots);
+
             //Main Gui
-            mainDialogBound = ElementStdBounds.AutosizedMainDialog.WithAlignment(EnumDialogArea.LeftFixed).WithFixedAlignmentOffset(20 - GuiStyle.DialogToScreenPadding, 15.0);
-            var option = Composers[optionCompKey] =
-                 coreClientAPI.Gui
-                 .CreateCompo(optionCompKey, mainDialogBound)
+            mainDialogBound = ElementStdBounds.AutosizedMainDialog.WithAlignment(EnumDialogArea.LeftFixed).WithFixedAlignmentOffset(0 - GuiStyle.DialogToScreenPadding, 0);
+            var option = Composers[mainCompKey] =
+                 capi.Gui
+                 .CreateCompo(mainCompKey, mainDialogBound)
                  .AddShadedDialogBG(elementBounds7)
                  .AddDialogTitleBar(Lang.Get("storagecontroller:gui-storageinventory"), CloseIconPressed)
                  .AddButton(Lang.Get("storagecontroller:gui-button-clear-all"), OnClickClearAll, button1, CairoFont.WhiteSmallText(), EnumButtonStyle.Normal, "clearAll")
@@ -222,65 +222,135 @@ namespace storagecontroller
                  .AddRefreshButton(capi, refreshButtonTexture, OnRefresh, refreshButtonBounds, "refresh")
                  .AddAutoSizeHoverText(Lang.Get("storagecontroller:gui-hover-refresh"), CairoFont.WhiteSmallText(), 300, refreshButtonBounds)
                  .AddItemSlotGrid(inventoryBin, SendBinPacket, 1, new int[1] { 0 }, binslots.BelowCopy(1, 24), "binslot")
-                 .AddDynamicText("Bin", CairoFont.WhiteSmallishText(), binslots.BelowCopy(10, 2))
+                 .AddDynamicText(Lang.Get("Bin"), CairoFont.WhiteSmallishText(), binslots.BelowCopy(10, 2))
                  .AddInset(binslots.BelowCopy(0, 0, 0, 22), 8, 0.7f)
                  .AddItemSlotGrid(InventoryBase, SendInvPacket, 2, new int[8] { 0, 1, 2, 3, 4, 5, 6, 7 }, inputslots, "inputslotgrid")
-                 .AddDynamicText("Input", CairoFont.WhiteSmallishText(), inputslots.BelowCopy(25, -230))
+                 .AddDynamicText(Lang.Get("Input"), CairoFont.WhiteSmallishText(), inputslots.BelowCopy(25, -230))
                  .AddInset(inputslots.BelowCopy(-1, -230, 0, 25), 8, 0.7f)
-                 .AddTextInput(searchBarBounds, null, CairoFont.TextInput(), "search")
-                 .Compose();
+                 .AddTextInput(searchBarBounds, FilterItemsBySearchText, CairoFont.TextInput(), "search")
+                 .AddAutoSizeHoverText(Lang.Get("storagecontroller:gui-hover-searchbar"), CairoFont.WhiteSmallText(), 300, searchBarBounds)
+                 .AddIconButton("arrow-up", PreviousGrid, button4, "pregrid")
+                 .AddIconButton("arrow-down", NextGrid, button5, "nextgrid")
+                 .Compose(true);
 
-
-            option.GetTextInput("search").SetPlaceHolderText("Search bar....");
+            option.GetTextInput("search").SetPlaceHolderText(Lang.Get("Search..."));
+            option.Compose();
 
             GridSlots();
+        }
+
+        protected void FilterItemsBySearchText(string text)
+        {
+            if (!(currentSearchText == text))
+            {
+                currentSearchText = text;
+                FilterItems();
+            }
+        }
+
+        public void FilterItems()
+        {
+            // Convert the search text to lowercase for case-insensitive comparison
+            string text = currentSearchText?.RemoveDiacritics().ToLowerInvariant();
+
+            List<ItemSlot> listSlots = new List<ItemSlot>();
+
+            // Retrieve the list of all items from the inventory
+            if (StorageVirtualInv == null) return;
+
+            foreach (ItemSlot itemSlot in StorageVirtualInv)
+            {
+                if (itemSlot.Itemstack == null || itemSlot.Empty) continue;
+                listSlots.Add(itemSlot);
+            }
+
+            List<ItemSlot> filteredSlots = new List<ItemSlot>();
+
+            foreach (ItemSlot itemSlot in listSlots)
+            {
+                if (itemSlot.Itemstack?.Collectible != null)
+                {
+                    
+                    bool Attributes = itemSlot.Itemstack.Attributes.Any(type => type.Value.Equals(text));
+
+                    if (itemSlot.Itemstack.Attributes != null && Attributes) // fix to find bookshelf wood types etc
+                    {
+                        filteredSlots.Add(itemSlot);
+                    }
+                    else if (itemSlot.Itemstack.MatchesSearchText(capi.World, text))
+                    {
+                        filteredSlots.Add(itemSlot);
+                    }
+                }
+            }
+
+            // Determine the indices of filtered slots
+            int[] slotIndices = filteredSlots.Select(StorageVirtualInv.GetSlotId).ToArray();
+
+            // Limit the number of slots to a maximum of 100
+            if (slotIndices.Length > 100)
+            {
+                Array.Resize(ref slotIndices, 100);
+            }
+
+            var compKey = Composers[gridCompKey];
+            if (compKey.GetSlotGrid("slotgrid") != null)
+            {
+                compKey.GetSlotGrid("slotgrid")
+                    .DetermineAvailableSlots(slotIndices);
+                compKey.Compose();
+            }
         }
 
         public override void OnMouseWheel(MouseWheelEventArgs args)
         {
             // Get the mouse position
-            int mouseX = coreClientAPI.Input.MouseX;
-            int mouseY = coreClientAPI.Input.MouseY;
+            int mouseX = capi.Input.MouseX;
+            int mouseY = capi.Input.MouseY;
 
             // Check if the mouse is within the grid area
             if (gridSlots.PointInside(mouseX, mouseY))
             {
                 if (args.delta > 0)
                 {
-                    PreviousGrid();
+                    PreviousGrid(true);
                 }
                 else
                 {
-                    NextGrid();
+                    NextGrid(true);
                 }
             }
 
             base.OnMouseWheel(args);
         }
 
-        private bool PreviousGrid()
+        private void PreviousGrid(bool value)
         {
             curTab = Math.Max(1, curTab - 1);
             GridPage();
-            return true;
         }
 
-        private bool NextGrid()
+        private void NextGrid(bool value)
         {
-            int slots = StorageVirtualInv?.Count ?? 0;
-            int maxTabs = (int)Math.Ceiling((double)slots / 100);
+            StorageVirtualInv storageVirtualInv = StorageVirtualInv;
+            int slots = (storageVirtualInv != null) ? storageVirtualInv.Count : 0;
+            int maxTabs = (int)Math.Ceiling(slots / 100.0);
             curTab = Math.Min(maxTabs, curTab + 1);
             GridPage();
-            return true;
         }
 
+        //Only get called when the player press refresh button
         private void UpdateInv()
         {
-            StorageControllerMaster.SetVirtualInventory();
-            StorageVirtualInv = StorageControllerMaster.StorageVirtualInv;
-            Composers[storageCompKey]?.Compose();
+            if (Composers[gridCompKey] != null)
+            {
+                StorageControllerMaster.SetVirtualInventory();
+                StorageVirtualInv = StorageControllerMaster.StorageVirtualInv;
+                Composers[gridCompKey].Compose(true);
+            }
         }
 
+        //Only get called when the player press refresh button
         public bool OnRefresh()
         {
             UpdateInv();
@@ -290,23 +360,24 @@ namespace storagecontroller
             return true;
         }
 
+        // Only get called when you mouse wheel up and down
         private void GridPage()
         {
-            int slots = StorageVirtualInv?.Count ?? 0;
+            StorageVirtualInv storageVirtualInv = StorageVirtualInv;
+
+            int slots = (storageVirtualInv != null) ? storageVirtualInv.Count : 0;
             int startIndex = (curTab - 1) * 100;
             startIndex = Math.Max(0, startIndex);
 
-            var compKey = Composers[storageCompKey];
+            GuiComposer guiComposer = Composers[gridCompKey];
 
-            if (compKey.GetSlotGrid("slotgrid") != null)
+            if (guiComposer.GetSlotGrid("slotgrid") != null)
             {
                 int remainingSlots = Math.Max(0, slots - startIndex);
                 int minSlots = Math.Min(100, remainingSlots);
-                compKey.GetSlotGrid("slotgrid")
-                    .DetermineAvailableSlots(Enumerable.Range(startIndex, minSlots).ToArray());
+                guiComposer.GetSlotGrid("slotgrid").DetermineAvailableSlots(Enumerable.Range(startIndex, minSlots).ToArray());
             }
-
-            compKey.Compose();
+            guiComposer.Compose(true);
         }
 
         private bool OnClickClearAll()
@@ -319,7 +390,7 @@ namespace storagecontroller
 
         private bool OnClickLinkAllChests()
         {
-            StorageControllerMaster.LinkAll(StorageControllerMaster.enLinkTargets.ALL, capi.World.Player);
+            StorageControllerMaster?.LinkAll(StorageControllerMaster.enLinkTargets.ALL, capi.World.Player);
             return true;
         }
 
@@ -333,7 +404,7 @@ namespace storagecontroller
         {
             //StorageControllerMaster?.OnPlayerExitStorageInterface();
 
-            capi.Gui.PlaySound(CloseSound, randomizePitch: true);
+            //capi.Gui.PlaySound(CloseSound, randomizePitch: true);
 
             base.OnGuiClosed();
         }
@@ -342,7 +413,8 @@ namespace storagecontroller
         {
             //StorageControllerMaster?.OnPlayerEnterStorageInterface();
 
-            capi.Gui.PlaySound(OpenSound, randomizePitch: true);
+            //capi.Gui.PlaySound(OpenSound, randomizePitch: true);
+            ComposersDialog();
 
             base.OnGuiOpened();
         }
@@ -355,14 +427,14 @@ namespace storagecontroller
 
             inventoryBin[0].Itemstack = null;
 
-            coreClientAPI.Network.SendBlockEntityPacket(BlockEntityPosition.X, BlockEntityPosition.Y, BlockEntityPosition.Z, StorageControllerMaster.binItemStackPacket, data);
+            capi.Network.SendBlockEntityPacket(BlockEntityPosition.X, BlockEntityPosition.Y, BlockEntityPosition.Z, StorageControllerMaster.binItemStackPacket, data);
         }
 
         private void SendInvPacket(object packet)
         {
             if (packet == null) return;
 
-            coreClientAPI.Network.SendBlockEntityPacket(BlockEntityPosition.X, BlockEntityPosition.Y, BlockEntityPosition.Z, packet);
+            capi.Network.SendBlockEntityPacket(BlockEntityPosition.X, BlockEntityPosition.Y, BlockEntityPosition.Z, packet);
         }
 
         private void SendVirtualPacket(object packet)
@@ -381,20 +453,20 @@ namespace storagecontroller
             if (data != null)
             {
                 capi.World.Player.InventoryManager.MouseItemSlot.Itemstack = null;
-                coreClientAPI.Network.SendBlockEntityPacket(BlockEntityPosition.X, BlockEntityPosition.Y, BlockEntityPosition.Z, StorageControllerMaster.itemStackPacket, data);
+                capi.Network.SendBlockEntityPacket(BlockEntityPosition.X, BlockEntityPosition.Y, BlockEntityPosition.Z, StorageControllerMaster.itemStackPacket, data);
             }
         }
 
         private void GridSlots()
         {
-            var stoCompKey = Composers[storageCompKey] = coreClientAPI.Gui.CreateCompo(storageCompKey, mainDialogBound);
+            var stoCompKey = Composers[gridCompKey] = capi.Gui.CreateCompo(gridCompKey, mainDialogBound);
 
             if (StorageVirtualInv != null && !StorageVirtualInv.Empty)
             {
                 stoCompKey
                 .AddItemSlotGrid(StorageVirtualInv, SendVirtualPacket, 10, gridSlots, "slotgrid")
                 .AddInset(gridSlots, 10, 0.7f)
-                .Compose();
+                .Compose(true);
 
                 int slotsCount = StorageVirtualInv?.Count ?? 0;
 

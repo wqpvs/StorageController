@@ -46,5 +46,7 @@
   "gui-button-highlight": "Highlight",
   "gui-hover-highlight": "Highlight linked containers and their range for easy identification.",
 
-  "gui-hover-refresh": "Refreshes the inventory"
+  "gui-hover-refresh": "Refreshes the inventory",
+
+  "gui-hover-searchbar": "Search for items/blocks by name or use keywords (example: oak to find oak-related items, silver to find items related to silver)"
 }

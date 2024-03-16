@@ -8,9 +8,6 @@
 	"textureSizes": {
 	},
 	"textures": {
-		"darksteelsheet": "block/metal/darksteelsheet",
-		"cable": "block/rubber/cable",
-		"bluesteel": "block/metal/pipes/bluesteel"
 	},
 	"elements": [
 		{

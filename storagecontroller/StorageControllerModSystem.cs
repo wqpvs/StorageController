@@ -36,6 +36,8 @@ namespace StorageController
             RegisterCustomIcon("trash-can", 0, 0, 0, 255);
             RegisterCustomIcon("refresh", 239, 222, 205, 255);
             RegisterCustomIcon("input", 0, 0, 0, 255);
+            RegisterCustomIcon("arrow-up", 239, 222, 205, 150);
+            RegisterCustomIcon("arrow-down", 239, 222, 205, 150);
         }
 
         private void RegisterCustomIcon(string key, int r, int g, int b, int a)

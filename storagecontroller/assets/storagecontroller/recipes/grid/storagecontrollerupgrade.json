@@ -1,7 +1,7 @@
 {
 	ingredientPattern: "US",
 	ingredients: {
-		"U": { type: "item", code: "game:metalplate-*", name: "metal","allowedVariants": [ "copper", "tinbronze","bismuthbronze","blackbronze","iron","steel","meteoriciron" ], quantity: 4 },
+		"U": { type: "item", code: "game:metalplate-*", name: "metal", "allowedVariants": [  "tinbronze","bismuthbronze","blackbronze","iron","steel","meteoriciron" ], quantity: 4 },
 		"S": { type: "item", code: "storagelinker-*", "quantity": 0  }
 		
 	},

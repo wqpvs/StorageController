@@ -46,7 +46,13 @@ namespace storagecontroller
         internal StorageVirtualInv storageVirtualInv;
         public virtual StorageVirtualInv StorageVirtualInv => storageVirtualInv;
 
-        public List<ItemStack> ListStacks;
+        private HashSet<ItemStack> allItemStackSet;
+
+        private HashSet<ItemStack> AllItemStackSet
+        {
+            get => allItemStackSet;
+            set => allItemStackSet = value;
+        }
 
         public override void Initialize(ICoreAPI api)
         {
@@ -452,7 +458,7 @@ namespace storagecontroller
         /// </summary>
         public virtual void SetVirtualInventory()
         {
-            List<ItemStack> allItems = new List<ItemStack>();
+            HashSet<ItemStack> newItemStackSet = new HashSet<ItemStack>();
 
             if (containerlist == null || containerlist.Count == 0)
             {
@@ -477,33 +483,43 @@ namespace storagecontroller
                     // Check if the slot contains an item stack
                     if (!slot.Empty && slot.Itemstack != null && slot.StackSize > 0)
                     {
-                        // Find an equivalent item stack in allItems
-                        ItemStack existingStack = allItems.FirstOrDefault(x => x.Equals(slot.Itemstack));
-
-                        if (existingStack == null)
-                        {
-                            // If not found, add a clone of the item stack to allItems
-                            allItems.Add(slot.Itemstack.Clone());
-                        }
-                        else
-                        {
-                            existingStack.StackSize += slot.StackSize;
-                        }
+                        // Add the item stack to the new set
+                        newItemStackSet.Add(slot.Itemstack);
                     }
                 }
             }
 
-            // Sort the list of item stacks by name
-            allItems.Sort((x, y) => x.GetName().CompareTo(y.GetName()));
+            if (!HashSet<ItemStack>.CreateSetComparer().Equals(newItemStackSet, AllItemStackSet))
+            {
+                // Convert the new set to a list and sort it
+                List<ItemStack> allItems = newItemStackSet.OrderBy(item => item.GetName()).ToList();
 
-            // Create a new StorageVirtualInv instance and populate it with the item stacks
-            storageVirtualInv = new StorageVirtualInv(Api, allItems.Count);
+                // Create a new StorageVirtualInv instance and populate it with the item stacks
+                storageVirtualInv = new StorageVirtualInv(Api, allItems.Count);
 
-            for (int i = 0; i < allItems.Count; i++)
-            {   
-                storageVirtualInv[i].Itemstack = allItems[i];
+                for (int i = 0; i < allItems.Count; i++)
+                {
+                    storageVirtualInv[i].Itemstack = allItems[i].Clone();
+                }
+
+                // Update the AllItemStackSet property
+                AllItemStackSet = new HashSet<ItemStack>(newItemStackSet.OrderBy(item => item.GetName()));
+            }
+            else
+            {
+                // Use the existing sorted list of item stacks
+                List<ItemStack> allItems = AllItemStackSet.OrderBy(item => item.GetName()).ToList();
+
+                // Create a new StorageVirtualInv instance and populate it with the item stacks
+                storageVirtualInv = new StorageVirtualInv(Api, allItems.Count);
+
+                for (int i = 0; i < allItems.Count; i++)
+                {
+                    storageVirtualInv[i].Itemstack = allItems[i].Clone();
+                }
             }
         }
+        
 
         public static int itemStackPacket = 320000;
         public static int clearInventoryPacket = 320001;

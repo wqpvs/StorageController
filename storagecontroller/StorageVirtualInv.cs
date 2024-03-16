@@ -18,9 +18,10 @@ namespace storagecontroller
         {
             ItemSlot mouseSlot = op.ActingPlayer.InventoryManager.MouseItemSlot;
 
-            if (op.MouseButton == EnumMouseButton.Left) {
+            if (op.MouseButton == EnumMouseButton.Left)
+            {
 
-                if (op.ShiftDown)
+                if (op.ShiftDown || op.CtrlDown || op.AltDown)
                 {
                     return false;
                 }
@@ -29,14 +30,15 @@ namespace storagecontroller
                 {
                     if (sourceSlot.CanHold(mouseSlot))
                     {
-                        return false;
+                        return null;
                     }
                 }
-
-                return base.ActivateSlot(slotId, sourceSlot, ref op);
+            }
+            else {
+                return null;
             }
 
-            return false;
+            return base.ActivateSlot(slotId, sourceSlot, ref op);
         }
     }
 }
