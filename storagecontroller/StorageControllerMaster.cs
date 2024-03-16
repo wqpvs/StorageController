@@ -12,6 +12,7 @@ using Newtonsoft.Json;
 using System.Reflection;
 using Vintagestory.API.Util;
 using System.IO;
+using Cairo;
 
 namespace storagecontroller
 {
@@ -397,6 +398,7 @@ namespace storagecontroller
         }
 
 
+
         public override void FromTreeAttributes(ITreeAttribute tree, IWorldAccessor worldForResolving)
         {
             base.FromTreeAttributes(tree, worldForResolving);
@@ -476,7 +478,7 @@ namespace storagecontroller
                     if (!slot.Empty && slot.Itemstack != null && slot.StackSize > 0)
                     {
                         // Find an equivalent item stack in allItems
-                        ItemStack existingStack = allItems.FirstOrDefault(x => x.Satisfies(slot.Itemstack));
+                        ItemStack existingStack = allItems.FirstOrDefault(x => x.Equals(slot.Itemstack));
 
                         if (existingStack == null)
                         {
@@ -484,11 +486,8 @@ namespace storagecontroller
                             allItems.Add(slot.Itemstack.Clone());
                         }
                         else
-                        {   // If found, update the stack size of the existing item stack
-                            if (existingStack.Id.Equals(slot.Itemstack.Id))
-                            {
-                                existingStack.StackSize += slot.StackSize;
-                            }
+                        {
+                            existingStack.StackSize += slot.StackSize;
                         }
                     }
                 }
@@ -519,7 +518,6 @@ namespace storagecontroller
             if (packetid == binItemStackPacket) 
             {
                 player.InventoryManager.MouseItemSlot.Itemstack = null;
-
                 return;
             }
 
@@ -541,7 +539,7 @@ namespace storagecontroller
 
                 // we got the stack now let's see if we can send it to the player
 
-                int stacksize = ReturnStack(player, virtualStack);
+                int stacksize = ReturnStack(virtualStack);
 
                 if (stacksize == 0) return;
 
@@ -595,8 +593,6 @@ namespace storagecontroller
 
             base.OnReceivedClientPacket(player, packetid, data);
 
-
-
         }
 
         public override void OnReceivedServerPacket(int packetid, byte[] data)
@@ -604,50 +600,12 @@ namespace storagecontroller
             base.OnReceivedServerPacket(packetid, data);
         }
 
-        //public float refreshIntervalSeconds = 2.5f; 
-
-        //public float timeSinceLastRefreshSeconds = 0;
-
-        //Method to handle the refresh logic
-        //public void RefreshStorageInterface(float deltaTime)
-        //{
-        //    // Accumulate the elapsed time since the last refresh
-        //    timeSinceLastRefreshSeconds += deltaTime;  
-
-        //    if (timeSinceLastRefreshSeconds >= refreshIntervalSeconds) 
-        //    { 
-        //        SetVirtualInventory();
-        //        timeSinceLastRefreshSeconds = 0;
-        //    }
-
-        //    clientDialog.RefreshGrid();
-        //}
-
-        // Register the game tick listener when the player enters the storage interface
-        //public long storageInterfaceTickListenerId = -1; // Initialize listener ID with a default value
-
-        // Register the game tick listener when the player enters the storage interface
-        //public void OnPlayerEnterStorageInterface()
-        //{
-        //    storageInterfaceTickListenerId = Api.World.RegisterGameTickListener(RefreshStorageInterface, 200);
-        //}
-
-        // Unregister the game tick listener when the player exits the storage interface
-        //public void OnPlayerExitStorageInterface()
-        //{
-        //    if (storageInterfaceTickListenerId != -1)
-        //    {
-        //        Api.World.UnregisterGameTickListener(storageInterfaceTickListenerId);
-        //        storageInterfaceTickListenerId = -1; // Reset the listener ID
-        //    }
-        //}
-
         /// <summary>
         /// Attempts to find the item in the connected inventory, relieves it and returns the amount found
         /// </summary>
         /// <param name="findstack"></param>
         /// <returns></returns>
-        public int ReturnStack(IPlayer byPlayer, ItemStack VirtualStack)
+        public int ReturnStack(ItemStack VirtualStack)
         {
             int stacksize = 0;
 
@@ -666,7 +624,7 @@ namespace storagecontroller
                     if (slot == null || slot.Empty || slot.Itemstack == null || slot.StackSize == 0) { continue; }
                     //if we don't have one yet then add one
 
-                    if (MatchItemStack(byPlayer, slot.Itemstack, VirtualStack)) // < this works
+                    if (MatchItemStack(slot.Itemstack, VirtualStack)) // < this works
                     {
                         stacksize = slot.Itemstack.StackSize;
                         slot.Itemstack = null;
@@ -681,18 +639,18 @@ namespace storagecontroller
         }
 
 
-        public bool MatchItemStack(IPlayer byPlayer, ItemStack containerStack, ItemStack virtualStack) 
+        public bool MatchItemStack(ItemStack containerStack, ItemStack virtualStack) 
         {
             if (containerStack.Satisfies(virtualStack))
             {
                 return true;
             }
-            
+            else
             if (containerStack?.ItemAttributes?.Equals(virtualStack?.ItemAttributes) ?? false)
             {
                 return true;
             }
-            
+            else
             if (containerStack.Id.Equals(virtualStack.Id))
             {
                 return true;
