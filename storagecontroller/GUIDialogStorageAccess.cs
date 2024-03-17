@@ -98,6 +98,11 @@ namespace storagecontroller
 
         public InventoryBase InventoryBase;
 
+        public override AssetLocation CloseSound { get => StorageControllerMaster.CloseSound; set => StorageControllerMaster.CloseSound = value; }
+
+        public override AssetLocation OpenSound { get => StorageControllerMaster.OpenSound; set => StorageControllerMaster.OpenSound = value; }
+
+
         public InventoryBase inventoryBin;
 
         public StorageControllerMaster StorageControllerMaster;
@@ -402,18 +407,11 @@ namespace storagecontroller
 
         public override void OnGuiClosed()
         {
-            //StorageControllerMaster?.OnPlayerExitStorageInterface();
-
-            //capi.Gui.PlaySound(CloseSound, randomizePitch: true);
-
             base.OnGuiClosed();
         }
 
         public override void OnGuiOpened()
         {
-            //StorageControllerMaster?.OnPlayerEnterStorageInterface();
-
-            //capi.Gui.PlaySound(OpenSound, randomizePitch: true);
             ComposersDialog();
 
             base.OnGuiOpened();
