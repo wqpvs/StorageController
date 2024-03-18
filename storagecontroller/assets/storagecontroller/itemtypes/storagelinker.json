@@ -44,9 +44,7 @@
     }
   ],
 	"textures": {
-		"darksteelsheet": { "base": "game:block/metal/ingot/{material}" },
-		"cable": { "base": "game:block/metal/ingot/copper" },
-		"bluesteel": { "base": "game:block/metal/ingot/{material}" }
+		"darksteelsheet": { "base": "game:block/metal/plate/{material}" }
 	},
 	"guiTransform": {
 		"translation": {

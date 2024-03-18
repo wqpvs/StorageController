@@ -132,14 +132,14 @@
 	"materialDensity": 600,
 	"tpHandTransform": {
 		"translation": {
-			"x": -0.8,
-			"y": -1,
-			"z": -0.42
+			"x": -0.7,
+			"y": -1.2,
+			"z": -0.4
 		},
 		"rotation": {
-			"x": 10,
-			"y": 10,
-			"z": -105
+			"x": -162,
+			"y": -13,
+			"z": -103
 		},
 		"origin": {
 			"x": 0.3,

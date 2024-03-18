@@ -1,11 +1,5 @@
 {
 	"code": "storagecontrollerupgrade",
-	"creativeinventory": {
-		"storagecontroller": [ "*" ]
-	},
-	"drawtype": "json",
-	"shape": { "base": "block/crate-upgrades" },
-	"maxstacksize": 32,
 	"variantgroups": [
 		{
 			"code": "material",
@@ -35,9 +29,25 @@
 			"tier": [ "storagecontrollercopper", "storagecontrollertinbronze", "storagecontrollerbismuthbronze", "storagecontrollerblackbronze", "storagecontrolleriron", "storagecontrollermeteoriciron", "storagecontrollersteel" ]
 		}
 	},
-	"textures": {
-		"plates": { "base": "game:block/metal/plate/{material}" }
+	"drawtype": "json",
+	"shapeByType": {
+		"*-cupronickel": {
+			"base": "storagecontroller:block/crate-upgrades-bar"
+		},
+		"*": {
+			"base": "storagecontroller:block/crate-upgrades"
+		}
 	},
+	"texturesByType": {
+		"*-cupronickel": { "plates": { "base": "game:block/metal/ingot/{material}" } },
+		"*": {
+			"plates": { "base": "game:block/metal/plate/{material}" }
+		}
+	},
+	"creativeinventory": {
+		"storagecontroller": [ "*" ]
+	},
+	"maxstacksize": 32,
 	"replaceable": 500,
 	"resistance": 2.5,
 	"lightAbsorption": 50,
