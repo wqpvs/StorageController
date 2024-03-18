@@ -10,11 +10,11 @@
 	"variantgroups": [
 		{
 			"code": "material",
-			"states": [ "copper","tinbronze","bismuthbronze","blackbronze","iron","steel" ]
+			"states": [ "copper", "tinbronze", "bismuthbronze", "blackbronze", "iron", "steel" ]
 		}
 	],
 	"attributes": {
-    "groundStorageTransform": {
+		"groundStorageTransform": {
 			"translation": {
 				"x": 0.01,
 				"y": 0,
@@ -25,62 +25,77 @@
 				"y": 45,
 				"z": 0
 			}
-    }
-  },
-  "behaviors": [
-    {
-      "name": "GroundStorable",
-      "properties": {
-        "layout": "Quadrants",
-        "collisionBox": {
-          "x1": 0,
-          "y1": 0,
-          "z1": 0,
-          "x2": 1,
-          "y2": 0.0625,
-          "z2": 1
-        }
-      }
-    }
-  ],
+		}
+	},
+	"behaviors": [
+		{
+			"name": "GroundStorable",
+			"properties": {
+				"layout": "Quadrants",
+				"collisionBox": {
+					"x1": 0,
+					"y1": 0,
+					"z1": 0,
+					"x2": 1,
+					"y2": 0.0625,
+					"z2": 1
+				}
+			}
+		}
+	],
 	"textures": {
-		"darksteelsheet": { "base": "game:block/metal/plate/{material}" }
+		"screen": {
+			"base": "storagecontroller:item/screen"
+		},
+		"buttom": {
+			"base": "game:block/stone/rubble"
+		},
+		"wood": {
+			"base": "game:block/wood/debarked/oak"
+		},
+		"metal": {
+			"base": "game:block/metal/plate/{material}"
+		}
 	},
 	"guiTransform": {
 		"translation": {
 			"x": 0,
-			"y": 0,
+			"y": 1,
 			"z": 0
 		},
 		"rotation": {
-			"x": 9,
-			"y": 137,
-			"z": -53
+			"x": 115,
+			"y": -60,
+			"z": -5
 		},
 		"origin": {
-			"x": 0.43,
-			"y": 0,
-			"z": 0.44
+			"x": 0.35,
+			"y": 0.05,
+			"z": 0.48
 		},
-		"scale": 2.74
+		"scaleXyz": {
+			"x": -2.8,
+			"y": 2.8,
+			"z": 2.8
+		}
 	},
-	"fpHandTransform": {
+	"tpHandTransform": {
 		"translation": {
-			"x": -0.1,
-			"y": 0.2,
-			"z": 0
+			"x": -0.85,
+			"y": -0.1,
+			"z": -0.48
 		},
 		"rotation": {
-			"x": 90,
-			"y": 99,
-			"z": -42
+			"x": -5,
+			"y": -1,
+			"z": -16
 		},
 		"origin": {
 			"x": 0.5,
 			"y": 0,
 			"z": 0.5
 		},
-		"scale": 2.15
+		"scale": 1.05
 	},
 	"groundTransform": {
 		"translation": {
@@ -99,24 +114,5 @@
 			"z": 0.5
 		},
 		"scale": 4.31
-	},
-	"tpHandTransform": {
-		"translation": {
-			"x": -0.78,
-			"y": -0.09,
-			"z": -0.67
-		},
-		"rotation": {
-			"x": 9,
-			"y": -1,
-			"z": -16
-		},
-		"origin": {
-			"x": 0.5,
-			"y": 0,
-			"z": 0.5
-		},
-		"scale": 0.76
 	}
-
 }
