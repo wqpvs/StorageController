@@ -1,32 +1,17 @@
 {
 	"code": "storagecontrollerupgrade",
-	
 	"creativeinventory": {
 		"storagecontroller": [ "*" ]
 	},
 	"drawtype": "json",
-	"shape": { "base": "item/itemstoragecontrollerupgrade" },
-	"maxstacksize": 64,
+	"shape": { "base": "block/crate-upgrades" },
+	"maxstacksize": 32,
 	"variantgroups": [
 		{
 			"code": "material",
-			"states": [ "tinbronze","bismuthbronze","blackbronze","iron","meteoriciron","steel","cupronickel" ]
+			"states": [ "tinbronze", "bismuthbronze", "blackbronze", "iron", "meteoriciron", "steel", "cupronickel" ]
 		}
 	],
-	"attributes": {
-    "groundStorageTransform": {
-			"translation": {
-				"x": 0.01,
-				"y": 0,
-				"z": -0.01
-			},
-			"rotation": {
-				"x": 0,
-				"y": 45,
-				"z": 0
-			}
-    }
-  },
 	"attributesByType": {
 		"*-tinbronze": {
 			"tier": [ "storagecontrollercopper" ]
@@ -41,7 +26,7 @@
 			"tier": [ "storagecontrollercopper", "storagecontrollertinbronze", "storagecontrollerbismuthbronze", "storagecontrollerblackbronze" ]
 		},
 		"*-meteoriciron": {
-			"tier": [ "storagecontrollercopper", "storagecontrollertinbronze", "storagecontrollerbismuthbronze", "storagecontrollerblackbronze", "storagecontrolleriron" ],
+			"tier": [ "storagecontrollercopper", "storagecontrollertinbronze", "storagecontrollerbismuthbronze", "storagecontrollerblackbronze", "storagecontrolleriron" ]
 		},
 		"*-steel": {
 			"tier": [ "storagecontrollercopper", "storagecontrollertinbronze", "storagecontrollerbismuthbronze", "storagecontrollerblackbronze", "storagecontrolleriron", "storagecontrollermeteoriciron" ]
@@ -50,62 +35,51 @@
 			"tier": [ "storagecontrollercopper", "storagecontrollertinbronze", "storagecontrollerbismuthbronze", "storagecontrollerblackbronze", "storagecontrolleriron", "storagecontrollermeteoriciron", "storagecontrollersteel" ]
 		}
 	},
-  "behaviors": [
-    {
-      "name": "GroundStorable",
-      "properties": {
-        "layout": "Quadrants",
-        "collisionBox": {
-          "x1": 0,
-          "y1": 0,
-          "z1": 0,
-          "x2": 1,
-          "y2": 0.0625,
-          "z2": 1
-        }
-      }
-    }
-  ],
 	"textures": {
-		"darksteelsheet": { "base": "game:block/metal/ingot/{material}" },
-		"cable": { "base": "game:block/metal/ingot/copper" },
-		"bluesteel": { "base": "game:block/metal/ingot/{material}" }
+		"plates": { "base": "game:block/metal/plate/{material}" }
 	},
+	"replaceable": 500,
+	"resistance": 2.5,
+	"lightAbsorption": 50,
+	"sideAo": { "all": true },
+	"heldTpIdleAnimation": "holdbothhandslarge",
+	"heldRightReadyAnimation": "heldblockready",
+	"heldTpUseAnimation": "twohandplaceblock",
 	"guiTransform": {
 		"translation": {
-			"x": 0,
-			"y": 0,
+			"x": 1.5,
+			"y": 9,
 			"z": 0
 		},
 		"rotation": {
-			"x": 9,
-			"y": 137,
-			"z": -53
-		},
-		"origin": {
-			"x": 0.43,
-			"y": 0,
-			"z": 0.44
-		},
-		"scale": 2.74
-	},
-	"fpHandTransform": {
-		"translation": {
-			"x": -0.1,
-			"y": 0.2,
-			"z": 0
-		},
-		"rotation": {
-			"x": 90,
-			"y": 99,
-			"z": -42
+			"x": -38,
+			"y": 37,
+			"z": -180
 		},
 		"origin": {
 			"x": 0.5,
-			"y": 0,
+			"y": 0.1,
 			"z": 0.5
 		},
-		"scale": 2.15
+		"scale": 1.45
+	},
+	"tpHandTransform": {
+		"translation": {
+			"x": -0.7799,
+			"y": -0.2,
+			"z": -0.3
+		},
+		"rotation": {
+			"x": 13,
+			"y": 10,
+			"z": -85
+		},
+		"origin": {
+			"x": 0.3,
+			"y": 0.35,
+			"z": 0.5
+		},
+		"scale": 0.76
 	},
 	"groundTransform": {
 		"translation": {
@@ -124,24 +98,5 @@
 			"z": 0.5
 		},
 		"scale": 4.31
-	},
-	"tpHandTransform": {
-		"translation": {
-			"x": -0.78,
-			"y": -0.09,
-			"z": -0.67
-		},
-		"rotation": {
-			"x": 9,
-			"y": -1,
-			"z": -16
-		},
-		"origin": {
-			"x": 0.5,
-			"y": 0,
-			"z": 0.5
-		},
-		"scale": 0.76
 	}
-
 }

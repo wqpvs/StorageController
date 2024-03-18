@@ -66,8 +66,9 @@
 		"storagecontroller": [ "*-east" ]
 
 	},
-
-	"heldTpIdleAnimation": "holdunderarm",
+	"heldTpIdleAnimation": "holdbothhandslarge",
+	"heldRightReadyAnimation": "heldblockready",
+	"heldTpUseAnimation": "twohandplaceblock",
 	"shapeInventory": {
 		"base": "storagecontroller:block/storagecontroller",
 		"rotateY": 270
@@ -131,23 +132,38 @@
 	"materialDensity": 600,
 	"tpHandTransform": {
 		"translation": {
-			"x": -0.9,
-			"y": -0.5,
-			"z": -0.3
+			"x": -0.8,
+			"y": -1,
+			"z": -0.42
+		},
+		"rotation": {
+			"x": 10,
+			"y": 10,
+			"z": -105
+		},
+		"origin": {
+			"x": 0.3,
+			"y": 0.55,
+			"z": 0.5
+		},
+		"scale": 0.75
+	},
+	"groundTransform": {
+		"translation": {
+			"x": 0,
+			"y": 0,
+			"z": 0
 		},
 		"rotation": {
 			"x": 0,
-			"y": 90,
-			"z": -102
+			"y": -71,
+			"z": 0
 		},
-		"scale": 0.56
-	},
-	"guiTransform": {
 		"origin": {
 			"x": 0.5,
-			"y": 0.4,
+			"y": 0,
 			"z": 0.5
 		},
-		"scale": 1.16
+		"scale": 3.65
 	}
 }
