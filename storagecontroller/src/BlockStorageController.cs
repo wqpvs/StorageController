@@ -1,18 +1,9 @@
-﻿using ProtoBuf.Meta;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text.Json.Nodes;
-using System.Text.Json.Serialization;
+﻿using System.Collections.Generic;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
-using Vintagestory.API.Config;
-using Vintagestory.API.Datastructures;
 using Vintagestory.API.MathTools;
-using Vintagestory.API.Server;
 using Vintagestory.API.Util;
 using Vintagestory.GameContent;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace storagecontroller
 {

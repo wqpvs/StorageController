@@ -11,8 +11,6 @@ using Vintagestory.API.Datastructures;
 using Newtonsoft.Json;
 using System.Reflection;
 using Vintagestory.API.Util;
-using System.IO;
-using Cairo;
 
 namespace storagecontroller
 {
@@ -57,6 +55,10 @@ namespace storagecontroller
         public ICoreServerAPI sapi;
 
         internal StorageVirtualInv storageVirtualInv;
+
+        public bool showingblocks = false;
+
+        public static int highlightid = 1;
 
         public virtual StorageVirtualInv StorageVirtualInv => storageVirtualInv;
 
@@ -374,8 +376,6 @@ namespace storagecontroller
             }
 
         }
-        bool showingblocks = false;
-        public static int highlightid = 1;
 
         public override bool OnPlayerRightClick(IPlayer byPlayer, BlockSelection blockSel)
         {
@@ -518,7 +518,6 @@ namespace storagecontroller
 
         public override void OnReceivedClientPacket(IPlayer player, int packetid, byte[] data)
         {
-
             if (packetid == binItemStackPacket)
             {
                 player.InventoryManager.MouseItemSlot.Itemstack = null;
