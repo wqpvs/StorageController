@@ -1,116 +1,153 @@
 {
-	code: "storagecontrolleriron",
-	class: "BlockStorageController",
-	entityclass: "StorageControllerMaster",
-	attributes: {
-		partialAttachable: true,
-		inventoryClassName: "chest",
-		defaultType: "normal-generic",
-		types: ["normal-generic"],
-		
-		rotatatableInterval: {
+	"code": "storagecontrolleriron",
+	"class": "BlockStorageController",
+	"entityclass": "StorageControllerMaster",
+	"attributes": {
+		"partialAttachable": true,
+		"inventoryClassName": "chest",
+		"defaultType": "normal-generic",
+		"types": [ "normal-generic" ],
+
+		"rotatatableInterval": {
 			"normal-generic": "22.5degnot45deg"
-		
+
 		},
-		drop: {
+		"drop": {
 			"normal-generic": true
-			
+
 		},
-		quantitySlots: {
+		"quantitySlots": {
 			"normal-generic": 28
-			
+
 		},
-		dialogTitleLangCode: {
+		"dialogTitleLangCode": {
 			"normal-generic": "chestcontents"
-			
+
 		},
-		storageType: {
+		"storageType": {
 			"normal-generic": 189
-			
+
 		},
-		retrieveOnly: {
-			"normal-generic": false,
-			
+		"retrieveOnly": {
+			"normal-generic": false
+
 		},
-		shape: {
-			"normal-generic": "game:block/wood/chest/normal"
-			
+		"shape": {
+			"normal-generic": "storagecontroller:block/storagecontroller"
 		},
-		typedOpenSound: {
+		"typedOpenSound": {
 			"normal-generic": "game:sounds/effect/latch"
-			
+
 		},
-		typedCloseSound: {
+		"typedCloseSound": {
 			"normal-generic": "game:sounds/effect/latch"
-			
+
 		},
-		variantByGroup: "side",
-		variantByGroupInventory: null,
+		"variantByGroup": "side",
+		"variantByGroupInventory": null,
 		"maxTransferPerTick": 10,
-      "maxRange":24,
-      "tickTime":250
+		"maxRange": 24,
+		"tickTime": 250
 	},
 
-	behaviors: [{name: "Lockable" }, {name: "Container"}],
-	entityBehaviors: [{ name: "Animatable" }],
-	variantgroups: [
-		
-		{ code:"side", loadFromProperties: "abstract/horizontalorientation" }
+	"behaviors": [
+		{ "name": "Lockable" },
+		{ "name": "Container" }
+	],
+	"entityBehaviors": [ { "name": "Animatable" } ],
+	"variantgroups": [
+
+		{
+			"code": "side",
+			"loadFromProperties": "abstract/horizontalorientation"
+		}
 	],
 	"creativeinventory": {
 		"storagecontroller": [ "*-east" ]
-		
+
 	},
-	
-	heldTpIdleAnimation: "holdunderarm",
-	shapeInventory: { base: "game:block/wood/chest/normal", rotateY: 270 },
-	shapeByType: {
-		"*-north": { base: "game:block/wood/chest/normal", rotateY: 0 },
-		"*-east": { base: "game:block/wood/chest/normal", rotateY: 270 },
-		"*-west": { base: "game:block/wood/chest/normal", rotateY: 90 },
-		"*-south": { base: "game:block/wood/chest/normal", rotateY: 180 },
+
+	"heldTpIdleAnimation": "holdunderarm",
+	"shapeInventory": {
+		"base": "storagecontroller:block/storagecontroller",
+		"rotateY": 270
+	},
+	"shapeByType": {
+		"*-north": {
+			"base": "storagecontroller:block/storagecontroller",
+			"rotateY": 0
+		},
+		"*-east": {
+			"base": "storagecontroller:block/storagecontroller",
+			"rotateY": 270
+		},
+		"*-west": {
+			"base": "storagecontroller:block/storagecontroller",
+			"rotateY": 90
+		},
+		"*-south": {
+			"base": "storagecontroller:block/storagecontroller",
+			"rotateY": 180
+		}
 	},
 	"_comment": "Must declare textures so they get added to the block texture atlas",
-	textures: {
-		"normal-generic-sides2": { base: "sides" },
-		"normal-generic-lid": { base: "game:block/metal/plate/iron" },
-		"normal-generic-accessories": { base: "game:block/metal/plate/iron" }
+	"textures": {
+		"normal-generic-sides": { "base": "storagecontroller:block/sides-iron" },
+		"normal-generic-block": { "base": "game:block/metal/plate/iron" },
+		"normal-generic-screen": { "base": "storagecontroller:block/screen" }
 	},
-	blockmaterial: "Wood",
-	replaceable: 900,
-	resistance: 3,
-	lightAbsorption: 0,
-	sideAo: { all: false },
-	sidesolid: {
-		all: false
+	"blockmaterial": "Metal",
+	"replaceable": 500,
+	"resistance": 2.5,
+	"lightAbsorption": 0,
+	"sideAo": { "all": false },
+	"sidesolid": {
+		"all": false
 	},
-	sideopaque: {
-		all: false
+	"sideopaque": {
+		"all": false
 	},
-	collisionbox: {
-		x1: 0.0625, y1: 0, z1: 0.0625, x2: 0.9375, y2: 0.8125, z2: 0.9375
+	"collisionbox": {
+		"x1": 0.0625,
+		"y1": 0,
+		"z1": 0.0625,
+		"x2": 0.9375,
+		"y2": 0.8125,
+		"z2": 0.9375
 	},
-	selectionbox: {
-		x1: 0.0625, y1: 0, z1: 0.0625, x2: 0.9375, y2: 0.8125, z2: 0.9375
+	"selectionbox": {
+		"x1": 0.0625,
+		"y1": 0,
+		"z1": 0.0625,
+		"x2": 0.9375,
+		"y2": 0.8125,
+		"z2": 0.9375
 	},
-	combustibleProps: {
-		burnTemperature: 600,
-		burnDuration: 35,
+	"sounds": {
+		"place": "game:block/metaldoor-place",
+		"hit": "game:block/chute",
+		"break": "game:block/chute"
 	},
-	sounds: {
-		"place": "game:block/planks",
-		"hit": "game:block/planks",
-		"break": "game:block/planks",
-		"walk": "game:walk/wood"
+	"materialDensity": 600,
+	"tpHandTransform": {
+		"translation": {
+			"x": -0.9,
+			"y": -0.5,
+			"z": -0.3
+		},
+		"rotation": {
+			"x": 0,
+			"y": 90,
+			"z": -102
+		},
+		"scale": 0.56
 	},
-	materialDensity: 600,
-	tpHandTransform: {
-		translation: { x: -0.9, y: -0.5, z: -0.3 },
-		rotation: { x: 0, y: 90, z: -102 },
-		scale: 0.56
-	},
-	guiTransform: {
-		origin: { x: 0.5, y: 0.4, z: 0.5 },
-		scale: 1.16
+	"guiTransform": {
+		"origin": {
+			"x": 0.5,
+			"y": 0.4,
+			"z": 0.5
+		},
+		"scale": 1.16
 	}
 }

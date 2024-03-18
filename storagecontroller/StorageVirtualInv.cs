@@ -33,8 +33,10 @@ namespace storagecontroller
                         return null;
                     }
                 }
+
             }
-            else {
+            else
+            {
                 return null;
             }
 

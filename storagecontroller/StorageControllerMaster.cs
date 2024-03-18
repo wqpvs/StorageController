@@ -24,26 +24,40 @@ namespace storagecontroller
         /// </summary>
         public static string containerlistkey = "containerlist";
 
-        List<BlockPos> containerlist;
+        private List<BlockPos> containerlist;
+
         public List<BlockPos> ContainerList => containerlist;
-        List<string> supportedChests;
+
+
+        private List<string> supportedChests;
+
         public virtual List<string> SupportedChests => supportedChests;
-        List<string> supportedCrates;
+
+        private List<string> supportedCrates;
+
         public virtual List<string> SupportedCrates => supportedCrates;
+
         public virtual int TickTime => tickTime; //how many ms between ticks
+
         public virtual int MaxTransferPerTick => maxTransferPerTick; // The maximum of items to transfer
+
         public virtual int MaxRange => maxRange; //maximum distance (in blocks) that this controller will link to
-        int maxTransferPerTick = 1;
-        int maxRange = 10;
-        int tickTime = 250;
+
+        private int maxTransferPerTick = 1;
+
+        private int maxRange = 10;
+
+        private int tickTime = 250;
         //bool dopruning = false; //should invalid locations be moved every time?
 
         private GUIDialogStorageAccess clientDialog;
 
-        ICoreClientAPI capi;
-        ICoreServerAPI sapi;
+        public ICoreClientAPI capi;
+
+        public ICoreServerAPI sapi;
 
         internal StorageVirtualInv storageVirtualInv;
+
         public virtual StorageVirtualInv StorageVirtualInv => storageVirtualInv;
 
         private HashSet<ItemStack> allItemStackSet;
@@ -57,8 +71,10 @@ namespace storagecontroller
         public override void Initialize(ICoreAPI api)
         {
             base.Initialize(api);
+
             supportedChests = new List<string> { "GenericTypedContainer", "BEGenericSortableTypedContainer", "BESortableLabeledChest", "LabeledChest", "StorageControllerMaster" };
             supportedCrates = new List<string> { "BBetterCrate", "BEBetterCrate", "Crate" };
+
             if (Block.Attributes != null)
             {
                 maxTransferPerTick = Block.Attributes["maxTransferPerTick"].AsInt(maxTransferPerTick);
@@ -66,7 +82,9 @@ namespace storagecontroller
                 tickTime = Block.Attributes["tickTime"].AsInt(TickTime);
             }
 
-            if (Api is ICoreServerAPI) { RegisterGameTickListener(OnServerTick, TickTime); sapi = api as ICoreServerAPI; }
+            if (Api is ICoreServerAPI) { 
+                RegisterGameTickListener(OnServerTick, TickTime); sapi = api as ICoreServerAPI;
+            }
             else if (Api is ICoreClientAPI) { capi = api as ICoreClientAPI; }
         }
         //Better crates: BBetterCrate, BEBetterCrate, Crate, GenericTypedContainer
@@ -300,6 +318,7 @@ namespace storagecontroller
 
             }
         }
+
         public bool IsInRange(BlockPos checkpos)
         {
             int xdiff = Math.Abs(Pos.X - checkpos.X);
@@ -310,6 +329,7 @@ namespace storagecontroller
             if (zdiff >= MaxRange) { return false; }
             return true;
         }
+
         //add a container to the list of managed containers (usually called by a storage linker)
         public void AddContainer(ItemSlot slot, EntityAgent byEntity, BlockSelection blockSel)
         {
@@ -337,6 +357,7 @@ namespace storagecontroller
             }
 
         }
+
         //Remove a Container Location from the list
         public void RemoveContainer(ItemSlot slot, EntityAgent byEntity, BlockSelection blockSel)
         {
@@ -371,39 +392,7 @@ namespace storagecontroller
 
             return true;
 
-            //if (byPlayer.InventoryManager.ActiveHotbarSlot != null && !byPlayer.InventoryManager.ActiveHotbarSlot.Empty && byPlayer.InventoryManager.ActiveHotbarSlot.Itemstack.Item != null)
-            //{
-            //    Item activeitem = byPlayer.InventoryManager.ActiveHotbarSlot.Itemstack.Item;
-            //    if (activeitem == null || activeitem.Attributes == null)
-            //    {
-            //        return base.OnPlayerRightClick(byPlayer, blockSel);
-            //    }
-            //    string[] upgradesfrom = activeitem.Attributes["upgradesfrom"].AsArray<string>();
-            //    if (upgradesfrom == null) { return base.OnPlayerRightClick(byPlayer, blockSel); }
-            //    string mymetal = Block.Code.FirstCodePart();
-            //    if (!(upgradesfrom.Contains(mymetal))) { return base.OnPlayerRightClick(byPlayer, blockSel); }
-            //    string upgradesto = activeitem.Attributes["upgradesto"].AsString("");
-            //    if (upgradesto == "") { return base.OnPlayerRightClick(byPlayer, blockSel); }
-            //    upgradesto += "-" + Block.LastCodePart();
-            //    //ok this is a valid upgrade
-            //    Block upgradedblock = Api.World.GetBlock(new AssetLocation(upgradesto));
-            //    Api.World.BlockAccessor.SetBlock(upgradedblock.BlockId, Pos);
-            //    StorageControllerMaster newmaster = Api.World.BlockAccessor.GetBlockEntity(Pos) as StorageControllerMaster;
-            //    newmaster.SetContainers(ContainerList);
-            //    Inventory.DropAll(Pos.ToVec3d());
-            //    if (byPlayer?.WorldData.CurrentGameMode != EnumGameMode.Creative)
-            //    {
-            //        byPlayer.InventoryManager.ActiveHotbarSlot.Itemstack.StackSize--;
-            //        if (byPlayer.InventoryManager.ActiveHotbarSlot.Itemstack.StackSize == 0)
-            //        {
-            //            byPlayer.InventoryManager.ActiveHotbarSlot.Itemstack = null;
-            //        }
-            //        byPlayer.InventoryManager.ActiveHotbarSlot.MarkDirty();
-            //    }
-            //}
         }
-
-
 
         public override void FromTreeAttributes(ITreeAttribute tree, IWorldAccessor worldForResolving)
         {
@@ -529,14 +518,15 @@ namespace storagecontroller
 
         public override void OnReceivedClientPacket(IPlayer player, int packetid, byte[] data)
         {
-            //How to handle taking multiple stacks?
-            //just search and grab/relieve the first stack we find 
-            if (packetid == binItemStackPacket) 
+
+            if (packetid == binItemStackPacket)
             {
                 player.InventoryManager.MouseItemSlot.Itemstack = null;
                 return;
             }
 
+            //How to handle taking multiple stacks?
+            //just search and grab/relieve the first stack we find 
             if (packetid == itemStackPacket)
             {
                 if (data == null) 
@@ -562,7 +552,7 @@ namespace storagecontroller
                 virtualStack.StackSize = stacksize;
 
                 //no valid slot
-                if (!player.InventoryManager.TryGiveItemstack(virtualStack))
+                if (!player.InventoryManager.TryGiveItemstack(virtualStack, true))
                 {
                     Api.World.SpawnItemEntity(virtualStack, player.Entity.Pos.XYZ);
                 }
@@ -578,7 +568,7 @@ namespace storagecontroller
             else 
             if (packetid == linkAllChestsPacket)
             {
-
+          
                 LinkAll(enLinkTargets.ALL, player);
                 return;
             }
@@ -690,7 +680,7 @@ namespace storagecontroller
             {
                 dsc.AppendLine("Transfer Speed: " + MaxTransferPerTick + " Items at a time.");
             }
-            else 
+            else
             { dsc.AppendLine("Transfers full Stacks at a time"); }
             if (!(containerlist == null) && containerlist.Count > 0)
             {
@@ -827,8 +817,8 @@ namespace storagecontroller
         {
             base.OnBlockRemoved();
 
-            ClearConnections();
             ClearHighlighted();
+
 
             //Api.World.UnregisterGameTickListener(storageInterfaceTickListenerId);
 

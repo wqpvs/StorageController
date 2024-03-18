@@ -102,8 +102,9 @@ namespace storagecontroller
 
         public override AssetLocation OpenSound { get => StorageControllerMaster.OpenSound; set => StorageControllerMaster.OpenSound = value; }
 
-
         public InventoryBase inventoryBin;
+
+        public ItemSlot ItemSlot => inventoryBin[0];
 
         public StorageControllerMaster StorageControllerMaster;
 
@@ -359,9 +360,7 @@ namespace storagecontroller
         public bool OnRefresh()
         {
             UpdateInv();
-
             GridSlots();
-
             return true;
         }
 
@@ -390,12 +389,15 @@ namespace storagecontroller
             capi.Network.SendBlockEntityPacket(BlockEntityPosition.X, BlockEntityPosition.Y, BlockEntityPosition.Z, StorageControllerMaster.clearInventoryPacket, null);
             StorageControllerMaster?.ClearHighlighted();
             StorageVirtualInv?.Clear();
+            GridSlots();
             return true;
         }
 
+        //Not sure how to fix this so it update the gride.
         private bool OnClickLinkAllChests()
         {
             StorageControllerMaster?.LinkAll(StorageControllerMaster.enLinkTargets.ALL, capi.World.Player);
+  
             return true;
         }
 
@@ -403,6 +405,16 @@ namespace storagecontroller
         {
             StorageControllerMaster?.ToggleHightlights();
             return true;
+        }
+
+        public override bool TryOpen()
+        {
+            if (this.IsDuplicate)
+            {
+                return false;
+            }
+
+            return base.TryOpen();
         }
 
         public override void OnGuiClosed()
@@ -413,17 +425,14 @@ namespace storagecontroller
         public override void OnGuiOpened()
         {
             ComposersDialog();
-
             base.OnGuiOpened();
         }
 
         private void SendBinPacket(object packet)
         {
-            var ItemStack = inventoryBin[0]?.Itemstack;
+            if (packet == null || ItemSlot?.Itemstack == null) return;
 
-            if (packet == null || ItemStack == null) return;
-
-            inventoryBin[0].Itemstack = null;
+            ItemSlot.Itemstack = null;
 
             capi.Network.SendBlockEntityPacket(BlockEntityPosition.X, BlockEntityPosition.Y, BlockEntityPosition.Z, StorageControllerMaster.binItemStackPacket, data);
         }

@@ -74,10 +74,6 @@
 </ItemGroup>
 
 <ItemGroup>
-  <Folder Include="assets\storagecontroller\textures\" />
-</ItemGroup>
-
-<ItemGroup>
   <Content Update="assets\storagecontroller\blocktypes\storagecontrollermeteoriciron.json">
     <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
   </Content>

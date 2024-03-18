@@ -29,32 +29,25 @@
   },
 	"attributesByType": {
 		"*-tinbronze": {
-			"tier": [ "storagecontrollercopper" ],
-			"upgrade": "storagecontroller:storagecontrollertinbronze"
+			"tier": [ "storagecontrollercopper" ]
 		},
 		"*-bismuthbronze": {
-			"tier": [ "storagecontrollercopper" ],
-			"upgrade": "storagecontroller:storagecontrollerbismuthbronze"
+			"tier": [ "storagecontrollercopper" ]
 		},
 		"*-blackbronze": {
-			"tier": [ "storagecontrollercopper" ],
-			"upgrade": "storagecontroller:storagecontrollerblackbronze"
+			"tier": [ "storagecontrollercopper" ]
 		},
 		"*-iron": {
-			"tier": [ "storagecontrollercopper", "storagecontrollertinbronze", "storagecontrollerbismuthbronze", "storagecontrollerblackbronze" ],
-			"upgrade": "storagecontroller:storagecontrolleriron"
+			"tier": [ "storagecontrollercopper", "storagecontrollertinbronze", "storagecontrollerbismuthbronze", "storagecontrollerblackbronze" ]
 		},
 		"*-meteoriciron": {
 			"tier": [ "storagecontrollercopper", "storagecontrollertinbronze", "storagecontrollerbismuthbronze", "storagecontrollerblackbronze", "storagecontrolleriron" ],
-			"upgrade": "storagecontroller:storagecontrollermeteoriciron"
 		},
 		"*-steel": {
-			"tier": [ "storagecontrollercopper", "storagecontrollertinbronze", "storagecontrollerbismuthbronze", "storagecontrollerblackbronze", "storagecontrolleriron", "storagecontrollermeteoriciron" ],
-			"upgrade": "storagecontroller:storagecontrollersteel"
+			"tier": [ "storagecontrollercopper", "storagecontrollertinbronze", "storagecontrollerbismuthbronze", "storagecontrollerblackbronze", "storagecontrolleriron", "storagecontrollermeteoriciron" ]
 		},
 		"*-cupronickel": {
-			"tier": [ "storagecontrollercopper", "storagecontrollertinbronze", "storagecontrollerbismuthbronze", "storagecontrollerblackbronze", "storagecontrolleriron", "storagecontrollermeteoriciron", "storagecontrollersteel" ],
-			"upgrade": "storagecontroller:storagecontrollercupronickel"
+			"tier": [ "storagecontrollercopper", "storagecontrollertinbronze", "storagecontrollerbismuthbronze", "storagecontrollerblackbronze", "storagecontrolleriron", "storagecontrollermeteoriciron", "storagecontrollersteel" ]
 		}
 	},
   "behaviors": [
