@@ -18,6 +18,7 @@ namespace storagecontroller
 {
     internal class BlockStorageController: BlockGenericTypedContainer
     {
+ 
         public override ItemStack[] GetDrops(IWorldAccessor world, BlockPos pos, IPlayer byPlayer, float dropQuantityMultiplier = 1)
         {
             

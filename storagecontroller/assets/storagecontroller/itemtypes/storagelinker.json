@@ -14,11 +14,25 @@
 		}
 	],
 	"attributes": {
+		"rackable": true,
+		"toolrackTransform": {
+			"translation": {
+				"x": 0.4,
+				"y": -0.5,
+				"z": 0
+			},
+			"rotation": {
+				"x": 180,
+				"y": 0,
+				"z": 0
+			},
+			"scale": 1.2
+		},
 		"groundStorageTransform": {
 			"translation": {
-				"x": 0.01,
+				"x": 0.125,
 				"y": 0,
-				"z": -0.01
+				"z": -0.125
 			},
 			"rotation": {
 				"x": 0,
