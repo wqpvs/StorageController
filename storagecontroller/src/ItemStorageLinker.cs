@@ -62,14 +62,11 @@ namespace storagecontroller
                 return;
 
             // Handle adding or removing container
-            if (api is ICoreServerAPI)
-            {
-                scm.RemoveContainer(slot, byEntity, blockSel);
-            }
-            else if (api is ICoreServerAPI)
-            {
-                scm.AddContainer(slot, byEntity, blockSel);
-            }
+            //if (api is ICoreServerAPI)
+            //{
+                scm.ToggleContainer(slot,byEntity,blockSel);
+            //}
+            
         }
 
         //public override void OnHeldAttackStart(ItemSlot slot, EntityAgent byEntity, BlockSelection blockSel, EntitySelection entitySel, ref EnumHandHandling handling)
