@@ -14,7 +14,7 @@ using Vintagestory.API.Util;
 
 namespace storagecontroller
 {
-    public class StorageControllerMaster : BlockEntityGenericTypedContainer
+    public class BlockEntityStorageController : BlockEntityGenericTypedContainer
     {
         /// <summary>
         /// TODO Bugs
@@ -364,9 +364,19 @@ namespace storagecontroller
         //Adds a position if not included, or removes it if its
         public void ToggleContainer(ItemSlot slot, EntityAgent byEntity,BlockSelection blockSel)
         {
-            if (containerlist == null) { containerlist = new List<BlockPos>(); }
-            if (containerlist.Contains(blockSel.Position)) { RemoveContainer(slot,byEntity,blockSel); }
-            else { AddContainer(slot, byEntity, blockSel); }
+            if (containerlist == null) 
+            {
+                containerlist = new List<BlockPos>(); 
+            }
+
+            if (containerlist.Contains(blockSel.Position))
+            { 
+                RemoveContainer(slot,byEntity,blockSel); 
+            }
+            else 
+            { 
+                AddContainer(slot, byEntity, blockSel);
+            }
         }
 
         //Remove a Container Location from the list
@@ -380,6 +390,7 @@ namespace storagecontroller
                 containerlist.Remove(blockSel.Position);
                 
                 HighLightBlocks();
+
                 if (Api is ICoreServerAPI)
                 {
                     Api.World.PlaySoundAt(new AssetLocation("game:sounds/effect/latch"), byPlayer);
@@ -745,7 +756,9 @@ namespace storagecontroller
         public void HighLightBlocks()
         {
             if (containerlist == null || containerlist.Count == 0 || Api is ICoreServerAPI) return;
+
             showingblocks = true;
+
             List<int> colors = new List<int>
             {
                 ColorUtil.ColorFromRgba(0, 255, 0, 128)
@@ -759,13 +772,18 @@ namespace storagecontroller
             };
 
             colors[0] = ColorUtil.ColorFromRgba(255, 255, 0, 128);
+
             range.Add(new BlockPos(Pos.X + maxRange, Pos.Y + maxRange, Pos.Z + maxRange, 0));
 
             Api.World.HighlightBlocks(capi.World.Player, 2, range, colors, EnumHighlightBlocksMode.Absolute, EnumHighlightShape.Cube);
 
             colors[0] = ColorUtil.ColorFromRgba(255, 0, 255, 128);
-            List<BlockPos>mypos= new List<BlockPos>();
-            mypos.Add(Pos);
+
+            List<BlockPos>mypos= new List<BlockPos>
+            {
+                Pos
+            };
+
             Api.World.HighlightBlocks(capi.World.Player, 3, mypos, colors, EnumHighlightBlocksMode.Absolute, EnumHighlightShape.Arbitrary);
         }
 

@@ -9,18 +9,17 @@ namespace storagecontroller
 {
     internal class BlockStorageController: BlockGenericTypedContainer
     {
- 
         public override ItemStack[] GetDrops(IWorldAccessor world, BlockPos pos, IPlayer byPlayer, float dropQuantityMultiplier = 1)
         {
-            
-            StorageControllerMaster forstm = world.BlockAccessor.GetBlockEntity(pos) as StorageControllerMaster;
+
+            BlockEntityStorageController forstm = world.BlockAccessor.GetBlockEntity(pos) as BlockEntityStorageController;
             if (forstm != null)
             {
                 ItemStack itemStack = new ItemStack(world.BlockAccessor.GetBlock(pos),1);
                 byte[] data = SerializerUtil.Serialize(forstm.ContainerList);
                 if (data != null)
                 {
-                    itemStack.Attributes.SetBytes(StorageControllerMaster.containerlistkey, data);
+                    itemStack.Attributes.SetBytes(BlockEntityStorageController.containerlistkey, data);
                     return new ItemStack[] { itemStack };
                 }
             }
@@ -29,14 +28,14 @@ namespace storagecontroller
         }
         public override ItemStack OnPickBlock(IWorldAccessor world, BlockPos pos)
         {
-            StorageControllerMaster forstm = world.BlockAccessor.GetBlockEntity(pos) as StorageControllerMaster;
+            BlockEntityStorageController forstm = world.BlockAccessor.GetBlockEntity(pos) as BlockEntityStorageController;
             if (forstm != null)
             {
                 ItemStack itemStack = new ItemStack(world.BlockAccessor.GetBlock(pos), 1);
                 byte[] data = SerializerUtil.Serialize(forstm.ContainerList);
                 if (data != null)
                 {
-                    itemStack.Attributes.SetBytes(StorageControllerMaster.containerlistkey, data);
+                    itemStack.Attributes.SetBytes(BlockEntityStorageController.containerlistkey, data);
                     return itemStack;
                 }
             }
@@ -51,28 +50,23 @@ namespace storagecontroller
 
         public override bool OnBlockInteractStart(IWorldAccessor world, IPlayer byPlayer, BlockSelection blockSel)
         {
-            if (blockSel?.Position == null || !(byPlayer.Entity is EntityPlayer entityPlayer))
+            if (blockSel?.Position == null)
                 return false;
 
-            if (world.BlockAccessor.GetBlockEntity(blockSel.Position) is not StorageControllerMaster storageControllerMaster)
+            if (world.BlockAccessor.GetBlockEntity(blockSel.Position) is not BlockEntityStorageController entityStorageController)
                 return false;
 
             //let upgrade controller.
-            if (TryApplyUpgrade(world, byPlayer, storageControllerMaster))
+            if (TryApplyUpgrade(world, byPlayer, entityStorageController))
             {
                 return true;
             }
 
-            //open if the player hand is empty
-            if(entityPlayer.RightHandItemSlot.Empty) 
-            {
-                return storageControllerMaster.OnPlayerRightClick(byPlayer, blockSel);
+            if (byPlayer.InventoryManager.ActiveHotbarSlot?.Itemstack?.Collectible is ItemStorageLinker) {
+                return false;
             }
-            else
-            {
-                return false;   
-            }
-
+            
+            return entityStorageController.OnPlayerRightClick(byPlayer, blockSel);
         }
 
         private float meshangle = 0f;
@@ -81,12 +75,15 @@ namespace storagecontroller
 
         private List<BlockPos> Pos = new List<BlockPos>();
 
-        private bool TryApplyUpgrade(IWorldAccessor world, IPlayer byPlayer, StorageControllerMaster storageControllerMaster)
+        private bool TryApplyUpgrade(IWorldAccessor world, IPlayer byPlayer, BlockEntityStorageController storageControllerMaster)
         {
-            if (byPlayer?.InventoryManager?.ActiveHotbarSlot == null)
+            if (byPlayer.InventoryManager.ActiveHotbarSlot?.Empty == null ? false : true)
                 return false;
 
             ItemStack hotbarItemStack = byPlayer.InventoryManager.ActiveHotbarSlot.Itemstack;
+
+            // Check to see if this is a storagecontrollupgrade if not return false.
+            if (!hotbarItemStack.Collectible.Code.FirstCodePart().Equals("storagecontrollerupgrade")) return false;
 
             // Check if the itemstack is null or if it has a 'tier' attribute
             if (hotbarItemStack == null || !hotbarItemStack.Collectible.Attributes?.KeyExists("tier") == true)
@@ -133,7 +130,7 @@ namespace storagecontroller
 
             // Set the block
             api.World.BlockAccessor.SetBlock(block.Id, byPlayer.CurrentBlockSelection.Position);
-            StorageControllerMaster storageController = api.World.BlockAccessor.GetBlockEntity(byPlayer.CurrentBlockSelection.Position) as StorageControllerMaster;
+            BlockEntityStorageController storageController = api.World.BlockAccessor.GetBlockEntity(byPlayer.CurrentBlockSelection.Position) as BlockEntityStorageController;
 
             //Make sure angle is the same as before and same for type.
             storageController.MeshAngle = meshangle;

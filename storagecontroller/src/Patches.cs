@@ -22,22 +22,13 @@ namespace storagecontroller
             {
                 if (blockSel != null)
                 {
-                    if (byPlayer.InventoryManager.ActiveHotbarSlot.Empty)
-                    {
-                        return true;
-                    }
-
-                    if (byPlayer.InventoryManager.ActiveHotbarSlot.Itemstack.Collectible is ItemStorageLinker)
+                    if (byPlayer.InventoryManager.ActiveHotbarSlot?.Itemstack?.Collectible is ItemStorageLinker)
                     {
                         return false;
                     }
-                    else
-                    {
-                        return true;
-                    }
                 }
 
-                return false;
+                return true;
             }
         }
     }

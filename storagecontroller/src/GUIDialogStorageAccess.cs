@@ -98,15 +98,15 @@ namespace storagecontroller
 
         public InventoryBase InventoryBase;
 
-        public override AssetLocation CloseSound { get => StorageControllerMaster.CloseSound; set => StorageControllerMaster.CloseSound = value; }
+        public override AssetLocation CloseSound { get => entityStorageController.CloseSound; set => entityStorageController.CloseSound = value; }
 
-        public override AssetLocation OpenSound { get => StorageControllerMaster.OpenSound; set => StorageControllerMaster.OpenSound = value; }
+        public override AssetLocation OpenSound { get => entityStorageController.OpenSound; set => entityStorageController.OpenSound = value; }
 
         public InventoryBase inventoryBin;
 
         public ItemSlot ItemSlot => inventoryBin[0];
 
-        public StorageControllerMaster StorageControllerMaster;
+        public BlockEntityStorageController entityStorageController;
 
         protected int curTab = 0;
         public override double DrawOrder => 0.2;
@@ -121,9 +121,9 @@ namespace storagecontroller
 
             InventoryBase = Inventory;
 
-            if (capi.World.BlockAccessor.GetBlockEntity(BlockEntityPosition) is StorageControllerMaster storageControllerMaster)
+            if (capi.World.BlockAccessor.GetBlockEntity(BlockEntityPosition) is BlockEntityStorageController storageController)
             {
-                StorageControllerMaster = storageControllerMaster;
+                entityStorageController = storageController;
             }
 
             StorageVirtualInv = storageVirtualInv;
@@ -350,8 +350,8 @@ namespace storagecontroller
         {
             if (Composers[gridCompKey] != null)
             {
-                StorageControllerMaster.SetVirtualInventory();
-                StorageVirtualInv = StorageControllerMaster.StorageVirtualInv;
+                entityStorageController.SetVirtualInventory();
+                StorageVirtualInv = entityStorageController.StorageVirtualInv;
                 Composers[gridCompKey].Compose(true);
             }
         }
@@ -386,8 +386,8 @@ namespace storagecontroller
 
         private bool OnClickClearAll()
         {
-            capi.Network.SendBlockEntityPacket(BlockEntityPosition.X, BlockEntityPosition.Y, BlockEntityPosition.Z, StorageControllerMaster.clearInventoryPacket, null);
-            StorageControllerMaster?.ClearHighlighted();
+            capi.Network.SendBlockEntityPacket(BlockEntityPosition.X, BlockEntityPosition.Y, BlockEntityPosition.Z, BlockEntityStorageController.clearInventoryPacket, null);
+            entityStorageController?.ClearHighlighted();
             StorageVirtualInv?.Clear();
             GridSlots();
             return true;
@@ -396,14 +396,14 @@ namespace storagecontroller
         //Not sure how to fix this so it update the gride.
         private bool OnClickLinkAllChests()
         {
-            StorageControllerMaster?.LinkAll(StorageControllerMaster.enLinkTargets.ALL, capi.World.Player);
+            entityStorageController?.LinkAll(BlockEntityStorageController.enLinkTargets.ALL, capi.World.Player);
   
             return true;
         }
 
         private bool OnClickHighlightAttached()
         {
-            StorageControllerMaster?.ToggleHightlights();
+            entityStorageController?.ToggleHightlights();
             return true;
         }
 
@@ -434,7 +434,7 @@ namespace storagecontroller
 
             ItemSlot.Itemstack = null;
 
-            capi.Network.SendBlockEntityPacket(BlockEntityPosition.X, BlockEntityPosition.Y, BlockEntityPosition.Z, StorageControllerMaster.binItemStackPacket, data);
+            capi.Network.SendBlockEntityPacket(BlockEntityPosition.X, BlockEntityPosition.Y, BlockEntityPosition.Z, BlockEntityStorageController.binItemStackPacket, data);
         }
 
         private void SendInvPacket(object packet)
@@ -460,7 +460,7 @@ namespace storagecontroller
             if (data != null)
             {
                 capi.World.Player.InventoryManager.MouseItemSlot.Itemstack = null;
-                capi.Network.SendBlockEntityPacket(BlockEntityPosition.X, BlockEntityPosition.Y, BlockEntityPosition.Z, StorageControllerMaster.itemStackPacket, data);
+                capi.Network.SendBlockEntityPacket(BlockEntityPosition.X, BlockEntityPosition.Y, BlockEntityPosition.Z, BlockEntityStorageController.itemStackPacket, data);
             }
         }
 
