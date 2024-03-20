@@ -98,6 +98,8 @@ namespace storagecontroller
 
         public InventoryBase InventoryBase;
 
+        public bool toggle = false;
+
         public override AssetLocation CloseSound { get => entityStorageController.CloseSound; set => entityStorageController.CloseSound = value; }
 
         public override AssetLocation OpenSound { get => entityStorageController.OpenSound; set => entityStorageController.OpenSound = value; }
@@ -397,13 +399,13 @@ namespace storagecontroller
         private bool OnClickLinkAllChests()
         {
             entityStorageController?.LinkAll(BlockEntityStorageController.enLinkTargets.ALL, capi.World.Player);
-  
             return true;
         }
 
         private bool OnClickHighlightAttached()
         {
-            entityStorageController?.ToggleHightlights();
+            toggle =! toggle;
+            entityStorageController?.ToggleHighLight(toggle);
             return true;
         }
 

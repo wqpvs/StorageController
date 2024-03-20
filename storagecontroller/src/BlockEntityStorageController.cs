@@ -26,7 +26,6 @@ namespace storagecontroller
 
         public List<BlockPos> ContainerList => containerlist;
 
-
         private List<string> supportedChests;
 
         public virtual List<string> SupportedChests => supportedChests;
@@ -332,50 +331,58 @@ namespace storagecontroller
             return true;
         }
 
+        //Adds a position if not included, or removes it if its
+        public void ToggleContainer(ItemSlot slot, EntityAgent byEntity, BlockSelection blockSel)
+        {
+            if (containerlist == null)
+            {
+                containerlist = new List<BlockPos>();
+            }
+
+            if (containerlist.Contains(blockSel.Position))
+            {
+                RemoveContainer(slot, byEntity, blockSel);
+            }
+            else
+            {
+                AddContainer(slot, byEntity, blockSel);
+            }
+        }
+
         //add a container to the list of managed containers (usually called by a storage linker)
         public void AddContainer(ItemSlot slot, EntityAgent byEntity, BlockSelection blockSel)
         {
             //don't want to link to ourself!
             if (blockSel.Position == Pos) { return; }
-            //check for valid container
-            IPlayer byPlayer = (byEntity as EntityPlayer)?.Player;
-            BlockEntityContainer cont = Api.World.BlockAccessor.GetBlockEntity(blockSel.Position) as BlockEntityContainer;
-            if (cont == null) { return; }
+
+            BlockEntityContainer blockEntityContainer = Api.World.BlockAccessor.GetBlockEntity(blockSel.Position) as BlockEntityContainer;
+
+            if (blockEntityContainer == null) { return; }
+
             if (!IsInRange(blockSel.Position)) { return; }
-            //int blockdistance = (int)(blockSel.Position.AsVec3i.ManhattenDistanceTo(Pos.AsVec3i));
-            //if (blockdistance > MaxRange) { return; }
+
             //if container isn't on list then add it
-            if (containerlist == null) { containerlist = new List<BlockPos>(); }
+
+            if (containerlist == null) 
+            { 
+                containerlist = new List<BlockPos>();
+            }
+
             if (!containerlist.Contains(blockSel.Position))
             {
-                    containerlist.Add(blockSel.Position); MarkDirty();
+                containerlist.Add(blockSel.Position);
+
+                if (Api is ICoreClientAPI)
+                {
                     HighLightBlocks();
+                }
 
-                    if (Api is ICoreServerAPI)
-                    {
-                        Api.World.PlaySoundAt(new AssetLocation("game:sounds/effect/latch"), byPlayer);
-                    }
-                
-                
-            }
+                if (Api is ICoreServerAPI)
+                {
+                    Api.World.PlaySoundAt(new AssetLocation("game:sounds/effect/latch"), (byEntity as EntityPlayer)?.Player);
+                }
 
-        }
-
-        //Adds a position if not included, or removes it if its
-        public void ToggleContainer(ItemSlot slot, EntityAgent byEntity,BlockSelection blockSel)
-        {
-            if (containerlist == null) 
-            {
-                containerlist = new List<BlockPos>(); 
-            }
-
-            if (containerlist.Contains(blockSel.Position))
-            { 
-                RemoveContainer(slot,byEntity,blockSel); 
-            }
-            else 
-            { 
-                AddContainer(slot, byEntity, blockSel);
+                MarkDirty();
             }
         }
 
@@ -385,17 +392,21 @@ namespace storagecontroller
             if (containerlist == null) { return; }
 
             IPlayer byPlayer = (byEntity as EntityPlayer)?.Player;
+
             if (containerlist.Contains(blockSel.Position))
             {
                 containerlist.Remove(blockSel.Position);
-                
-                HighLightBlocks();
+
+                if (Api is ICoreClientAPI)
+                {
+                    HighLightBlocks();
+                }
 
                 if (Api is ICoreServerAPI)
                 {
                     Api.World.PlaySoundAt(new AssetLocation("game:sounds/effect/latch"), byPlayer);
                 }
-                
+
                 MarkDirty();
             }
 
@@ -667,7 +678,6 @@ namespace storagecontroller
             return stacksize;
         }
 
-
         public bool MatchItemStack(ItemStack containerStack, ItemStack virtualStack) 
         {
             if (containerStack.Satisfies(virtualStack))
@@ -731,33 +741,31 @@ namespace storagecontroller
         /// <param name="byPlayer"></param>
         public void ClearHighlighted()
         {
-            if (Api is ICoreServerAPI) { return; }
-            showingblocks = false;
+            if (Api is ICoreServerAPI) 
+            { 
+                return;
+            }
+
             Api.World.HighlightBlocks(capi.World.Player, 1, new List<BlockPos>());
             Api.World.HighlightBlocks(capi.World.Player, 2, new List<BlockPos>());
             Api.World.HighlightBlocks(capi.World.Player, 3, new List<BlockPos>());
         }
 
-        public void ToggleHightlights()
+        public void ToggleHighLight(bool toggle)
         {
-            if (Api is ICoreClientAPI)
+            if (toggle)
             {
-                if (showingblocks)
-                {
-                    ClearHighlighted();
-                }
-                else
-                {
-                    HighLightBlocks();
-                }
+                HighLightBlocks();
+            }
+            else 
+            {
+                ClearHighlighted();
             }
         }
 
         public void HighLightBlocks()
         {
             if (containerlist == null || containerlist.Count == 0 || Api is ICoreServerAPI) return;
-
-            showingblocks = true;
 
             List<int> colors = new List<int>
             {
@@ -779,14 +787,13 @@ namespace storagecontroller
 
             colors[0] = ColorUtil.ColorFromRgba(255, 0, 255, 128);
 
-            List<BlockPos>mypos= new List<BlockPos>
+            List<BlockPos>storagecontroller= new List<BlockPos>
             {
                 Pos
             };
 
-            Api.World.HighlightBlocks(capi.World.Player, 3, mypos, colors, EnumHighlightBlocksMode.Absolute, EnumHighlightShape.Arbitrary);
+            Api.World.HighlightBlocks(capi.World.Player, 3, storagecontroller, colors, EnumHighlightBlocksMode.Absolute, EnumHighlightShape.Arbitrary);
         }
-
 
         public enum enLinkTargets { ALL }
         /// <summary>

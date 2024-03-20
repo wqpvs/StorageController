@@ -1,22 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Vintagestory.API.Client;
 using Vintagestory.API.Common;
-using Vintagestory.API.Server;
-using Vintagestory.API.Client;
-using Vintagestory.GameContent;
 using Vintagestory.API.Datastructures;
 using Vintagestory.API.MathTools;
-using System.Security.Cryptography;
+using Vintagestory.GameContent;
 
 namespace storagecontroller
 {
     internal class ItemStorageLinker : Item
     {
         public static string islkey="linkto";
+
         public static string isldesc = "linktodesc";
+
+        public bool toggle = false;
 
         public override void OnHeldUseStart(ItemSlot slot, EntityAgent byEntity, BlockSelection blockSel, EntitySelection entitySel, EnumHandInteract useType, bool firstEvent, ref EnumHandHandling handling)
         {
@@ -35,8 +31,20 @@ namespace storagecontroller
             BlockEntity targetEntity = api.World.BlockAccessor.GetBlockEntity(blockSel.Position);
             handling = EnumHandHandling.PreventDefaultAction;
 
+            if (entityPlayer.Controls.CtrlKey)
+            {
+                if (api is ICoreClientAPI)
+                {
+                    toggle = !toggle;
+
+                    (targetEntity as BlockEntityStorageController)?.ToggleHighLight(toggle);
+                }
+
+                return;
+            }
+
             // If the block is a storage controller, set it as the target
-            if (targetEntity is BlockEntityStorageController && !entityPlayer.Controls.CtrlKey)
+            if (targetEntity is BlockEntityStorageController)
             {
                 slot.Itemstack.Attributes.SetBlockPos(islkey, blockSel.Position);
                 slot.Itemstack.Attributes.SetString(isldesc, blockSel.Position.ToLocalPosition(api).ToString());
