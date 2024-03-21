@@ -58,7 +58,7 @@ namespace storagecontroller
 
         internal StorageVirtualInv storageVirtualInv;
 
-        private bool ShowHighLight = false;
+        private bool showHighLight = false;
 
         public static int highlightid = 1;
 
@@ -100,8 +100,6 @@ namespace storagecontroller
 
         private void OnClientTick(float dt)
         {
-            if (!ShowHighLight) return;
-
             IPlayer byPlayer = capi.World.Player;
 
             if (byPlayer == null) return;
@@ -639,7 +637,7 @@ namespace storagecontroller
             if (packetid == showHighLightPacket)
             {
                 OnToggleHighLight();
-                ToggleHighLight(byPlayer, ShowHighLight);
+                ToggleHighLight(byPlayer, showHighLight);
                 return;
             }
 
@@ -838,7 +836,7 @@ namespace storagecontroller
 
         public void OnToggleHighLight() 
         {
-            ShowHighLight =! ShowHighLight;
+            showHighLight = ! showHighLight;
         }
 
         public void ToggleHighLight(IPlayer byPlayer,bool toggle)
