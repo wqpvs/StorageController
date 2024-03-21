@@ -152,5 +152,14 @@ namespace storagecontroller
 
             return true;
         }
+
+        public override void OnBlockBroken(IWorldAccessor world, BlockPos pos, IPlayer byPlayer, float dropQuantityMultiplier = 1)
+        {
+            if (pos == null) return;
+
+            (api as ICoreClientAPI)?.Network.SendBlockEntityPacket(pos, BlockEntityStorageController.showHighLightPacket);
+
+            base.OnBlockBroken(world, pos, byPlayer, dropQuantityMultiplier);
+        }
     }
 }

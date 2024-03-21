@@ -1,20 +1,27 @@
 ﻿using Vintagestory.API.Client;
 using Vintagestory.API.Common;
+using Vintagestory.API.Common.Entities;
+using Vintagestory.API.Config;
 using Vintagestory.API.Datastructures;
 using Vintagestory.API.MathTools;
 using Vintagestory.GameContent;
 
 namespace storagecontroller
 {
-    internal class ItemStorageLinker : Item
+    public class ItemStorageLinker : Item
     {
-        public static string islkey="linkto";
+        public static string posValue = "linkto";
 
-        public static string isldesc = "linktodesc";
+        public static string linkedValue = "linktodesc";
 
-        public bool toggle = false;
+        public WorldInteraction WorldInteraction;
 
-        public override void OnHeldUseStart(ItemSlot slot, EntityAgent byEntity, BlockSelection blockSel, EntitySelection entitySel, EnumHandInteract useType, bool firstEvent, ref EnumHandHandling handling)
+        public override string GetHeldTpHitAnimation(ItemSlot slot, Entity byEntity)
+        {
+            return "interactstatic";
+        }
+
+        public override void OnHeldAttackStart(ItemSlot slot, EntityAgent byEntity, BlockSelection blockSel, EntitySelection entitySel, ref EnumHandHandling handling)
         {
             if (blockSel == null || slot == null) return;
 
@@ -29,60 +36,65 @@ namespace storagecontroller
             if (slot.Empty || slot.Itemstack == null) return;
 
             BlockEntity targetEntity = api.World.BlockAccessor.GetBlockEntity(blockSel.Position);
-            handling = EnumHandHandling.PreventDefaultAction;
 
+            handling = EnumHandHandling.PreventDefault;
+
+            ITreeAttribute attributes = slot.Itemstack.Attributes;
+
+            // maybe have to move it over to OnPlayerRightClick on BlockEntityStorageController
             if (entityPlayer.Controls.CtrlKey)
             {
-                if (api is ICoreClientAPI)
+                if (api is ICoreClientAPI capi)
+                {   // if player is pressing down ctrlkey and is looking at Storage Controller show high light blocks.
+                    if (targetEntity is BlockEntityStorageController)
+                    {
+                        capi.Network.SendBlockEntityPacket(blockSel.Position, BlockEntityStorageController.showHighLightPacket);
+                        return;
+                    }
+                }
+            }
+            else
+            {   // If the block is a storage controller, set it as the target
+                if (targetEntity is BlockEntityStorageController)
                 {
-                    toggle = !toggle;
-
-                    (targetEntity as BlockEntityStorageController)?.ToggleHighLight(toggle);
+                    attributes.SetBlockPos(posValue, blockSel.Position);
+                    attributes.SetString(linkedValue, blockSel.Position.ToLocalPosition(api).ToString());
+                    slot.MarkDirty();
+                    return;
                 }
 
-                return;
+                // Quit if attributes is not set
+                if (!attributes.HasAttribute(posValue + "X"))
+                {
+                    (api as ICoreClientAPI)?.TriggerIngameError(!attributes.HasAttribute(posValue + "X"), $"Use {slot.Itemstack.GetName()} on storage controller first", Lang.Get("storagecontroller:helditem-error-linker {0}", slot.Itemstack.GetName()));
+                    return;
+                }
+
+                // Check for valid SCM
+                BlockPos StorageControllerPos = slot.Itemstack.Attributes.GetBlockPos(posValue);
+                if (StorageControllerPos == null)
+                    return;
+
+                BlockEntityStorageController blockEntityStorageController = api.World.BlockAccessor.GetBlockEntity(StorageControllerPos) as BlockEntityStorageController;
+                if (blockEntityStorageController == null)
+                    return;
+
+
+                blockEntityStorageController.ToggleContainer(slot, byEntity, blockSel);
             }
-
-            // If the block is a storage controller, set it as the target
-            if (targetEntity is BlockEntityStorageController)
-            {
-                slot.Itemstack.Attributes.SetBlockPos(islkey, blockSel.Position);
-                slot.Itemstack.Attributes.SetString(isldesc, blockSel.Position.ToLocalPosition(api).ToString());
-                slot.MarkDirty();
-                return;
-            }
-
-            BlockEntityContainer targetContainer = targetEntity as BlockEntityContainer;
-            if (targetContainer == null)
-                return;
-
-            // Quit if islkey is not set
-            if (!slot.Itemstack.Attributes.HasAttribute(islkey + "X"))
-                return;
-
-            // Check for valid SCM
-            BlockPos scmPos = slot.Itemstack.Attributes.GetBlockPos(islkey);
-            if (scmPos == null)
-                return;
-
-            BlockEntityStorageController scm = api.World.BlockAccessor.GetBlockEntity(scmPos) as BlockEntityStorageController;
-            if (scm == null)
-                return;
-
-
-            scm.ToggleContainer(slot, byEntity, blockSel);
-
         }
 
         public override string GetHeldItemName(ItemStack itemStack)
         {
-            if (itemStack != null && itemStack.Attributes.HasAttribute(isldesc))
+            if (itemStack != null && itemStack.Attributes.HasAttribute(linkedValue))
             {
-                
-                return "Storage Linker (Linking to "+itemStack.Attributes.GetString(isldesc)+")";
+
+                return $"Storage Linker (Linked to ({itemStack.Attributes.GetString(linkedValue)})";
             }
+
             return base.GetHeldItemName(itemStack);
         }
         
+
     }
 }

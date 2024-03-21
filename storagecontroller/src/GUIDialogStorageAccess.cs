@@ -389,7 +389,7 @@ namespace storagecontroller
         private bool OnClickClearAll()
         {
             capi.Network.SendBlockEntityPacket(BlockEntityPosition.X, BlockEntityPosition.Y, BlockEntityPosition.Z, BlockEntityStorageController.clearInventoryPacket, null);
-            entityStorageController?.ClearHighlighted();
+            entityStorageController?.ClearHighlighted(capi.World.Player);
             StorageVirtualInv?.Clear();
             GridSlots();
             return true;
@@ -404,8 +404,7 @@ namespace storagecontroller
 
         private bool OnClickHighlightAttached()
         {
-            toggle =! toggle;
-            entityStorageController?.ToggleHighLight(toggle);
+            capi.Network.SendBlockEntityPacket(BlockEntityPosition, BlockEntityStorageController.showHighLightPacket);
             return true;
         }
 

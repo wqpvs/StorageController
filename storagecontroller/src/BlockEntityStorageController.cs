@@ -11,6 +11,7 @@ using Vintagestory.API.Datastructures;
 using Newtonsoft.Json;
 using System.Reflection;
 using Vintagestory.API.Util;
+using Vintagestory.Server;
 
 namespace storagecontroller
 {
@@ -34,17 +35,17 @@ namespace storagecontroller
 
         public virtual List<string> SupportedCrates => supportedCrates;
 
+        private int tickTime = 250;
         public virtual int TickTime => tickTime; //how many ms between ticks
 
+        private int maxTransferPerTick = 1;
         public virtual int MaxTransferPerTick => maxTransferPerTick; // The maximum of items to transfer
 
+        private int maxRange = 10;
         public virtual int MaxRange => maxRange; //maximum distance (in blocks) that this controller will link to
 
-        private int maxTransferPerTick = 1;
+        public int MaxPlayerRange => MaxRange + MaxRange;
 
-        private int maxRange = 10;
-
-        private int tickTime = 250;
         //bool dopruning = false; //should invalid locations be moved every time?
 
         private GUIDialogStorageAccess clientDialog;
@@ -55,7 +56,7 @@ namespace storagecontroller
 
         internal StorageVirtualInv storageVirtualInv;
 
-        public bool showingblocks = false;
+        private bool ShowHighLight;
 
         public static int highlightid = 1;
 
@@ -78,12 +79,13 @@ namespace storagecontroller
 
             if (Block.Attributes != null)
             {
+
                 maxTransferPerTick = Block.Attributes["maxTransferPerTick"].AsInt(maxTransferPerTick);
                 maxRange = Block.Attributes["maxRange"].AsInt(maxRange);
                 tickTime = Block.Attributes["tickTime"].AsInt(TickTime);
             }
 
-            if (Api is ICoreServerAPI) { 
+            if (Api is ICoreServerAPI) {
                 RegisterGameTickListener(OnServerTick, TickTime); sapi = api as ICoreServerAPI;
             }
             else if (Api is ICoreClientAPI) { capi = api as ICoreClientAPI; }
@@ -96,13 +98,13 @@ namespace storagecontroller
             try
             {
                 //Check if we have any inventory to bother with
-                if (this.Inventory == null || this.Inventory.Empty) 
-                { 
+                if (this.Inventory == null || this.Inventory.Empty)
+                {
                     return;
                 }
 
-                if (containerlist == null || containerlist.Count == 0 || SupportedChests == null) 
-                { 
+                if (containerlist == null || containerlist.Count == 0 || SupportedChests == null)
+                {
                     return;
                 }
 
@@ -156,7 +158,7 @@ namespace storagecontroller
                     BlockEntityContainer blockEntityContainer = blockEntity as BlockEntityContainer;
 
                     if (blockEntity == null || blockEntityContainer == null || blockEntityContainer.Inventory == null) { continue; }//this shouldn't happen, but better to check
-                                                                                           //find better crates
+                                                                                                                                    //find better crates
                     FieldInfo bettercratelock = blockEntity.GetType().GetField("lockedItemInventory");
                     //ah, we have discovered a better crate!
                     //HANDLE BETTER CRATES
@@ -357,14 +359,20 @@ namespace storagecontroller
 
             BlockEntityContainer blockEntityContainer = Api.World.BlockAccessor.GetBlockEntity(blockSel.Position) as BlockEntityContainer;
 
+            IPlayer byPlayer = (byEntity as EntityPlayer)?.Player;
+
+            // Should we let people do this?
+            if (blockEntityContainer is BlockEntityGroundStorage) { return; }
+
             if (blockEntityContainer == null) { return; }
+
 
             if (!IsInRange(blockSel.Position)) { return; }
 
             //if container isn't on list then add it
 
-            if (containerlist == null) 
-            { 
+            if (containerlist == null)
+            {
                 containerlist = new List<BlockPos>();
             }
 
@@ -374,12 +382,12 @@ namespace storagecontroller
 
                 if (Api is ICoreClientAPI)
                 {
-                    HighLightBlocks();
+                    HighLightBlocks(byPlayer);
                 }
 
                 if (Api is ICoreServerAPI)
                 {
-                    Api.World.PlaySoundAt(new AssetLocation("game:sounds/effect/latch"), (byEntity as EntityPlayer)?.Player);
+                    Api.World.PlaySoundAt(new AssetLocation("game:sounds/effect/latch"), byPlayer);
                 }
 
                 MarkDirty();
@@ -399,7 +407,7 @@ namespace storagecontroller
 
                 if (Api is ICoreClientAPI)
                 {
-                    HighLightBlocks();
+                    HighLightBlocks(byPlayer);
                 }
 
                 if (Api is ICoreServerAPI)
@@ -414,7 +422,6 @@ namespace storagecontroller
 
         public override bool OnPlayerRightClick(IPlayer byPlayer, BlockSelection blockSel)
         {
-
             if (Api.Side == EnumAppSide.Client)
             {
                 SetVirtualInventory();
@@ -426,7 +433,6 @@ namespace storagecontroller
             }
 
             return true;
-
         }
 
         public override void FromTreeAttributes(ITreeAttribute tree, IWorldAccessor worldForResolving)
@@ -543,19 +549,27 @@ namespace storagecontroller
                 }
             }
         }
-        
+
 
         public static int itemStackPacket = 320000;
         public static int clearInventoryPacket = 320001;
         public static int linkAllChestsPacket = 320002;
         public static int linkChestPacket = 320003;
         public static int binItemStackPacket = 320004;
+        public static int showHighLightPacket = 320005;
 
-        public override void OnReceivedClientPacket(IPlayer player, int packetid, byte[] data)
+        public override void OnReceivedClientPacket(IPlayer byPlayer, int packetid, byte[] data)
         {
+            if (packetid == showHighLightPacket)
+            {
+                OnToggleHighLight();
+                ToggleHighLight(byPlayer, ShowHighLight);
+                return;
+            }
+
             if (packetid == binItemStackPacket)
             {
-                player.InventoryManager.MouseItemSlot.Itemstack = null;
+                byPlayer.InventoryManager.MouseItemSlot.Itemstack = null;
                 return;
             }
 
@@ -563,14 +577,14 @@ namespace storagecontroller
             //just search and grab/relieve the first stack we find 
             if (packetid == itemStackPacket)
             {
-                if (data == null) 
+                if (data == null)
                 {
                     return;
                 }
 
                 ItemStack virtualStack = new ItemStack(data);
 
-                if (virtualStack == null) 
+                if (virtualStack == null)
                 {
                     return;
                 }
@@ -586,27 +600,27 @@ namespace storagecontroller
                 virtualStack.StackSize = stacksize;
 
                 //no valid slot
-                if (!player.InventoryManager.TryGiveItemstack(virtualStack, true))
+                if (!byPlayer.InventoryManager.TryGiveItemstack(virtualStack, true))
                 {
-                    Api.World.SpawnItemEntity(virtualStack, player.Entity.Pos.XYZ);
+                    Api.World.SpawnItemEntity(virtualStack, byPlayer.Entity.Pos.XYZ);
                 }
 
                 return;
             }
-            else 
+            else
             if (packetid == clearInventoryPacket)
             {
                 ClearConnections();
                 return;
             }
-            else 
+            else
             if (packetid == linkAllChestsPacket)
             {
-          
-                LinkAll(enLinkTargets.ALL, player);
+
+                LinkAll(enLinkTargets.ALL, byPlayer);
                 return;
             }
-            else 
+            else
             if (packetid == linkChestPacket) //link a particular chest
             {
                 BlockPos p = SerializerUtil.Deserialize<BlockPos>(data);
@@ -621,7 +635,7 @@ namespace storagecontroller
                     return;
                 }
                 //ensure player as access rights
-                if (!player.Entity.World.Claims.TryAccess(player, p, EnumBlockAccessFlags.BuildOrBreak))
+                if (!byPlayer.Entity.World.Claims.TryAccess(byPlayer, p, EnumBlockAccessFlags.BuildOrBreak))
                 {
 
                     return;
@@ -631,7 +645,7 @@ namespace storagecontroller
             }
 
 
-            base.OnReceivedClientPacket(player, packetid, data);
+            base.OnReceivedClientPacket(byPlayer, packetid, data);
 
         }
 
@@ -678,7 +692,7 @@ namespace storagecontroller
             return stacksize;
         }
 
-        public bool MatchItemStack(ItemStack containerStack, ItemStack virtualStack) 
+        public bool MatchItemStack(ItemStack containerStack, ItemStack virtualStack)
         {
             if (containerStack.Satisfies(virtualStack))
             {
@@ -694,7 +708,7 @@ namespace storagecontroller
             {
                 return true;
             }
-          
+
             return false;
         }
 
@@ -739,40 +753,52 @@ namespace storagecontroller
         /// Clears all highlighted blocks on client
         /// </summary>
         /// <param name="byPlayer"></param>
-        public void ClearHighlighted()
+        public void ClearHighlighted(IPlayer byPlayer)
         {
-            if (Api is ICoreServerAPI) 
-            { 
-                return;
-            }
-
-            Api.World.HighlightBlocks(capi.World.Player, 1, new List<BlockPos>());
-            Api.World.HighlightBlocks(capi.World.Player, 2, new List<BlockPos>());
-            Api.World.HighlightBlocks(capi.World.Player, 3, new List<BlockPos>());
+            Api.World.HighlightBlocks(byPlayer, 1, new List<BlockPos>());
+            Api.World.HighlightBlocks(byPlayer, 2, new List<BlockPos>());
+            Api.World.HighlightBlocks(byPlayer, 3, new List<BlockPos>());
         }
 
-        public void ToggleHighLight(bool toggle)
+        public void OnToggleHighLight() 
+        {
+            ShowHighLight =! ShowHighLight;
+        }
+
+        public void ToggleHighLight(IPlayer byPlayer,bool toggle)
         {
             if (toggle)
             {
-                HighLightBlocks();
+                HighLightBlocks(byPlayer);
+                return;
             }
-            else 
+
+            if(!toggle) 
             {
-                ClearHighlighted();
+                ClearHighlighted(byPlayer);
+                return;
             }
         }
 
-        public void HighLightBlocks()
+        public void HighLightBlocks(IPlayer byPlayer)
         {
-            if (containerlist == null || containerlist.Count == 0 || Api is ICoreServerAPI) return;
+            //if (!IsInRange(byPlayer?.CurrentBlockSelection?.Position)) { return; }
 
             List<int> colors = new List<int>
             {
                 ColorUtil.ColorFromRgba(0, 255, 0, 128)
             };
-            
-            Api.World.HighlightBlocks(capi.World.Player, 1, containerlist, colors, EnumHighlightBlocksMode.Absolute, EnumHighlightShape.Arbitrary);
+
+            // If list isn't 0 let show the block that we are linking to the storage controller
+            if (containerlist?.Count > 0)
+            {
+                Api.World.HighlightBlocks(byPlayer, 1, containerlist, colors, EnumHighlightBlocksMode.Absolute, EnumHighlightShape.Arbitrary);
+            }
+            else // Fixed for when there is one left it won't go away so we will do it like this instead.
+            if (containerlist?.Count == 0) 
+            { 
+                Api.World.HighlightBlocks(byPlayer, 1, new List<BlockPos>());
+            }
 
             List<BlockPos> range = new List<BlockPos>
             {
@@ -783,7 +809,7 @@ namespace storagecontroller
 
             range.Add(new BlockPos(Pos.X + maxRange, Pos.Y + maxRange, Pos.Z + maxRange, 0));
 
-            Api.World.HighlightBlocks(capi.World.Player, 2, range, colors, EnumHighlightBlocksMode.Absolute, EnumHighlightShape.Cube);
+            Api.World.HighlightBlocks(byPlayer, 2, range, colors, EnumHighlightBlocksMode.Absolute, EnumHighlightShape.Cube);
 
             colors[0] = ColorUtil.ColorFromRgba(255, 0, 255, 128);
 
@@ -792,7 +818,7 @@ namespace storagecontroller
                 Pos
             };
 
-            Api.World.HighlightBlocks(capi.World.Player, 3, storagecontroller, colors, EnumHighlightBlocksMode.Absolute, EnumHighlightShape.Arbitrary);
+            Api.World.HighlightBlocks(byPlayer, 3, storagecontroller, colors, EnumHighlightBlocksMode.Absolute, EnumHighlightShape.Arbitrary);
         }
 
         public enum enLinkTargets { ALL }
@@ -859,11 +885,6 @@ namespace storagecontroller
         public override void OnBlockRemoved()
         {
             base.OnBlockRemoved();
-
-            ClearHighlighted();
-
-
-            //Api.World.UnregisterGameTickListener(storageInterfaceTickListenerId);
 
             if (clientDialog?.IsOpened() ?? false)
             {
