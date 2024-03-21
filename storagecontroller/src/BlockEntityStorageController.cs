@@ -100,6 +100,8 @@ namespace storagecontroller
 
         private void OnClientTick(float dt)
         {
+            if (!ShowHighLight) return;
+
             IPlayer byPlayer = capi.World.Player;
 
             if (byPlayer == null) return;
