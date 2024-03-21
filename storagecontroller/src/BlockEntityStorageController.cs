@@ -12,6 +12,8 @@ using Newtonsoft.Json;
 using System.Reflection;
 using Vintagestory.API.Util;
 using Vintagestory.Server;
+using Vintagestory.API.Config;
+using Vintagestory.Common;
 
 namespace storagecontroller
 {
@@ -56,7 +58,7 @@ namespace storagecontroller
 
         internal StorageVirtualInv storageVirtualInv;
 
-        private bool ShowHighLight;
+        private bool ShowHighLight = false;
 
         public static int highlightid = 1;
 
@@ -79,17 +81,80 @@ namespace storagecontroller
 
             if (Block.Attributes != null)
             {
-
                 maxTransferPerTick = Block.Attributes["maxTransferPerTick"].AsInt(maxTransferPerTick);
                 maxRange = Block.Attributes["maxRange"].AsInt(maxRange);
                 tickTime = Block.Attributes["tickTime"].AsInt(TickTime);
             }
 
-            if (Api is ICoreServerAPI) {
-                RegisterGameTickListener(OnServerTick, TickTime); sapi = api as ICoreServerAPI;
+            if (Api is ICoreServerAPI ICoreServerAPI) 
+            {
+                RegisterGameTickListener(OnServerTick, TickTime); 
+                sapi = ICoreServerAPI;
             }
-            else if (Api is ICoreClientAPI) { capi = api as ICoreClientAPI; }
+            else if (Api is ICoreClientAPI ICoreClientAPI) 
+            {
+                RegisterGameTickListener(OnClientTick, 200);
+                capi = ICoreClientAPI;
+            }
         }
+
+        private void OnClientTick(float dt)
+        {
+            IPlayer byPlayer = capi.World.Player;
+
+            if (byPlayer == null) return;
+
+            IInventory playeHotBar = byPlayer.InventoryManager.GetHotbarInventory();
+
+            IInventory playerInv = byPlayer.InventoryManager.GetInventory(GlobalConstants.characterInvClassName);
+
+            if (playerInv != null && playerInv.Empty) 
+            {
+                foreach (ItemSlot invSlots in playerInv)
+                {
+                    if (invSlots.Empty) continue;
+
+                    if (invSlots.Itemstack.Collectible is ItemStorageLinker)
+                    {
+                        if (invSlots.Itemstack.Attributes.HasAttribute(ItemStorageLinker.posValue + "X"))
+                        {
+                            if (Pos == invSlots.Itemstack.Attributes.GetBlockPos(ItemStorageLinker.posValue))
+                            {
+                                if (!IsPlayerInRange(byPlayer.Entity.Pos.AsBlockPos))
+                                {
+                                    ToggleHighLight(byPlayer, false);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (playeHotBar != null)
+            {
+                foreach (ItemSlot hotBarSlots in playeHotBar)
+                {
+                    if (hotBarSlots.Empty) continue;
+
+                    if (hotBarSlots.Itemstack.Collectible is ItemStorageLinker)
+                    {
+                        if (hotBarSlots.Itemstack.Attributes.HasAttribute(ItemStorageLinker.posValue + "X"))
+                        {
+                            if (Pos == hotBarSlots.Itemstack.Attributes.GetBlockPos(ItemStorageLinker.posValue))
+                            {
+                                if (!IsPlayerInRange(byPlayer.Entity.Pos.AsBlockPos))
+                                {
+                                    ToggleHighLight(byPlayer, false);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         //Better crates: BBetterCrate, BEBetterCrate, Crate, GenericTypedContainer
 
         //stuff to do every so often
@@ -111,7 +176,6 @@ namespace storagecontroller
                 //Manage linked container list
                 //// - only check so many blocks per tick
                 //List<BlockPos> prunelist = new List<BlockPos>(); //This is a list of invalid blockpos that should be deleted from list
-
 
                 //foreach (BlockPos pos in containerlist)
                 //{
@@ -320,6 +384,17 @@ namespace storagecontroller
             {
 
             }
+        }
+
+        public bool IsPlayerInRange(BlockPos checkpos)
+        {
+            int xdiff = Math.Abs(Pos.X - checkpos.X);
+            if (xdiff >= MaxPlayerRange) { return false; }
+            int ydiff = Math.Abs(Pos.Y - checkpos.Y);
+            if (ydiff >= MaxPlayerRange) { return false; }
+            int zdiff = Math.Abs(Pos.Z - checkpos.Z);
+            if (zdiff >= MaxPlayerRange) { return false; }
+            return true;
         }
 
         public bool IsInRange(BlockPos checkpos)
@@ -549,7 +624,6 @@ namespace storagecontroller
                 }
             }
         }
-
 
         public static int itemStackPacket = 320000;
         public static int clearInventoryPacket = 320001;

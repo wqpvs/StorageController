@@ -10,8 +10,6 @@ namespace StorageController
 {
     public class StorageControllerModSystem : ModSystem
     {
-        Harmony harmony = new Harmony("com.storagecontroller");
-
         private ICoreClientAPI capi;
 
         public override void StartPre(ICoreAPI api)
@@ -22,14 +20,11 @@ namespace StorageController
         public override void Start(ICoreAPI api)
         {
             base.Start(api);
-          
 
             api.RegisterBlockEntityClass("StorageControllerMaster", typeof(BlockEntityStorageController));
-            api.RegisterItemClass("ItemStorageLinker",typeof(ItemStorageLinker));
+            api.RegisterItemClass("ItemStorageLinker", typeof(ItemStorageLinker));
             api.RegisterBlockClass("BlockStorageController", typeof(BlockStorageController));
 
-
-            harmony.PatchAll(Assembly.GetExecutingAssembly());
         }
 
         public override void StartClientSide(ICoreClientAPI api)
@@ -54,12 +49,6 @@ namespace StorageController
                 int value = ColorUtil.ColorFromRgba(r, g, b, a);
                 capi.Gui.DrawSvg(svgAsset, ctx.GetTarget() as ImageSurface, x, y, (int)w, (int)h, new int?(value));
             };
-        }
-
-        public override void Dispose()
-        {
-            harmony.UnpatchAll(harmony.Id);
-            base.Dispose();
         }
     }
 }
