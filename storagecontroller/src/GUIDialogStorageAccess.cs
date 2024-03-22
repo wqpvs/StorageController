@@ -101,7 +101,6 @@ namespace storagecontroller
         public InventoryBase InventoryBase;
 
         public bool toggle = false;
-
         public override AssetLocation CloseSound { get => entityStorageController.CloseSound; set => entityStorageController.CloseSound = value; }
 
         public override AssetLocation OpenSound { get => entityStorageController.OpenSound; set => entityStorageController.OpenSound = value; }
@@ -242,7 +241,7 @@ namespace storagecontroller
             var option = Composers[mainCompKey] =
                  capi.Gui
                  .CreateCompo(mainCompKey + base.BlockEntityPosition, mainDialogBound)
-                 .AddShadedDialogBG(elementBounds7)
+                 .AddShadedDialogBG(elementBounds7, true, 10.0, 0.60f)
                  .AddDialogTitleBar(Lang.Get("storagecontroller:gui-storageinventory"), CloseIconPressed)
                  .AddButton(Lang.Get("storagecontroller:gui-button-clear-all"), OnClickClearAll, button1, CairoFont.WhiteSmallText(), EnumButtonStyle.Normal, "clearAll")
                  .AddAutoSizeHoverText(Lang.Get("storagecontroller:gui-hover-clear-all"), CairoFont.WhiteSmallText(), 300, button1)
@@ -268,6 +267,7 @@ namespace storagecontroller
 
             GridSlots();
 
+            option.EndChildElements();
             option.Compose();
         }
 
@@ -446,14 +446,14 @@ namespace storagecontroller
         public override void OnGuiClosed()
         {
             base.OnGuiClosed();
-            FreePos("smallblockgui", screenPos);
+            FreePos("storagecontrollergui", screenPos);
         }
 
         public override void OnGuiOpened()
         {
             base.OnGuiOpened();
-            screenPos = GetFreePos("smallblockgui");
-            OccupyPos("smallblockgui", screenPos);
+            screenPos = GetFreePos("storagecontrollergui");
+            OccupyPos("storagecontrollergui", screenPos);
             ComposersDialog();
         }
 
