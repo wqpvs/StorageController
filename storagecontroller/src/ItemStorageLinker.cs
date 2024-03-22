@@ -1,10 +1,14 @@
-﻿using Vintagestory.API.Client;
+﻿using System.Collections.Generic;
+using Microsoft.VisualBasic;
+using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.Common.Entities;
 using Vintagestory.API.Config;
 using Vintagestory.API.Datastructures;
 using Vintagestory.API.MathTools;
+using Vintagestory.API.Util;
 using Vintagestory.GameContent;
+using static System.Reflection.Metadata.BlobBuilder;
 
 namespace storagecontroller
 {
@@ -14,7 +18,48 @@ namespace storagecontroller
 
         public static string linkedValue = "linktodesc";
 
-        public WorldInteraction WorldInteraction;
+        public WorldInteraction[] interactions;
+
+        public override void OnLoaded(ICoreAPI api)
+        {
+
+            if (api.Side != EnumAppSide.Client)
+            {
+                return;
+            }
+            _ = api;
+
+            interactions = ObjectCacheUtil.GetOrCreate(api, "linkerInteractions", delegate
+            {
+                List<ItemStack> itemStacks = new List<ItemStack>();
+
+
+                foreach (Block block in api.World.Blocks)
+                {
+                    if (block is BlockStorageController)
+                    {
+                        itemStacks.Add(new ItemStack(block));
+                    }
+                }
+
+                return new WorldInteraction[2]
+                {
+                        new WorldInteraction
+                        {
+                            ActionLangCode = "storagecontroller:heldhelp-linker",
+                            MouseButton = EnumMouseButton.Left
+                        },
+                        new WorldInteraction
+                        {
+                            ActionLangCode = "storagecontroller:heldhelp-linker-highlight",
+                            MouseButton = EnumMouseButton.Left,
+                            HotKeyCode = "ctrl",
+                            Itemstacks = itemStacks.ToArray(),
+                        }
+                };
+            });
+
+        }
 
         public override string GetHeldTpHitAnimation(ItemSlot slot, Entity byEntity)
         {
@@ -44,11 +89,12 @@ namespace storagecontroller
             // maybe have to move it over to OnPlayerRightClick on BlockEntityStorageController
             if (entityPlayer.Controls.CtrlKey)
             {
-                if (api is ICoreClientAPI capi)
+                if (api is ICoreClientAPI)
                 {   // if player is pressing down ctrlkey and is looking at Storage Controller show high light blocks.
-                    if (targetEntity is BlockEntityStorageController)
+                    if (targetEntity is BlockEntityStorageController blockEntityStorageController)
                     {
-                        capi.Network.SendBlockEntityPacket(blockSel.Position, BlockEntityStorageController.showHighLightPacket);
+                        blockEntityStorageController.ShowHighLight = !blockEntityStorageController.ShowHighLight;
+                        blockEntityStorageController.ToggleHighLight(entityPlayer.Player, blockEntityStorageController.ShowHighLight);
                         return;
                     }
                 }
@@ -80,7 +126,7 @@ namespace storagecontroller
                     return;
 
 
-                blockEntityStorageController.ToggleContainer(slot, byEntity, blockSel);
+                blockEntityStorageController.ToggleContainer(byEntity, blockSel);
             }
         }
 
@@ -94,7 +140,9 @@ namespace storagecontroller
 
             return base.GetHeldItemName(itemStack);
         }
-        
-
+        public override WorldInteraction[] GetHeldInteractionHelp(ItemSlot inSlot)
+        {
+            return interactions.Append(base.GetHeldInteractionHelp(inSlot));
+        }
     }
 }

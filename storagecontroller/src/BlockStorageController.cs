@@ -157,7 +157,12 @@ namespace storagecontroller
         {
             if (pos == null) return;
 
-            (api as ICoreClientAPI)?.Network.SendBlockEntityPacket(pos, BlockEntityStorageController.showHighLightPacket);
+            BlockEntityStorageController blockEntityStorageController = (api as ICoreClientAPI)?.World.BlockAccessor.GetBlockEntity(pos) as BlockEntityStorageController;
+
+            if (blockEntityStorageController != null) {
+                blockEntityStorageController.ClearHighlighted(byPlayer);
+            }
+
 
             base.OnBlockBroken(world, pos, byPlayer, dropQuantityMultiplier);
         }

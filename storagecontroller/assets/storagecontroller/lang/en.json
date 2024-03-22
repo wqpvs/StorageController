@@ -50,5 +50,9 @@
 
     "gui-hover-searchbar": "Search for items/blocks by name or use keywords (example: oak to find oak-related items, silver to find items related to silver)",
 
-    "helditem-error-linker {0}": "Use the {0} on storage controller first"
+    "helditem-error-linker {0}": "Use the {0} on storage controller first",
+
+    "heldhelp-linker": "Use",
+
+    "heldhelp-linker-highlight": "Toggle to show highlight blocks"
 }

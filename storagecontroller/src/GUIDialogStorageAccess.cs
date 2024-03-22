@@ -82,6 +82,8 @@ namespace storagecontroller
 
     public class GUIDialogStorageAccess : GuiDialogBlockEntity
     {
+        private EnumPosFlag screenPos;
+
         protected string currentSearchText;
         private byte[] data { get; set; }
 
@@ -106,6 +108,8 @@ namespace storagecontroller
 
         public InventoryBase inventoryBin;
 
+        public BlockPos BlockPos;
+
         public ItemSlot ItemSlot => inventoryBin[0];
 
         public BlockEntityStorageController entityStorageController;
@@ -113,22 +117,31 @@ namespace storagecontroller
         protected int curTab = 0;
         public override double DrawOrder => 0.2;
 
+        public bool IsDuplicateInv;
+
+        public bool IsDuplicateVirInv;
+
         public string gridCompKey => "storageGridCompo";
         public string mainCompKey => "storageMainCompo";
 
         public GUIDialogStorageAccess(string dialogTitle, InventoryBase Inventory, StorageVirtualInv storageVirtualInv, BlockPos BlockEntityPosition, ICoreClientAPI capi)
              : base(dialogTitle, Inventory, BlockEntityPosition, capi)
         {
-            if (IsDuplicate) return;
+            IsDuplicateInv = capi.World.Player.InventoryManager.Inventories.ContainsValue(Inventory);
 
-            InventoryBase = Inventory;
+            IsDuplicateVirInv = capi.World.Player.InventoryManager.Inventories.ContainsValue(storageVirtualInv);
+
+            if (!IsDuplicateInv && !IsDuplicateVirInv)
+            {
+                StorageVirtualInv = storageVirtualInv;
+                InventoryBase = Inventory;
+                BlockPos = BlockEntityPosition;
+            }
 
             if (capi.World.BlockAccessor.GetBlockEntity(BlockEntityPosition) is BlockEntityStorageController storageController)
             {
                 entityStorageController = storageController;
             }
-
-            StorageVirtualInv = storageVirtualInv;
 
             inventoryBin = new InventoryGeneric(1, "bin", "1", capi);
 
@@ -139,8 +152,19 @@ namespace storagecontroller
             InventoryBase[1].BackgroundIcon = "input";
 
             curTab = 1;
-
         }
+
+        public GUIDialogStorageAccess(string dialogTitle, BlockPos blockEntityPos, ICoreClientAPI capi) : base(dialogTitle, blockEntityPos, capi)
+        {
+            IsDuplicateInv = capi.OpenedGuis.FirstOrDefault((object dlg) => (dlg as GuiDialogBlockEntity)?.BlockEntityPosition == blockEntityPos) != null;
+            IsDuplicateVirInv = capi.OpenedGuis.FirstOrDefault((object dlg) => (dlg as GuiDialogBlockEntity)?.BlockEntityPosition == blockEntityPos) != null;
+
+            if (!IsDuplicate && !IsDuplicateVirInv)
+            {
+                BlockPos = BlockEntityPosition;
+            }
+        }
+
         protected override double FloatyDialogAlign
         {
             get
@@ -213,12 +237,11 @@ namespace storagecontroller
             ElementBounds elementBounds7 = ElementBounds.Fill.WithFixedPadding(GuiStyle.ElementToDialogPadding);
             elementBounds7.BothSizing = ElementSizing.FitToChildren;
             elementBounds7.WithChildren(mainElement, buttonlist, gridSlots);
-
             //Main Gui
-            mainDialogBound = ElementStdBounds.AutosizedMainDialog.WithAlignment(EnumDialogArea.LeftFixed).WithFixedAlignmentOffset(0 - GuiStyle.DialogToScreenPadding, 0);
+            mainDialogBound = ElementStdBounds.AutosizedMainDialog.WithFixedAlignmentOffset(IsRight(screenPos) ? (0.0 - GuiStyle.DialogToScreenPadding) : GuiStyle.DialogToScreenPadding, 0.0).WithAlignment(IsRight(screenPos) ? EnumDialogArea.RightMiddle : EnumDialogArea.LeftMiddle);
             var option = Composers[mainCompKey] =
                  capi.Gui
-                 .CreateCompo(mainCompKey, mainDialogBound)
+                 .CreateCompo(mainCompKey + base.BlockEntityPosition, mainDialogBound)
                  .AddShadedDialogBG(elementBounds7)
                  .AddDialogTitleBar(Lang.Get("storagecontroller:gui-storageinventory"), CloseIconPressed)
                  .AddButton(Lang.Get("storagecontroller:gui-button-clear-all"), OnClickClearAll, button1, CairoFont.WhiteSmallText(), EnumButtonStyle.Normal, "clearAll")
@@ -238,13 +261,14 @@ namespace storagecontroller
                  .AddTextInput(searchBarBounds, FilterItemsBySearchText, CairoFont.TextInput(), "search")
                  .AddAutoSizeHoverText(Lang.Get("storagecontroller:gui-hover-searchbar"), CairoFont.WhiteSmallText(), 300, searchBarBounds)
                  .AddIconButton("arrow-up", PreviousGrid, button4, "pregrid")
-                 .AddIconButton("arrow-down", NextGrid, button5, "nextgrid")
-                 .Compose(true);
+                 .AddIconButton("arrow-down", NextGrid, button5, "nextgrid");
 
             option.GetTextInput("search").SetPlaceHolderText(Lang.Get("Search..."));
-            option.Compose();
+       
 
             GridSlots();
+
+            option.Compose();
         }
 
         protected void FilterItemsBySearchText(string text)
@@ -404,13 +428,14 @@ namespace storagecontroller
 
         private bool OnClickHighlightAttached()
         {
-            capi.Network.SendBlockEntityPacket(BlockEntityPosition, BlockEntityStorageController.showHighLightPacket);
+            entityStorageController.ShowHighLight = !entityStorageController.ShowHighLight;
+            entityStorageController.ToggleHighLight(capi.World.Player, entityStorageController.ShowHighLight);
             return true;
         }
 
         public override bool TryOpen()
         {
-            if (this.IsDuplicate)
+            if (IsDuplicateInv && IsDuplicateVirInv)
             {
                 return false;
             }
@@ -421,12 +446,15 @@ namespace storagecontroller
         public override void OnGuiClosed()
         {
             base.OnGuiClosed();
+            FreePos("smallblockgui", screenPos);
         }
 
         public override void OnGuiOpened()
         {
-            ComposersDialog();
             base.OnGuiOpened();
+            screenPos = GetFreePos("smallblockgui");
+            OccupyPos("smallblockgui", screenPos);
+            ComposersDialog();
         }
 
         private void SendBinPacket(object packet)
@@ -467,7 +495,7 @@ namespace storagecontroller
 
         private void GridSlots()
         {
-            var stoCompKey = Composers[gridCompKey] = capi.Gui.CreateCompo(gridCompKey, mainDialogBound);
+            var stoCompKey = Composers[gridCompKey] = capi.Gui.CreateCompo(gridCompKey + base.BlockEntityPosition, mainDialogBound);
 
             if (StorageVirtualInv != null && !StorageVirtualInv.Empty)
             {
