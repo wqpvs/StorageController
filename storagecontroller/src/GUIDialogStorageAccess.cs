@@ -241,7 +241,7 @@ namespace storagecontroller
             var option = Composers[mainCompKey] =
                  capi.Gui
                  .CreateCompo(mainCompKey + base.BlockEntityPosition, mainDialogBound)
-                 .AddShadedDialogBG(elementBounds7, true, 10.0, 0.60f)
+                 .AddShadedDialogBG(elementBounds7, true, 10.0, 0.80f)
                  .AddDialogTitleBar(Lang.Get("storagecontroller:gui-storageinventory"), CloseIconPressed)
                  .AddButton(Lang.Get("storagecontroller:gui-button-clear-all"), OnClickClearAll, button1, CairoFont.WhiteSmallText(), EnumButtonStyle.Normal, "clearAll")
                  .AddAutoSizeHoverText(Lang.Get("storagecontroller:gui-hover-clear-all"), CairoFont.WhiteSmallText(), 300, button1)
