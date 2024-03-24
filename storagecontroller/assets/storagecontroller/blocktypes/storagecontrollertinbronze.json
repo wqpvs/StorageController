@@ -95,7 +95,8 @@
 	"textures": {
 		"normal-generic-sides": { "base": "storagecontroller:block/sides-tinbronze" },
 		"normal-generic-block": { "base": "game:block/metal/plate/tinbronze" },
-		"normal-generic-screen": { "base": "storagecontroller:block/screen" }
+		"normal-generic-screen": { "base": "storagecontroller:block/screen" },
+		"normal-generic-drives": { "base": "storagecontroller:block/drives" }
 	},
 	"blockmaterial": "Metal",
 	"replaceable": 500,
