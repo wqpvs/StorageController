@@ -59,7 +59,7 @@ namespace storagecontroller
             //let upgrade controller.
             if (TryApplyUpgrade(world, byPlayer, entityStorageController))
             {
-                return true;
+                return false;
             }
 
             if (byPlayer.InventoryManager.ActiveHotbarSlot?.Itemstack?.Collectible is ItemStorageLinker) {
@@ -77,7 +77,7 @@ namespace storagecontroller
 
         private bool TryApplyUpgrade(IWorldAccessor world, IPlayer byPlayer, BlockEntityStorageController storageControllerMaster)
         {
-            if (byPlayer.InventoryManager.ActiveHotbarSlot?.Empty == null ? false : true)
+            if (byPlayer.InventoryManager.ActiveHotbarSlot?.Empty ?? false)
                 return false;
 
             ItemStack hotbarItemStack = byPlayer.InventoryManager.ActiveHotbarSlot.Itemstack;
