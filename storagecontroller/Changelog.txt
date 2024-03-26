@@ -1,4 +1,18 @@
-﻿1.0.7
+﻿1.0.8
+- massive overhaul courtesy of Mister Andy Dandy!
+   - new UI includes a search bar and scrollable inventory
+   - just right click to get UI now
+   - UI has a small refresh button, top right to update storage contents after taking/inserting
+   - shift click or drag inventory into the storage controller input slots right from the main ui!
+   - new graphics for linker and storage controller
+   - left clicking with linker connects/disconnects to the controller, with highlighting
+   - better highlighting of linked units
+   - includes a new garbage bin! (just drag unwanted items on to the bin on the UI - careful they will instantly be destroyed!)
+   - note stacks are now shown separately for stability reasons, when you click on a stack you will get the first stack of that type from inventory
+       - you may not get the exact stack you clicked on - eg: 64 of clay stones and 12 of clay stones - click on one may give you the other
+
+
+1.0.7
 - show/highlight button - now shows range of device!
 - mouse over text for inventory
 - move large .afphoto out of assets (oops!)
