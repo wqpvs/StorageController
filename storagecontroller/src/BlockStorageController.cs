@@ -139,6 +139,7 @@ namespace storagecontroller
 
             // Let add linked Container back to the new block
             storageController.SetContainers(Pos);
+            storageController.MarkDirty();
 
             if (api is ICoreClientAPI capi)
             {
