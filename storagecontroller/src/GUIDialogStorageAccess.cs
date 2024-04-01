@@ -87,6 +87,10 @@ namespace storagecontroller
         protected string currentSearchText;
         private byte[] data { get; set; }
 
+        private GuiComposer mainComposer;
+
+        private GuiComposer gridComposer;
+
         public ElementBounds mainDialogBound;
 
         public ElementBounds gridSlots;
@@ -146,9 +150,9 @@ namespace storagecontroller
 
             inventoryBin[0].BackgroundIcon = "trash-can";
 
-            InventoryBase[0].BackgroundIcon = "input";
-
             InventoryBase[1].BackgroundIcon = "input";
+
+            InventoryBase[2].BackgroundIcon = "input";
 
             curTab = 1;
         }
@@ -238,7 +242,7 @@ namespace storagecontroller
             elementBounds7.WithChildren(mainElement, buttonlist, gridSlots);
             //Main Gui
             mainDialogBound = ElementStdBounds.AutosizedMainDialog.WithFixedAlignmentOffset(IsRight(screenPos) ? (0.0 - GuiStyle.DialogToScreenPadding) : GuiStyle.DialogToScreenPadding, 0.0).WithAlignment(IsRight(screenPos) ? EnumDialogArea.RightMiddle : EnumDialogArea.LeftMiddle);
-            var option = Composers[mainCompKey] =
+             mainComposer = Composers[mainCompKey] =
                  capi.Gui
                  .CreateCompo(mainCompKey + base.BlockEntityPosition, mainDialogBound)
                  .AddShadedDialogBG(elementBounds7, true, 10.0, 0.80f)
@@ -254,7 +258,7 @@ namespace storagecontroller
                  .AddItemSlotGrid(inventoryBin, SendBinPacket, 1, new int[1] { 0 }, binslots.BelowCopy(1, 24), "binslot")
                  .AddDynamicText(Lang.Get("Bin"), CairoFont.WhiteSmallishText(), binslots.BelowCopy(10, 2))
                  .AddInset(binslots.BelowCopy(0, 0, 0, 22), 8, 0.7f)
-                 .AddItemSlotGrid(InventoryBase, SendInvPacket, 2, new int[8] { 0, 1, 2, 3, 4, 5, 6, 7 }, inputslots, "inputslotgrid")
+                 .AddItemSlotGrid(InventoryBase, SendInvPacket, 2, new int[8] { 1, 2, 3, 4, 5, 6, 7, 8 }, inputslots, "inputslotgrid")
                  .AddDynamicText(Lang.Get("Input"), CairoFont.WhiteSmallishText(), inputslots.BelowCopy(25, -230))
                  .AddInset(inputslots.BelowCopy(-1, -230, 0, 25), 8, 0.7f)
                  .AddTextInput(searchBarBounds, FilterItemsBySearchText, CairoFont.TextInput(), "search")
@@ -262,13 +266,13 @@ namespace storagecontroller
                  .AddIconButton("arrow-up", PreviousGrid, button4, "pregrid")
                  .AddIconButton("arrow-down", NextGrid, button5, "nextgrid");
 
-            option.GetTextInput("search").SetPlaceHolderText(Lang.Get("Search..."));
+            mainComposer.GetTextInput("search").SetPlaceHolderText(Lang.Get("Search..."));
        
 
             GridSlots();
 
-            option.EndChildElements();
-            option.Compose();
+            mainComposer.EndChildElements();
+            mainComposer.Compose();
         }
 
         protected void FilterItemsBySearchText(string text)
@@ -277,6 +281,32 @@ namespace storagecontroller
             {
                 currentSearchText = text;
                 FilterItems();
+            }
+        }
+
+        public override void OnRenderGUI(float deltaTime)
+        {
+            foreach (KeyValuePair<string, GuiComposer> item in (IEnumerable<KeyValuePair<string, GuiComposer>>)Composers)
+            {
+                item.Value.Render(deltaTime);
+                MouseOverCursor = item.Value.MouseOverCursor;
+            }
+
+            if (capi.Settings.Bool["immersiveMouseMode"])
+            {
+                Vec3d vec3d = MatrixToolsd.Project(new Vec3d((double)BlockEntityPosition.X + 0.5, (double)BlockEntityPosition.Y + FloatyDialogPosition, (double)BlockEntityPosition.Z + 0.5), capi.Render.PerspectiveProjectionMat, capi.Render.PerspectiveViewMat, capi.Render.FrameWidth, capi.Render.FrameHeight);
+                if (vec3d.Z < 0.0)
+                {
+                    return;
+                }
+
+                mainComposer.Bounds.Alignment = EnumDialogArea.None;
+                mainComposer.Bounds.fixedOffsetX = 0.0;
+                mainComposer.Bounds.fixedOffsetY = 0.0;
+                mainComposer.Bounds.absFixedX = vec3d.X - mainComposer.Bounds.OuterWidth / 2.0;
+                mainComposer.Bounds.absFixedY = (double)capi.Render.FrameHeight - vec3d.Y - mainComposer.Bounds.OuterHeight * FloatyDialogAlign;
+                mainComposer.Bounds.absMarginX = 0.0;
+                mainComposer.Bounds.absMarginY = 0.0;
             }
         }
 
