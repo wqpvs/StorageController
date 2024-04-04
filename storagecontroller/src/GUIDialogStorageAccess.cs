@@ -89,8 +89,6 @@ namespace storagecontroller
 
         private GuiComposer mainComposer;
 
-        private GuiComposer gridComposer;
-
         public ElementBounds mainDialogBound;
 
         public ElementBounds gridSlots;
