@@ -94,7 +94,7 @@
 	"_comment": "Must declare textures so they get added to the block texture atlas",
 	"textures": {
 		"normal-generic-sides": { "base": "storagecontroller:block/sides-iron" },
-		"normal-generic-block": { "base": "game:block/metal/plate/iron" },
+		"normal-generic-Main-Iron": { "base": "game:block/metal/plate/iron" },
 		"normal-generic-screen": { "base": "storagecontroller:block/screen" },
 		"normal-generic-drives": { "base": "storagecontroller:block/drives" }
 	},
