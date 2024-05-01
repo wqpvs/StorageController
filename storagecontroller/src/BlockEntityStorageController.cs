@@ -58,9 +58,9 @@ namespace storagecontroller
 
         public virtual StorageVirtualInv StorageVirtualInv => storageVirtualInv;
 
-        private HashSet<ItemStack> allItemStackSet;
+        private List<ItemStack> allItemStackSet;
 
-        private HashSet<ItemStack> AllItemStackSet
+        private List<ItemStack> AllItemStackSet
         {
             get => allItemStackSet;
             set => allItemStackSet = value;
@@ -558,14 +558,15 @@ namespace storagecontroller
         /// </summary>
         public virtual void SetVirtualInventory()
         {
-            HashSet<ItemStack> newItemStackSet = new HashSet<ItemStack>();
+            storageVirtualInv = null;
+            List<ItemStack> newItemStackSet = new List<ItemStack>();
             
             if (ContainerList == null || ContainerList.Count == 0)
             {
                 storageVirtualInv = null;
                 return;
             }
-
+            
             // Iterate through each container in the list
             foreach (BlockPos pos in ContainerList)
             {
@@ -586,18 +587,19 @@ namespace storagecontroller
                         ItemStack matchstack = newItemStackSet.FirstOrDefault(x => MatchItemStack(x, slot.Itemstack),null);
                         if (matchstack == null)
                         {
-                            newItemStackSet.Add(slot.Itemstack);
+                            newItemStackSet.Add(slot.Itemstack.Clone());
                         }
                         else
                         {
+                            
                             matchstack.StackSize += slot.StackSize;
                         }
                     }
                 }
             }
 
-            if (!HashSet<ItemStack>.CreateSetComparer().Equals(newItemStackSet, AllItemStackSet))
-            {
+            //if (!HashSet<ItemStack>.CreateSetComparer().Equals(newItemStackSet, AllItemStackSet))
+            //{
                 // Convert the new set to a list and sort it
                 List<ItemStack> allItems = newItemStackSet.OrderBy(item => item.GetName()).ToList();
 
@@ -610,9 +612,10 @@ namespace storagecontroller
                 }
 
                 // Update the AllItemStackSet property
-                AllItemStackSet = new HashSet<ItemStack>(newItemStackSet.OrderBy(item => item.GetName()));
-            }
-            else
+                AllItemStackSet = new List<ItemStack>(newItemStackSet.OrderBy(item => item.GetName()));
+            
+            //}
+            /*else
             {
                 // Use the existing sorted list of item stacks
                 List<ItemStack> allItems = AllItemStackSet.OrderBy(item => item.GetName()).ToList();
@@ -624,7 +627,7 @@ namespace storagecontroller
                 {
                     storageVirtualInv[i].Itemstack = allItems[i].Clone();
                 }
-            }
+            }*/
         }
 
         public static int itemStackPacket = 320000;
