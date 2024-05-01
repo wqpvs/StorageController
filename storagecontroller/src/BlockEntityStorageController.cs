@@ -771,21 +771,12 @@ namespace storagecontroller
 
         public bool MatchItemStack(ItemStack containerStack, ItemStack virtualStack)
         {
+            
             if (containerStack.Satisfies(virtualStack))
             {
                 return true;
             }
-            else
-            if (containerStack?.ItemAttributes?.Equals(virtualStack?.ItemAttributes) ?? false)
-            {
-                return true;
-            }
-            else
-            if (containerStack.Id.Equals(virtualStack.Id))
-            {
-                return true;
-            }
-
+            
             return false;
         }
 

@@ -511,6 +511,7 @@ namespace storagecontroller
             {
                 return;
             }
+            bool isblock = itemStack.ResolveBlockOrItem(capi.World);
 
             data = itemStack.ToBytes();
 
