@@ -559,7 +559,7 @@ namespace storagecontroller
         public virtual void SetVirtualInventory()
         {
             HashSet<ItemStack> newItemStackSet = new HashSet<ItemStack>();
-
+            
             if (ContainerList == null || ContainerList.Count == 0)
             {
                 storageVirtualInv = null;
@@ -583,7 +583,15 @@ namespace storagecontroller
                     if (!slot.Empty && slot.Itemstack != null && slot.StackSize > 0)
                     {
                         // Add the item stack to the new set
-                        newItemStackSet.Add(slot.Itemstack);
+                        ItemStack matchstack = newItemStackSet.FirstOrDefault(x => MatchItemStack(x, slot.Itemstack),null);
+                        if (matchstack == null)
+                        {
+                            newItemStackSet.Add(slot.Itemstack);
+                        }
+                        else
+                        {
+                            matchstack.StackSize += slot.StackSize;
+                        }
                     }
                 }
             }

@@ -520,6 +520,7 @@ namespace storagecontroller
                 capi.World.Player.InventoryManager.MouseItemSlot.Itemstack = null;
                 capi.Network.SendBlockEntityPacket(BlockEntityPosition.X, BlockEntityPosition.Y, BlockEntityPosition.Z, BlockEntityStorageController.itemStackPacket, data);
             }
+            OnRefresh();
         }
 
         private void GridSlots()
