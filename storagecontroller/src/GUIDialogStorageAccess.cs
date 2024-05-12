@@ -84,7 +84,7 @@ namespace storagecontroller
     {
         private EnumPosFlag screenPos;
 
-        protected string currentSearchText;
+        protected static string currentSearchText="";
         private byte[] data { get; set; }
 
         private GuiComposer mainComposer;
@@ -337,15 +337,23 @@ namespace storagecontroller
                 {
                     
                     bool Attributes = itemSlot.Itemstack.Attributes.Any(type => type.Value.Equals(text));
-
-                    if (itemSlot.Itemstack.Attributes != null && Attributes) // fix to find bookshelf wood types etc
+                    try
                     {
-                        filteredSlots.Add(itemSlot);
+                        if (itemSlot.Itemstack.Attributes != null && Attributes) // fix to find bookshelf wood types etc
+                        {
+                            filteredSlots.Add(itemSlot);
+                        }
+                        else if (itemSlot.Itemstack.Block!=null&&itemSlot.Itemstack.Block.Class=="BlockCrock")
+                        {
+                            //skip crocks because they are stupid
+                        }
+                        else if (itemSlot.Itemstack.MatchesSearchText(capi.World, text))
+                        {
+                           filteredSlots.Add(itemSlot);
+                            
+                        }
                     }
-                    else if (itemSlot.Itemstack.MatchesSearchText(capi.World, text))
-                    {
-                        filteredSlots.Add(itemSlot);
-                    }
+                    catch { }
                 }
             }
 
