@@ -1,4 +1,9 @@
-﻿1.0.8
+﻿1.0.9
+TODO: - fix vanilla crates
+- fix filter being deleted on update
+- add ctrl click to take single
+
+1.0.8
 - massive overhaul courtesy of Mister Andy Dandy!
    - new UI includes a search bar and scrollable inventory
    - just right click to get UI now

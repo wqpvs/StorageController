@@ -264,8 +264,13 @@ namespace storagecontroller
                  .AddIconButton("arrow-up", PreviousGrid, button4, "pregrid")
                  .AddIconButton("arrow-down", NextGrid, button5, "nextgrid");
 
+            
             mainComposer.GetTextInput("search").SetPlaceHolderText(Lang.Get("Search..."));
-       
+            if (currentSearchText != "")
+            {
+                mainComposer.GetTextInput("search").SetValue(currentSearchText);
+            }
+
 
             GridSlots();
 
@@ -354,7 +359,7 @@ namespace storagecontroller
             }
 
             var compKey = Composers[gridCompKey];
-            if (compKey.GetSlotGrid("slotgrid") != null)
+            if (compKey!=null&& compKey.GetSlotGrid("slotgrid") != null)
             {
                 compKey.GetSlotGrid("slotgrid")
                     .DetermineAvailableSlots(slotIndices);
