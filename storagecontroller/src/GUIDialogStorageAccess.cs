@@ -424,7 +424,9 @@ namespace storagecontroller
             if (Composers[gridCompKey] != null)
             {
                 entityStorageController.SetVirtualInventory();
+                
                 StorageVirtualInv = entityStorageController.StorageVirtualInv;
+                
                 Composers[gridCompKey].Compose(true);
             }
         }
@@ -434,6 +436,7 @@ namespace storagecontroller
         {
             UpdateInv();
             GridSlots();
+            FilterItems();
             return true;
         }
 
