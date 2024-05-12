@@ -436,7 +436,7 @@ namespace storagecontroller
         {
             UpdateInv();
             GridSlots();
-            FilterItems();
+            //FilterItems();
             return true;
         }
 
@@ -580,6 +580,7 @@ namespace storagecontroller
             }
 
             stoCompKey.Compose(true);
+            FilterItems();
         }
     }
 }
