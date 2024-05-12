@@ -270,7 +270,7 @@ namespace storagecontroller
                     else if (SupportedCrates.Contains(block.EntityClass))
                     {
                         //add to empty list if empty
-                        if (blockEntityContainer.Inventory.Empty)
+                        if (blockEntityContainer.Inventory.Empty || blockEntityContainer.Inventory[0].Itemstack==null)
                         {
                             emptyslots.Add(blockEntityContainer.Inventory[0]);
                             slotreference[blockEntityContainer.Inventory[0]] = blockEntityContainer;

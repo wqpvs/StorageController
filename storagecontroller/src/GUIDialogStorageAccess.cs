@@ -184,6 +184,10 @@ namespace storagecontroller
 
         protected void ComposersDialog()
         {
+            if (currentSearchText != "")
+            {
+                FilterItems();
+            }
             //Main Element
             mainElement = ElementBounds.Fixed(0, 0, 650, 600);
 
@@ -266,16 +270,18 @@ namespace storagecontroller
 
             
             mainComposer.GetTextInput("search").SetPlaceHolderText(Lang.Get("Search..."));
-            if (currentSearchText != "")
-            {
-                mainComposer.GetTextInput("search").SetValue(currentSearchText);
-            }
+            
 
 
             GridSlots();
 
             mainComposer.EndChildElements();
             mainComposer.Compose();
+            if (currentSearchText != "")
+            {
+                mainComposer.GetTextInput("search").SetValue(currentSearchText);
+                FilterItemsBySearchText(currentSearchText);
+            }
         }
 
         protected void FilterItemsBySearchText(string text)
