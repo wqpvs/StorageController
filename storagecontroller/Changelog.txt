@@ -1,6 +1,10 @@
-﻿1.0.9
+﻿1.0.10
 Changes: - add ctrl click to take single
-Fixes: - fix filter being deleted on update
+Fixes:
+- fix filter being deleted on taking stacks (filter will remain when opening/closing)
+- fixes some crashing with crocks (hopefully)
+- fixed some other bugs
+- hopefully vanilla crate will behave a bit better
 
 TODO: - fix vanilla crates
  
