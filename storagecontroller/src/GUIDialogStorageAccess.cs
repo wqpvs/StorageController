@@ -516,7 +516,13 @@ namespace storagecontroller
             {
                 return;
             }
+
+            
             bool isblock = itemStack.ResolveBlockOrItem(capi.World);
+            if (capi.World.Player.Entity.Controls.CtrlKey)
+            {
+                itemStack.StackSize = 1;
+            }
 
             data = itemStack.ToBytes();
 

@@ -1,7 +1,8 @@
 ﻿1.0.9
+Fixes: - fix filter being deleted on update
+
 TODO: - fix vanilla crates
-- fix filter being deleted on update
-- add ctrl click to take single
+ - add ctrl click to take single
 
 1.0.8
 - massive overhaul courtesy of Mister Andy Dandy!

@@ -21,7 +21,7 @@ namespace storagecontroller
             if (op.MouseButton == EnumMouseButton.Left)
             {
 
-                if (op.ShiftDown || op.CtrlDown || op.AltDown)
+                if (op.ShiftDown || op.AltDown)
                 {
                     return false;
                 }

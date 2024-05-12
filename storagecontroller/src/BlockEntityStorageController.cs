@@ -664,7 +664,7 @@ namespace storagecontroller
 
                 // we got the stack now let's see if we can send it to the player
 
-                int stacksize = ReturnStack(virtualStack);
+                int stacksize = ReturnStack(virtualStack,1);
 
                 if (stacksize == 0) return;
 
@@ -747,7 +747,7 @@ namespace storagecontroller
         /// </summary>
         /// <param name="findstack"></param>
         /// <returns></returns>
-        public int ReturnStack(ItemStack VirtualStack)
+        public int ReturnStack(ItemStack VirtualStack,int max=99999)
         {
             int stacksize = 0;
 
@@ -768,8 +768,15 @@ namespace storagecontroller
 
                     if (MatchItemStack(slot.Itemstack, VirtualStack)) // < this works
                     {
-                        stacksize = slot.Itemstack.StackSize;
-                        slot.Itemstack = null;
+                        stacksize = Math.Min(slot.Itemstack.StackSize,max);
+                        if (stacksize >= slot.Itemstack.StackSize)
+                        {
+                            slot.Itemstack = null;
+                        }
+                        else
+                        {
+                            slot.Itemstack.StackSize -= stacksize;
+                        }
                         slot.MarkDirty();
                         blockEntityContainer.MarkDirty();
                         break;
