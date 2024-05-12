@@ -664,7 +664,7 @@ namespace storagecontroller
 
                 // we got the stack now let's see if we can send it to the player
 
-                int stacksize = ReturnStack(virtualStack,1);
+                int stacksize = ReturnStack(virtualStack,virtualStack.StackSize);
 
                 if (stacksize == 0) return;
 
