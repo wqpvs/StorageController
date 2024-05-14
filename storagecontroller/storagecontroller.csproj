@@ -79,4 +79,8 @@
   </Content>
 </ItemGroup>
 
+<ItemGroup>
+  <Folder Include="assets\storagecontroller\sounds\" />
+</ItemGroup>
+
 </Project>

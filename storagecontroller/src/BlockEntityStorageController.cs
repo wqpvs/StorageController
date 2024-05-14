@@ -336,13 +336,21 @@ namespace storagecontroller
                 
                 //NEXT CYCLE THRU OWN STACKS AND DISTRIBUTE
                 //  *Note we only do one transfer operation per tick, so the first successful one gets done then it returns
-                foreach (ItemSlot ownslot in Inventory)
+                for (int c=0;c<Inventory.Count;c++)
                 {
+                    ItemSlot ownslot = Inventory[c];
                     //skip empty slots
                     if (ownslot == null || ownslot.Itemstack == null || ownslot.Empty) { continue; }
                     ItemStack myitem = ownslot.Itemstack.GetEmptyClone();
                     if (myitem == null) { continue; }
-
+                    //eject food etc
+                    if (myitem.Collectible.TransitionableProps != null)
+                    {
+                        int[] array2 = { c };
+                        Inventory.DropSlots(Pos.ToVec3d(), array2);
+                        Api.World.PlaySoundAt(new AssetLocation("storagecontroller:sounds/eject"), Pos.X,Pos.Y,Pos.Z);
+                        return;
+                    }
                     //start trying to find an empty slot
                     ItemSlot outputslot = null;
                     if (priorityslots != null)
