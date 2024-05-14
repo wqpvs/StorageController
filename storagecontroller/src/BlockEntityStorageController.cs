@@ -48,6 +48,12 @@ namespace storagecontroller
 
         public int MaxPlayerRange => MaxRange + MaxRange;
 
+        protected int freeslots;
+        public virtual int FreeSlots => freeslots;
+
+        protected int allslots;
+        public virtual int AllSlots=> allslots;
+
         //bool dopruning = false; //should invalid locations be moved every time?
 
         private GUIDialogStorageAccess clientDialog;
@@ -321,7 +327,8 @@ namespace storagecontroller
                     }
 
                 }
-
+                freeslots = emptyslots.Count;
+                allslots = emptyslots.Count+populatedslots.Count;
                 //NEXT CYCLE THRU OWN STACKS AND DISTRIBUTE
                 //  *Note we only do one transfer operation per tick, so the first successful one gets done then it returns
                 foreach (ItemSlot ownslot in Inventory)
@@ -560,7 +567,8 @@ namespace storagecontroller
         {
             storageVirtualInv = null;
             List<ItemStack> newItemStackSet = new List<ItemStack>();
-            
+            allslots = 0;
+            freeslots = 0;
             if (ContainerList == null || ContainerList.Count == 0)
             {
                 storageVirtualInv = null;
@@ -574,27 +582,30 @@ namespace storagecontroller
 
                 if (blockEntityContainer == null || blockEntityContainer.Inventory == null || blockEntityContainer.Inventory.Empty)
                 {
+                    
                     continue;
                 }
 
                 // Iterate through each slot in the container's inventory
                 foreach (ItemSlot slot in blockEntityContainer.Inventory)
                 {
+                    allslots++;
                     // Check if the slot contains an item stack
                     if (!slot.Empty && slot.Itemstack != null && slot.StackSize > 0)
                     {
                         // Add the item stack to the new set
-                        ItemStack matchstack = newItemStackSet.FirstOrDefault(x => MatchItemStack(x, slot.Itemstack),null);
+                        ItemStack matchstack = newItemStackSet.FirstOrDefault(x => MatchItemStack(x, slot.Itemstack), null);
                         if (matchstack == null)
                         {
                             newItemStackSet.Add(slot.Itemstack.Clone());
                         }
                         else
                         {
-                            
+
                             matchstack.StackSize += slot.StackSize;
                         }
                     }
+                    else { freeslots++; }
                 }
             }
 
@@ -822,6 +833,10 @@ namespace storagecontroller
             else
             {
                 dsc.AppendLine("Not linked to any containers");
+            }
+            if (AllSlots > 0)
+            {
+                dsc.AppendLine($"{FreeSlots}/{AllSlots} linked slots used");
             }
         }
 
