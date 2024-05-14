@@ -1,7 +1,10 @@
 ﻿
 1.0.11
 - add free slots display
-- fix/change: will no longer show items with transitionable props (in general food)
+- fix/change: will no longer show items with transitionable props
+  (in general food, but also other things that decay/change over time),
+  will eject these items from its input slots
+- fixed up some descriptions
 
 1.0.10
 Changes: - add ctrl click to take single
