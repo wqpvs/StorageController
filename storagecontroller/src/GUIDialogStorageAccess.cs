@@ -331,7 +331,11 @@ namespace storagecontroller
 
             foreach (ItemSlot itemSlot in StorageVirtualInv)
             {
-                if (itemSlot.Itemstack == null || itemSlot.Empty) continue;
+                if (itemSlot.Itemstack == null || itemSlot.Empty||itemSlot.Itemstack.Collectible==null) continue;
+                if (itemSlot.Itemstack.Collectible.TransitionableProps != null)
+                {
+                    continue;
+                }
                 listSlots.Add(itemSlot);
             }
 
