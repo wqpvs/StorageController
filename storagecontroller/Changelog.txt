@@ -1,7 +1,7 @@
 ﻿
 1.0.11
 - add free slots display
-- fix/change: will no longer show items with transitionable props (eg rotting food etc)
+- fix/change: will no longer show items with transitionable props (in general food)
 
 1.0.10
 Changes: - add ctrl click to take single

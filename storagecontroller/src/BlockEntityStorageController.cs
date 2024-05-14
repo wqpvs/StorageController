@@ -54,6 +54,12 @@ namespace storagecontroller
         protected int allslots;
         public virtual int AllSlots=> allslots;
 
+        protected int freecrates;
+        public virtual int FreeCrates => freecrates;
+
+        protected int allcrates;
+        public virtual int AllCrates=> allcrates;
+
         //bool dopruning = false; //should invalid locations be moved every time?
 
         private GUIDialogStorageAccess clientDialog;
@@ -327,8 +333,7 @@ namespace storagecontroller
                     }
 
                 }
-                freeslots = emptyslots.Count;
-                allslots = emptyslots.Count+populatedslots.Count;
+                
                 //NEXT CYCLE THRU OWN STACKS AND DISTRIBUTE
                 //  *Note we only do one transfer operation per tick, so the first successful one gets done then it returns
                 foreach (ItemSlot ownslot in Inventory)
@@ -569,6 +574,8 @@ namespace storagecontroller
             List<ItemStack> newItemStackSet = new List<ItemStack>();
             allslots = 0;
             freeslots = 0;
+            allcrates = 0;
+            freecrates = 0;
             if (ContainerList == null || ContainerList.Count == 0)
             {
                 storageVirtualInv = null;
@@ -585,14 +592,17 @@ namespace storagecontroller
                     
                     continue;
                 }
-
+                bool iscrate = supportedCrates.Contains(blockEntityContainer.Block.EntityClass);
+                bool isemptycrate = true;
+                if (iscrate) { allcrates++; }
                 // Iterate through each slot in the container's inventory
                 foreach (ItemSlot slot in blockEntityContainer.Inventory)
                 {
-                    allslots++;
+                    if (!iscrate) { allslots++; }
                     // Check if the slot contains an item stack
                     if (!slot.Empty && slot.Itemstack != null && slot.StackSize > 0)
                     {
+                        isemptycrate = false;
                         // Add the item stack to the new set
                         ItemStack matchstack = newItemStackSet.FirstOrDefault(x => MatchItemStack(x, slot.Itemstack), null);
                         if (matchstack == null)
@@ -605,8 +615,9 @@ namespace storagecontroller
                             matchstack.StackSize += slot.StackSize;
                         }
                     }
-                    else { freeslots++; }
+                    else { if (!iscrate)freeslots++; }
                 }
+                if (iscrate && isemptycrate) { freecrates++; }
             }
 
             //if (!HashSet<ItemStack>.CreateSetComparer().Equals(newItemStackSet, AllItemStackSet))
@@ -828,15 +839,29 @@ namespace storagecontroller
             { dsc.AppendLine("Transfers full Stacks at a time"); }
             if (!(ContainerList == null) && ContainerList.Count > 0)
             {
-                dsc.AppendLine($"Linked to {ContainerList.Count} containers.");
+                dsc.AppendLine($"<strong>Linked to {ContainerList.Count} containers.</strong>");
             }
             else
             {
                 dsc.AppendLine("Not linked to any containers");
             }
+            if ((AllSlots > 0 || AllCrates > 0) && (FreeSlots == 0 && FreeCrates == 0))
+            {
+                dsc.AppendLine("<font color=#ff0000><strong>STORAGE SYSTEM FULL!</strong></font>");
+            }
             if (AllSlots > 0)
             {
-                dsc.AppendLine($"{FreeSlots}/{AllSlots} linked slots used");
+                string f = "";
+                if (FreeSlots == 0) { f = " color=#ff0000"; }
+                else if (FreeSlots < 4) { f = " color=#ff9900"; }
+                else if (FreeSlots < 8) { f = " color=#ffff00"; }
+                dsc.AppendLine($"<font{f}><strong>{FreeSlots}/{AllSlots} chest slots empty</strong></font>");
+            }
+            if (AllCrates > 0)
+            {
+                string f = "";
+                if (FreeCrates == 0) { f = " color=#ff0000"; }
+                dsc.AppendLine($"<font{f}><strong>{FreeCrates}/{AllCrates} crates are empty</strong></font>");
             }
         }
 
