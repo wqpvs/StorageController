@@ -322,7 +322,7 @@ namespace storagecontroller
         public void FilterItems()
         {
             // Convert the search text to lowercase for case-insensitive comparison
-            string text = currentSearchText?.RemoveDiacritics().ToLowerInvariant();
+            string text = currentSearchText.ToLowerInvariant();
 
             List<ItemSlot> listSlots = new List<ItemSlot>();
 
