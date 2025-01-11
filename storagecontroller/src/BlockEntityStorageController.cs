@@ -82,7 +82,7 @@ namespace storagecontroller
         {
             base.Initialize(api);
 
-            supportedChests = new List<string> { "GenericTypedContainer", "BEGenericSortableTypedContainer", "BESortableLabeledChest", "LabeledChest", "StorageControllerMaster" };
+            supportedChests = new List<string> { "GenericTypedContainer", "BEGenericSortableTypedContainer", "BESortableLabeledChest", "LabeledChest", "StorageControllerMaster","BEDecoContainer" };
             supportedCrates = new List<string> { "BBetterCrate", "BEBetterCrate", "Crate" };
 
             if (Block.Attributes != null)
