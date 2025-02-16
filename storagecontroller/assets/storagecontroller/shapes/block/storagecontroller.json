@@ -17,7 +17,11 @@
 	},
 	"textures": {
 		"Main-Iron": "block/Main-Iron",
-		"sides": "block/sides-iron"
+		"sides": "block/sides-iron",
+		"block": "game:block/metal/plate/bismuth",
+		"drives": "block/drives",
+		"screen": "block/screen",
+		"normal-generic-block": "game:block/metal/plate/bismuth"
 	},
 	"elements": [
 		{
