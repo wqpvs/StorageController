@@ -282,7 +282,7 @@ namespace storagecontroller
                     else if (SupportedCrates.Contains(block.EntityClass))
                     {
                         //add to empty list if empty
-                        if (blockEntityContainer.Inventory.Empty || blockEntityContainer.Inventory[0].Itemstack==null)
+                        if (blockEntityContainer.Inventory.Empty )
                         {
                             emptyslots.Add(blockEntityContainer.Inventory[0]);
                             slotreference[blockEntityContainer.Inventory[0]] = blockEntityContainer;
@@ -290,23 +290,31 @@ namespace storagecontroller
                         else
                         {
                             //use the contents of the first slot to set what this crate should contain
-                            ItemStack inslot = blockEntityContainer.Inventory[0].Itemstack.GetEmptyClone();
+                            ItemStack inslot = null;//blockEntityContainer.Inventory[0].Itemstack.GetEmptyClone();
                             foreach (ItemSlot crateslot in blockEntityContainer.Inventory)
                             {
-                                //if (crateslot.Itemstack == null || crateslot.Itemstack.Collectible == null) { continue; }
-                                if (crateslot.StackSize < inslot.Collectible.MaxStackSize)
+                                if (inslot == null && crateslot.Itemstack?.Collectible != null && crateslot.StackSize>0) { inslot = crateslot.Itemstack;break; }
+                            }
+                            if (inslot != null)
+                            {
+                                foreach (ItemSlot crateslot in blockEntityContainer.Inventory)
                                 {
-                                    if (priorityslots.ContainsKey(inslot))
+                                    //if (crateslot.Itemstack == null || crateslot.Itemstack.Collectible == null) { continue; }
+
+                                    if (crateslot.StackSize < inslot.Collectible.MaxStackSize)
                                     {
-                                        priorityslots[inslot].Add(crateslot);
-                                        slotreference[crateslot] = blockEntityContainer;
-                                        break;
-                                    }
-                                    else
-                                    {
-                                        priorityslots[inslot] = new List<ItemSlot> { crateslot };
-                                        slotreference[crateslot] = blockEntityContainer;
-                                        break;
+                                        if (priorityslots.ContainsKey(inslot))
+                                        {
+                                            priorityslots[inslot].Add(crateslot);
+                                            slotreference[crateslot] = blockEntityContainer;
+                                            break;
+                                        }
+                                        else
+                                        {
+                                            priorityslots[inslot] = new List<ItemSlot> { crateslot };
+                                            slotreference[crateslot] = blockEntityContainer;
+                                            break;
+                                        }
                                     }
                                 }
                             }

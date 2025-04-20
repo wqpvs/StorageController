@@ -1,4 +1,7 @@
 ﻿
+1.1.6
+- fix crates
+
 1.1.4
 - fixed not sending items to decorative containers
 
