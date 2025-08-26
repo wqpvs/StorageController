@@ -1,6 +1,10 @@
 ﻿
+1.2.1
+- for Vintage Story 1.21
+
 1.1.6
-- fix crates
+- fix wrong items going into crates
+- crates seem to freeze up the controller
 
 1.1.4
 - fixed not sending items to decorative containers

@@ -318,6 +318,10 @@ namespace storagecontroller
                                     }
                                 }
                             }
+                            else
+                            {
+                                int uhoh = 1;
+                            }
                         }
                     }
                     //last of all deal with chests - slot by slot
