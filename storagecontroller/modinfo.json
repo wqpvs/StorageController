@@ -3,11 +3,10 @@
     "modid": "storagecontroller",
     "name": "Storage Controller",
     "authors": [
-        "WQP"
+        "QPTech"
     ],
     "description": "Adds a central block for sorting storage",
-    "version": "1.1.6",
-    "dependencies": {
-        "game": ""
-    }
+    "version": "1.2.2"
+    
 }
+

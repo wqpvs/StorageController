@@ -103,9 +103,9 @@ namespace storagecontroller
         public InventoryBase InventoryBase;
 
         public bool toggle = false;
-        public override AssetLocation CloseSound { get => entityStorageController.CloseSound; set => entityStorageController.CloseSound = value; }
+        //public override AssetLocation CloseSound { get => entityStorageController.CloseSound.Location; set => entityStorageController.CloseSound.Location = value; }
 
-        public override AssetLocation OpenSound { get => entityStorageController.OpenSound; set => entityStorageController.OpenSound = value; }
+       // public override AssetLocation OpenSound { get => entityStorageController.OpenSound.Location; set => entityStorageController.OpenSound.Location = value; }
 
         public InventoryBase inventoryBin;
 
