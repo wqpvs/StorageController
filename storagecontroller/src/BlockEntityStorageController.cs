@@ -37,7 +37,7 @@ namespace storagecontroller
 
         public virtual List<string> SupportedCrates => supportedCrates;
 
-        private int tickTime = 250;
+        private int tickTime = 500;
         public virtual int TickTime => tickTime; //how many ms between ticks
 
         private int maxTransferPerTick = 1;
@@ -98,7 +98,7 @@ namespace storagecontroller
             }
             else if (Api is ICoreClientAPI ICoreClientAPI) 
             {
-                RegisterGameTickListener(OnClientTick, 200);
+                RegisterGameTickListener(OnClientTick, TickTime);
             }
         }
 

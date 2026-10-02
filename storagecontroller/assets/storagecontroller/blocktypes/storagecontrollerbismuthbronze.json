@@ -45,9 +45,9 @@
 		},
 		"variantByGroup": "side",
 		"variantByGroupInventory": null,
-		"maxTransferPerTick": 2,
+		"maxTransferPerTick": 500,
 		"maxRange": 16,
-		"tickTime": 250
+		"tickTime": 500
 	},
 
 	"behaviors": [
