@@ -1,4 +1,15 @@
-﻿1.2.2
+﻿1.x.x
+- coded storage
+  - craft a storage nodule
+  - save with an id and a password
+  - nodules increase that id's storage space
+  - saved to game data somewhere?
+  - what about just having an item?
+  - UI
+
+
+
+1.2.2
 - new storage controller stats to improve performance:
   - all tick every 500 ms, but can move 500 items (which is 99% of the time going to be a full stack)
   (if a storage controller ticks and its not empty it has to check all its controller inventory)
