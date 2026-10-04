@@ -1,0 +1,127 @@
+{
+	"code": "virtualstoragekey",
+	"class": "ItemVirtualStorageAccess",
+	"creativeinventory": {
+		"storagecontroller": [ "*" ]
+	},
+	"drawtype": "json",
+	"shape": { "base": "item/itemstoragelinker" },
+	"maxstacksize": 1,
+	
+	"attributes": {
+		"rackable": true,
+		"toolrackTransform": {
+			"translation": {
+				"x": 0.4,
+				"y": -0.5,
+				"z": 0
+			},
+			"rotation": {
+				"x": 180,
+				"y": 0,
+				"z": 0
+			},
+			"scale": 1.2
+		},
+		"groundStorageTransform": {
+			"translation": {
+				"x": 0.125,
+				"y": 0,
+				"z": -0.125
+			},
+			"rotation": {
+				"x": 0,
+				"y": 45,
+				"z": 0
+			}
+		}
+	},
+	"behaviors": [
+		{
+			"name": "GroundStorable",
+			"properties": {
+				"layout": "Quadrants",
+				"collisionBox": {
+					"x1": 0,
+					"y1": 0,
+					"z1": 0,
+					"x2": 1,
+					"y2": 0.0625,
+					"z2": 1
+				}
+			}
+		}
+	],
+	"textures": {
+		"screen": {
+			"base": "storagecontroller:item/screen"
+		},
+		"buttom": {
+			"base": "game:block/stone/rubble"
+		},
+		"wood": {
+			"base": "game:block/wood/debarked/oak"
+		},
+		"metal": {
+			"base": "game:block/metal/plate/steel"
+		}
+	},
+	"guiTransform": {
+		"translation": {
+			"x": 0,
+			"y": 1,
+			"z": 0
+		},
+		"rotation": {
+			"x": 115,
+			"y": -60,
+			"z": -5
+		},
+		"origin": {
+			"x": 0.35,
+			"y": 0.05,
+			"z": 0.48
+		},
+		"scaleXyz": {
+			"x": -2.8,
+			"y": 2.8,
+			"z": 2.8
+		}
+	},
+	"tpHandTransform": {
+		"translation": {
+			"x": -0.85,
+			"y": -0.1,
+			"z": -0.48
+		},
+		"rotation": {
+			"x": -5,
+			"y": -1,
+			"z": -16
+		},
+		"origin": {
+			"x": 0.5,
+			"y": 0,
+			"z": 0.5
+		},
+		"scale": 1.05
+	},
+	"groundTransform": {
+		"translation": {
+			"x": 0,
+			"y": 0,
+			"z": 0
+		},
+		"rotation": {
+			"x": 0,
+			"y": 0,
+			"z": 0
+		},
+		"origin": {
+			"x": 0.5,
+			"y": 0,
+			"z": 0.5
+		},
+		"scale": 4.31
+	}
+}

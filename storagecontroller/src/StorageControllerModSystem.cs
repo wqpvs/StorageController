@@ -5,16 +5,32 @@ using Vintagestory.API.Client;
 using Vintagestory.API.MathTools;
 using HarmonyLib;
 using System.Reflection;
+using Vintagestory.API.Server;
 
 namespace StorageController
 {
     public class StorageControllerModSystem : ModSystem
     {
         private ICoreClientAPI capi;
+        private ICoreServerAPI sapi;
+        public INetworkChannel storagenet;
 
         public override void StartPre(ICoreAPI api)
         {
-            base.StartPre(api);
+            if (api is ICoreClientAPI)
+            {
+                capi= (ICoreClientAPI)api;
+                storagenet = capi.Network.RegisterChannel("storagenet").RegisterMessageType(typeof(string));
+                
+            }
+            else
+            {
+                sapi= (ICoreServerAPI)api;
+                storagenet = sapi.Network.RegisterChannel("storagenet")
+                    .RegisterMessageType((typeof(string))).
+                    SetMessageHandler<string>(TextMessageHandler);
+            }
+                base.StartPre(api);
         }
 
         public override void Start(ICoreAPI api)
@@ -24,6 +40,7 @@ namespace StorageController
             api.RegisterBlockEntityClass("StorageControllerMaster", typeof(BlockEntityStorageController));
             api.RegisterItemClass("ItemStorageLinker", typeof(ItemStorageLinker));
             api.RegisterBlockClass("BlockStorageController", typeof(BlockStorageController));
+            api.RegisterItemClass("ItemVirtualStorageAccess", typeof(ItemVirtualStorageAccess));
 
         }
 
@@ -50,5 +67,11 @@ namespace StorageController
                 capi.Gui.DrawSvg(svgAsset, ctx.GetTarget() as ImageSurface, x, y, (int)w, (int)h, new int?(value));
             };
         }
+        private void TextMessageHandler(IPlayer fromplayer, string message)
+        {
+            if (message == null || message == "") { message = fromplayer.PlayerUID; }
+            sapi.SendMessage(fromplayer,0, message,EnumChatType.OwnMessage);
+        }
+
     }
 }
